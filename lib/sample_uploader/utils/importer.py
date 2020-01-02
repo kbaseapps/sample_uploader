@@ -45,13 +45,13 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
         if row['id']:
             sample = {
                 'node_tree': [{
-                    "id": row['id'],
+                    "id": str(row['id']),
                     "parent": None,
                     "type": "BioReplicate",
                     "meta_controlled": {},
                     "meta_user": generate_metadata(row, cols, column_groups)
                 }],
-                'name': row['name'],
+                'name': str(row['name']),
             }
             # print(json.dumps(sample, indent=2, default=str), ',')
             sample_ids.append(save_sample(sample, sample_url, token))

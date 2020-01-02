@@ -46,6 +46,7 @@ class sample_uploaderTest(unittest.TestCase):
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         cls.wiz_url = cls.cfg['srv-wiz-url']
+        cls.sample_url = get_sample_service_url(cls.wiz_url)
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
@@ -61,7 +62,8 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(s['name'], sc['name'])
         self.assertEqual(s['node_tree'], sc['node_tree'])
 
-    def verify_samples(self, sample_set, sample_url, token, compare):   
+    def verify_samples(self, sample_set, compare):
+        token = self.ctx['token']
         for it, samp_id in enumerate(sample_set['sample_ids']):
             headers = {"Authorization": token}
             params = {
@@ -73,13 +75,14 @@ class sample_uploaderTest(unittest.TestCase):
                 "params": [params],
                 "version": "1.1"
             }
-            resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload))
+            resp = requests.post(url=self.sample_url, headers=headers, data=json.dumps(payload))
             resp_json = resp.json()
             if resp_json.get('error'):
                 raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
             sample = resp_json['result'][0]
             self.compare_sample(sample, compare[it])
 
+    # @unittest.skip('x')
     def test_upload_sample_from_csv(self):
         # Prepare test objects in workspace if needed using
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
@@ -91,19 +94,17 @@ class sample_uploaderTest(unittest.TestCase):
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
-        sample_url = get_sample_service_url(self.wiz_url)
-        self.verify_samples(sample_set, sample_url, self.ctx['token'], compare_to)
+        self.verify_samples(sample_set, compare_to)
 
-    # def test_upload_sample_from_xls(self):
-    #     sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
-    #     params = {
-    #         'workspace_name': self.wsName,
-    #         'sample_file': sample_file,
-    #         'file_format': "SESAR"
-    #     }
-    #     sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
-    #     # print('-'*80)
-    #     # print(ret)
-    #     # print('-'*80)
-
-
+    # @unittest.skip('x')
+    def test_upload_sample_from_xls(self):
+        sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+        params = {
+            'workspace_name': self.wsName,
+            'sample_file': sample_file,
+            'file_format': "SESAR"
+        }
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
+        with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
+            compare_to = json.load(f)
+        self.verify_samples(sample_set, compare_to)
