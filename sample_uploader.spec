@@ -3,14 +3,23 @@ A KBase module: sample_uploader
 */
 
 module sample_uploader {
+
+	typedef string sample_id;
+
+	typedef structure {
+		string sample_file;
+		string workspace_name;
+		string file_format;
+	} ImportSampleInputs;
+
+	typedef structure {
+		list<sample_id> sample_ids;
+	} SampleSet;
+
     typedef structure {
-        string report_name;
+        SampleSet sample_set;
         string report_ref;
-    } ReportResults;
+    } ImportSampleOutputs;
 
-    /*
-        This example function accepts any number of parameters and returns results in a KBaseReport
-    */
-    funcdef run_sample_uploader(mapping<string,UnspecifiedObject> params) returns (ReportResults output) authentication required;
-
+    funcdef import_samples(ImportSampleInputs params) returns (ImportSampleOutputs output) authentication required;
 };

@@ -338,10 +338,10 @@ class Application(object):
         self.serverlog.set_log_level(6)
         self.rpc_service = JSONRPCServiceCustom()
         self.method_authentication = dict()
-        self.rpc_service.add(impl_sample_uploader.run_sample_uploader,
-                             name='sample_uploader.run_sample_uploader',
+        self.rpc_service.add(impl_sample_uploader.import_samples,
+                             name='sample_uploader.import_samples',
                              types=[dict])
-        self.method_authentication['sample_uploader.run_sample_uploader'] = 'required'  # noqa
+        self.method_authentication['sample_uploader.import_samples'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])

@@ -4,6 +4,8 @@ import logging
 import os
 
 from installed_clients.KBaseReportClient import KBaseReport
+from .utils.importer import import_samples_from_file
+from .utils.mappings import SESAR_verification_mapping, SESAR_cols_mapping, SESAR_groups
 #END_HEADER
 
 
@@ -23,8 +25,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = ""
-    GIT_COMMIT_HASH = ""
+    GIT_URL = "https://github.com/slebras/sample_uploader"
+    GIT_COMMIT_HASH = "180dffe89c909ac3e5cb477bc8eede2d0994d05a"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -35,13 +37,14 @@ class sample_uploader:
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.shared_folder = config['scratch']
+        self.sw_url = config['srv-wiz-url']
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
         #END_CONSTRUCTOR
         pass
 
 
-    def run_sample_uploader(self, ctx, params):
+    def import_samples(self, ctx, params):
         """
         This example function accepts any number of parameters and returns results in a KBaseReport
         :param params: instance of mapping from String to unspecified object
@@ -50,20 +53,23 @@ class sample_uploader:
         """
         # ctx is the context object
         # return variables are: output
-        #BEGIN run_sample_uploader
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
-                                                'workspace_name': params['workspace_name']})
-        output = {
-            'report_name': report_info['name'],
-            'report_ref': report_info['ref'],
-        }
-        #END run_sample_uploader
+        #BEGIN import_samples
+        if params.get('file_format') == 'SESAR':
+            output = import_samples_from_file(
+                params,
+                self.sw_url,
+                ctx['token'],
+                SESAR_verification_mapping,
+                SESAR_cols_mapping,
+                SESAR_groups,
+            )
+        else:
+            raise ValueError(f"Only SESAR format is currently supported for importing samples.")
+        #END import_samples
 
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
-            raise ValueError('Method run_sample_uploader return value ' +
+            raise ValueError('Method import_samples return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

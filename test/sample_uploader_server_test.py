@@ -2,12 +2,15 @@
 import os
 import time
 import unittest
+import requests
+import uuid
+import json
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-
+from sample_uploader.utils.sample_utils import get_sample_service_url
 from installed_clients.WorkspaceClient import Workspace
 
 
@@ -40,7 +43,9 @@ class sample_uploaderTest(unittest.TestCase):
         cls.wsURL = cls.cfg['workspace-url']
         cls.wsClient = Workspace(cls.wsURL)
         cls.serviceImpl = sample_uploader(cls.cfg)
+        cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
+        cls.wiz_url = cls.cfg['srv-wiz-url']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
@@ -51,17 +56,54 @@ class sample_uploaderTest(unittest.TestCase):
         if hasattr(cls, 'wsName'):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
+    
+    def compare_sample(self, s, sc):
+        self.assertEqual(s['name'], sc['name'])
+        self.assertEqual(s['node_tree'], sc['node_tree'])
 
-    # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    def test_your_method(self):
+    def verify_samples(self, sample_set, sample_url, token, compare):   
+        for it, samp_id in enumerate(sample_set['sample_ids']):
+            headers = {"Authorization": token}
+            params = {
+                "id": samp_id,
+            }
+            payload = {
+                "method": "SampleService.get_sample",
+                "id": str(uuid.uuid4()),
+                "params": [params],
+                "version": "1.1"
+            }
+            resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload))
+            resp_json = resp.json()
+            if resp_json.get('error'):
+                raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+            sample = resp_json['result'][0]
+            self.compare_sample(sample, compare[it])
+
+    def test_upload_sample_from_csv(self):
         # Prepare test objects in workspace if needed using
-        # self.getWsClient().save_objects({'workspace': self.getWsName(),
-        #                                  'objects': []})
-        #
-        # Run your method by
-        # ret = self.getImpl().your_method(self.getContext(), parameters...)
-        #
-        # Check returned data with
-        # self.assertEqual(ret[...], ...) or other unittest methods
-        ret = self.serviceImpl.run_sample_uploader(self.ctx, {'workspace_name': self.wsName,
-                                                             'parameter_1': 'Hello World!'})
+        sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
+        params = {
+            'workspace_name': self.wsName,
+            'sample_file': sample_file,
+            'file_format': "SESAR"
+        }
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
+        with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
+            compare_to = json.load(f)
+        sample_url = get_sample_service_url(self.wiz_url)
+        self.verify_samples(sample_set, sample_url, self.ctx['token'], compare_to)
+
+    # def test_upload_sample_from_xls(self):
+    #     sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+    #     params = {
+    #         'workspace_name': self.wsName,
+    #         'sample_file': sample_file,
+    #         'file_format': "SESAR"
+    #     }
+    #     sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
+    #     # print('-'*80)
+    #     # print(ret)
+    #     # print('-'*80)
+
+
