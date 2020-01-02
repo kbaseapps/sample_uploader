@@ -1,3 +1,7 @@
+# sample_uploader
+
+this module supports upload of the sample objects into kbase. It accepts '.csv' and '.xls' files in the SESAR format. For specifics on the format visit the SESAR webpage [here](http://www.geosamples.org).
+
 # Setup and test
 
 Add your KBase developer token to `test_local/test.cfg` and run the following:
@@ -9,16 +13,8 @@ $ kb-sdk test
 
 After making any additional changes to this repo, run `kb-sdk test` again to verify that everything still works.
 
-# Installation from another module
-
-To use this code in another SDK module, call `kb-sdk install sample_uploader` in the other module's root directory.
-
-# Help
-
-You may find the answers to your questions in our [FAQ](https://kbase.github.io/kb_sdk_docs/references/questions_and_answers.html) or [Troubleshooting Guide](https://kbase.github.io/kb_sdk_docs/references/troubleshooting.html).
-
-# SamplesSet
-
+# SampleSet specification
+SampleSet specification used in this module:
 ```
 typedef string sample_id;
 
