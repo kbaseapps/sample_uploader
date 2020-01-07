@@ -18,8 +18,13 @@ SampleSet specification used in this module:
 ```
 typedef string sample_id;
 
-typedef struct {
-	list<sample_id> sample_ids;
+typedef structure {
+	sample_id id;
+	string name;
+} sample_info;
+
+typedef structure {
+	list<sample_info> samples;
 } SampleSet;
 
 ```

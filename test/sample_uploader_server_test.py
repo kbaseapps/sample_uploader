@@ -64,7 +64,8 @@ class sample_uploaderTest(unittest.TestCase):
 
     def verify_samples(self, sample_set, compare):
         token = self.ctx['token']
-        for it, samp_id in enumerate(sample_set['sample_ids']):
+        for it, samp in enumerate(sample_set['samples']):
+            samp_id = samp['id']
             headers = {"Authorization": token}
             params = {
                 "id": samp_id,

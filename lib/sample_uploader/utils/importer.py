@@ -40,9 +40,10 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
     # process and save samples
     sample_url = get_sample_service_url(sw_url)
 
-    sample_ids = []
+    samples = []
     for idx, row in df.iterrows():
         if row['id']:
+            name  = str(row['name'])
             sample = {
                 'node_tree': [{
                     "id": str(row['id']),
@@ -51,11 +52,14 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
                     "meta_controlled": {},
                     "meta_user": generate_metadata(row, cols, column_groups)
                 }],
-                'name': str(row['name']),
+                'name': name,
             }
             # print(json.dumps(sample, indent=2, default=str), ',')
             sample_id = save_sample(sample, sample_url, token)
-            sample_ids.append(sample_id)
+            samples.append({
+                "id": sample_id,
+                "name": name
+            })
             # check input for any reason to update access control list
             # should have a "writer", "reader", "admin" entry
             writer = row.get('writer')
@@ -63,13 +67,13 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
             admin  = row.get('admin')
             if writer or reader or admin:
                 acls = {
-                    "reader": reader,
-                    "writer": writer,
-                    "admin": admin
+                    "reader": [r for r in reader],
+                    "writer": [w for w in writer],
+                    "admin": [a for a in admin]
                 }
                 update_acls(sample_url, sample_id, acls)
         else:
             raise RuntimeError(f"{row['id']} evaluates as false")
     return {
-        "sample_ids": sample_ids
+        "samples": samples
     }

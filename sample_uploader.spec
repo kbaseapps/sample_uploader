@@ -13,7 +13,12 @@ module sample_uploader {
 	} ImportSampleInputs;
 
 	typedef structure {
-		list<sample_id> sample_ids;
+		sample_id id;
+		string name;
+	} sample_info;
+
+	typedef structure {
+		list<sample_info> samples;
 	} SampleSet;
 
     typedef structure {

@@ -4,7 +4,7 @@
         "slebras"
     ],
     "contact": "help@kbase.us",
-    "categories": ["active", "upload"],
+    "categories": ["inactive", "upload"],
     "widgets": {
         "input": null,
         "output": null
