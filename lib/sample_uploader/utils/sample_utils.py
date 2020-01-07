@@ -9,12 +9,13 @@ def update_acls(sample_url, sample_id, acls):
     Query sample service to replace access control list for given sample id.
         sample_url - url of sample service
         sample_id - id of sample as given by sample service
-        acls - dictionary string keys and list values (except for "owner") mapping access type to username.
+        acls - dictionary string keys and list values mapping access type to username.
             {
                 "admin": ["user1", "user3", ...],
                 "write": ["user2", ..],
                 "read": ["user4"]
             }
+        "owner" value currently not updateable
     """
     ReplaceSampleACLsParams = {
         "acls": acls,
