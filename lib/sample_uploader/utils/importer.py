@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 import time
 import json
-from .sample_utils import get_sample_service_url, save_sample, generate_metadata
+from .sample_utils import get_sample_service_url, save_sample, generate_metadata, update_acls
 
 REGULATED_COLS = ['name', 'id', 'parent_id']
 
@@ -54,7 +54,20 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
                 'name': str(row['name']),
             }
             # print(json.dumps(sample, indent=2, default=str), ',')
-            sample_ids.append(save_sample(sample, sample_url, token))
+            sample_id = save_sample(sample, sample_url, token)
+            sample_ids.append(sample_id)
+            # check input for any reason to update access control list
+            # should have a "writer", "reader", "admin" entry
+            writer = row.get('writer')
+            reader = row.get('reader')
+            admin  = row.get('admin')
+            if writer or reader or admin:
+                acls = {
+                    "reader": reader,
+                    "writer": writer,
+                    "admin": admin
+                }
+                update_acls(sample_url, sample_id, acls)
         else:
             raise RuntimeError(f"{row['id']} evaluates as false")
     return {

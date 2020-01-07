@@ -4,6 +4,34 @@ import json
 import pandas as pd
 
 
+def update_acls(sample_url, sample_id, acls):
+    """
+    Query sample service to replace access control list for given sample id.
+        sample_url - url of sample service
+        sample_id - id of sample as given by sample service
+        acls - dictionary string keys and list values (except for "owner") mapping access type to username.
+            {
+                "admin": ["user1", "user3", ...],
+                "write": ["user2", ..],
+                "read": ["user4"]
+            }
+    """
+    ReplaceSampleACLsParams = {
+        "acls": acls,
+        "id": sample_id
+    }
+    payload = {
+        "method": "SampleService.replace_sample_acls",
+        "id": str(uuid.uuid4()),
+        "params": [ReplaceSampleACLsParams],
+        "version": "1.1"
+    }
+    resp = requests.post(url=sample_url, data=json.dumps(payload), headers=headers)
+    resp_json = resp.json()
+    if resp_json.get('error'):
+        raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+
+
 def get_sample_service_url(sw_url):
     """"""
     payload = {
