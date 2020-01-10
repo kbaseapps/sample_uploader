@@ -9,7 +9,10 @@ module sample_uploader {
 	typedef structure {
 		string sample_file;
 		string workspace_name;
+		int workspace_id;
 		string file_format;
+		string description;
+		string set_name;
 	} ImportSampleInputs;
 
 	typedef structure {
@@ -19,11 +22,12 @@ module sample_uploader {
 
 	typedef structure {
 		list<sample_info> samples;
+		string description;
 	} SampleSet;
 
     typedef structure {
         SampleSet sample_set;
-        string report_ref;
+        string ref;
     } ImportSampleOutputs;
 
     funcdef import_samples(ImportSampleInputs params) returns (ImportSampleOutputs output) authentication required;

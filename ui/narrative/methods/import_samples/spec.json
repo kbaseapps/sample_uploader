@@ -9,7 +9,7 @@
         "input": null,
         "output": null
     },
-    "parameters": [ 
+    "parameters": [
         {
             "id": "sample_file",
             "optional" : false,
@@ -36,7 +36,24 @@
                     }
                 ]
             }
-
+        },
+        {
+            "id": "set_name",
+            "optional" : false,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "" ],
+            "field_type" : "text",
+            "text_options" : {}
+        },
+        {
+            "id": "description",
+            "optional" : false,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "" ],
+            "field_type" : "text",
+            "text_options" : {}
         }
     ],
     "behavior": {
@@ -49,11 +66,20 @@
                     "narrative_system_variable": "workspace",
                     "target_property": "workspace_name"
                 },{
+                    "narrative_system_variable": "workspace_id",
+                    "target_property": "workspace_id"
+                },{
                     "input_parameter": "sample_file",
                     "target_property": "sample_file"
                 },{
                     "input_parameter": "file_format",
                     "target_property": "file_format"
+                },{
+                    "input_parameter": "set_name",
+                    "target_property": "set_name"
+                },{
+                    "input_parameter": "description",
+                    "target_property": "description"
                 }
             ],
             "output_mapping": [

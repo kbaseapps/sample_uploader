@@ -75,5 +75,6 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
         else:
             raise RuntimeError(f"{row['id']} evaluates as false")
     return {
-        "samples": samples
+        "samples": samples,
+        "description": params.get('description')
     }

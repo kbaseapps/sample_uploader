@@ -51,6 +51,7 @@ class sample_uploaderTest(unittest.TestCase):
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
+        cls.wsID = ret[0]
 
     @classmethod
     def tearDownClass(cls):
@@ -89,10 +90,13 @@ class sample_uploaderTest(unittest.TestCase):
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
         params = {
             'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "SESAR"
+            'file_format': "SESAR",
+            'set_name': 'test1',
+            'description': "this is a test sample set."
         }
-        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
@@ -102,10 +106,13 @@ class sample_uploaderTest(unittest.TestCase):
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         params = {
             'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "SESAR"
+            'file_format': "SESAR",
+            'set_name': 'test2',
+            'description': "this is a test sample set."
         }
-        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
