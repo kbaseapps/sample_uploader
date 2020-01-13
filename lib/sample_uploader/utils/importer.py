@@ -2,8 +2,8 @@ import pandas as pd
 import datetime
 import time
 import json
+import os
 from .sample_utils import get_sample_service_url, save_sample, generate_metadata, update_acls
-from installed_clients.DataFileUtilClient import DataFileUtil
 
 REGULATED_COLS = ['name', 'id', 'parent_id']
 
