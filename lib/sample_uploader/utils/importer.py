@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 from .sample_utils import get_sample_service_url, save_sample, generate_metadata, update_acls
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 REGULATED_COLS = ['name', 'id', 'parent_id']
 
@@ -27,6 +28,13 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
     if not params.get('workspace_name'):
         raise ValueError(f"workspace_name argument required in params: {params}")
     sample_file = params.get('sample_file')
+    # make sure that sample file exists,
+    if not os.path.isfile(sample_file):
+        # try prepending '/staging/' to file and check then
+        if os.path.isfile(os.path.join('/staging', sample_file)):
+            sample_file = os.path.join('/staging', sample_file)
+        else:
+            raise ValueError(f"input file {sample_file} does not exist.")
     ws_name = params.get('workspace_name')
 
     if sample_file.endswith('.csv') or sample_file.endswith('.tsv'):
