@@ -37,6 +37,9 @@ class sample_uploader:
     # be found
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
+        print('+'*80)
+        print(json.dumps(config, indent=2))
+        print('+'*80)
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.shared_folder = config['scratch']
         self.sw_url = config.get('srv-wiz-url', config.get('kbase-endpoint') + '/service_wizard' )
