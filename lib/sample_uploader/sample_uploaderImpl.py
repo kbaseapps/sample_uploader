@@ -39,6 +39,9 @@ class sample_uploader:
         #BEGIN_CONSTRUCTOR
         print('+'*80)
         print(json.dumps(config, indent=2))
+        print('-'*80)
+        with open(os.environ.get('KB_DEPLOYMENT_CONFIG')) as f:
+            print(f.read())
         print('+'*80)
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.shared_folder = config['scratch']
