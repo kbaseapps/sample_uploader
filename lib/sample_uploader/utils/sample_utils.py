@@ -92,6 +92,8 @@ def save_sample(sample, sample_url, token):
         "version": "1.1"
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
+    if not resp.ok:
+        raise RuntimeError(f'Error from SampleService - {resp.text}')
     resp_json = resp.json()
     if resp_json.get('error'):
         raise RuntimeError(f"Error from SampleService - {resp_json['error']}")

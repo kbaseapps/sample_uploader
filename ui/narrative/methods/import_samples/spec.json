@@ -6,8 +6,8 @@
     "contact": "help@kbase.us",
     "categories": ["inactive", "upload"],
     "widgets": {
-        "input": null,
-        "output": null
+        "input": "kbaseNarrativeMethodInput",
+        "output": "no-display"
     },
     "parameters": [
         {
