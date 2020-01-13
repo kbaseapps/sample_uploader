@@ -2,6 +2,7 @@
 #BEGIN_HEADER
 import logging
 import os
+import json
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -38,7 +39,7 @@ class sample_uploader:
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.shared_folder = config['scratch']
-        self.sw_url = config['srv-wiz-url']
+        self.sw_url = config.get('srv-wiz-url', config.get('kbase-endpoint') + '/service_wizard' )
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
