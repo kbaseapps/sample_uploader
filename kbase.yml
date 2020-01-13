@@ -2,7 +2,7 @@ module-name:
     sample_uploader
 
 module-description:
-    A KBase module
+    Import Samples from staging area.
 
 service-language:
     python
