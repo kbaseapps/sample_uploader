@@ -56,6 +56,8 @@ def generate_metadata(row, cols, groups):
     used_cols = set([])
     for group in groups:
         mtd = {}
+        if group['value'] not in cols:
+            continue
         for val in group:
             # if starts with 'str:', not a column
             if group[val].startswith('str:'):
