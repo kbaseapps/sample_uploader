@@ -26,8 +26,9 @@ module sample_uploader {
 	} SampleSet;
 
     typedef structure {
+        string report_name;
+        string report_ref;
         SampleSet sample_set;
-        string ref;
     } ImportSampleOutputs;
 
     funcdef import_samples(ImportSampleInputs params) returns (ImportSampleOutputs output) authentication required;

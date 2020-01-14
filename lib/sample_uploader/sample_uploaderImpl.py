@@ -3,6 +3,7 @@
 import logging
 import os
 import json
+import uuid
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -38,7 +39,7 @@ class sample_uploader:
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
-        self.shared_folder = config['scratch']
+        self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
         self.dfu = DataFileUtil(url=self.callback_url)
@@ -78,10 +79,30 @@ class sample_uploader:
                 }]
             })[0]
             sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
+            # For now, lets create an output csv
+            sample_ids = [s['id'] for s in sample_set['samples']]
+            sample_names = [s['name'] for s in sample_set['samples']]
+            sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU.csv'
+            OTU_csv_output =  os.path.join(self.scratch, sample_file_name)
+            with open(OTU_csv_output, 'w') as f:
+                f.write('sample id,' + ','.join(sample_ids) + '\n')
+                f.write('sample name,' + ','.join(sample_names) + '\n')
+            # create report
+            report_client = KBaseReport(self.callback_url)
+            report_name = "SampleSet_import_report_" + str(uuid.uuid4())
+            report_info = report_client.create_extended_report({
+                'message': "SampleSet object named \"{set_name}\" imported.",
+                'objects_created': [{'ref': sample_set_ref}],
+                'file_links': [{'path': OTU_csv_output}],
+                'report_object_name': report_name,
+                'workspace_name': params['workspace_name']
+            })
             output = {
-                'ref': sample_set_ref,
+                'report_ref': report_info['ref'],
+                'report_name': report_info['name'],
                 'sample_set': sample_set
             }
+
         else:
             raise ValueError(f"Only SESAR format is currently supported for importing samples.")
         #END import_samples
