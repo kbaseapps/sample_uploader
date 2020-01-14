@@ -90,6 +90,10 @@
               {
                 "service_method_output_path": [0, "report_ref"],
                 "target_property": "report_ref"
+              },
+              {
+                "input_parameter": "set_name",
+                "target_property": "id"
               }
             ]
 
