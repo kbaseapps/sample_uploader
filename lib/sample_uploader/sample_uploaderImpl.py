@@ -93,7 +93,13 @@ class sample_uploader:
             report_info = report_client.create_extended_report({
                 'message': "SampleSet object named \"{set_name}\" imported.",
                 'objects_created': [{'ref': sample_set_ref}],
-                'file_links': [{'path': OTU_csv_output}],
+                'file_links': [{
+                    'path': OTU_csv_output,
+                    'name': sample_file_name,
+                    'label': "CSV with headers for OTU",
+                    'description': "CSV file with each column containing the assigned sample_id and sample "
+                                   "name of each saved sample. Intended for uploading OTU data."
+                }],
                 'report_object_name': report_name,
                 'workspace_name': params['workspace_name']
             })
