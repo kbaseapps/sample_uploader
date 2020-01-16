@@ -91,7 +91,7 @@ class sample_uploader:
             report_client = KBaseReport(self.callback_url)
             report_name = "SampleSet_import_report_" + str(uuid.uuid4())
             report_info = report_client.create_extended_report({
-                'message': "SampleSet object named \"{set_name}\" imported.",
+                'message': f"SampleSet object named \"{set_name}\" imported.",
                 'objects_created': [{'ref': sample_set_ref}],
                 'file_links': [{
                     'path': OTU_csv_output,
