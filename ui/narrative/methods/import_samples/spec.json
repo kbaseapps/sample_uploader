@@ -54,6 +54,79 @@
             "default_values" : [ "" ],
             "field_type" : "text",
             "text_options" : {}
+        },
+        {
+            "id": "output_format",
+            "optional": true,
+            "advanced": true,
+            "allow_multiple": false,
+            "default_values": [ "" ],
+            "field_type": "dropdown",
+            "dropdown_options": {
+                "options": [
+                    {
+                        "value": "",
+                        "display": "No Output"
+                    },{
+                        "value": "csv",
+                        "display": "CSV"
+                    },{
+                        "value": "xls",
+                        "display": "XLSX"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "taxonomy_source",
+            "optional": true,
+            "advanced": true,
+            "allow_multiple": false,
+            "default_values": [ "n/a" ],
+            "field_type": "dropdown",
+            "dropdown_options": {
+                "options": [
+                    {
+                        "value": "n/a",
+                        "display": "N/A"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "num_otus",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "20" ],
+            "field_type" : "text",
+            "text_options" : {
+                "valid_ws_types": [],
+                "validate_as": "int",
+                "min_int": 1,
+                "max_int": 10000
+            }
+        },
+        {
+            "id": "incl_seq",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "0" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
+        },
+        {
+            "id": "otu_prefix",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "OTU" ],
+            "field_type" : "text",
+            "text_options" : {}
         }
     ],
     "behavior": {

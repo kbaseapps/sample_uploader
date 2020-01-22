@@ -55,5 +55,46 @@ parameters :
         long-hint  : |
             description of the set of samples
 
+    output_format:
+        ui-name: |
+            Output File Format
+        short-hint : |
+            format for output file, output excluded by default
+        long-hint  : |
+            format for output file, output excluded by default
+
+    taxonomy_source:
+        ui-name: |
+            Taxonomy source
+        short-hint : |
+            source database for taxonomic classifications
+        long-hint  : |
+            source database for taxonomic classifications
+
+    num_otus:
+        ui-name: |
+            Number of OTUs (Operational Taxonomic Units)
+        short-hint : |
+            number of OTUs, for construction of output file
+        long-hint  : |
+            number of OTUs, for construction of output file
+
+
+    incl_seq:
+        ui-name: |
+            Include Sequence in OTU data
+        short-hint : |
+            Include Sequence in OTU data
+        long-hint  : |
+            Include Sequence in OTU data
+
+    otu_prefix:
+        ui-name: |
+            OTU identifier prefix
+        short-hint : |
+            OTU identifier prefix, a user internal identifier
+        long-hint  : |
+            OTU identifier prefix, a user internal identifier
+
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>
