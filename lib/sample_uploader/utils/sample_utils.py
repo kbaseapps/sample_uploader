@@ -1,7 +1,48 @@
 import requests
 import uuid
 import json
+import os
 import pandas as pd
+
+
+def sample_set_to_OTU_sheet(
+        sample_set,
+        output_file_name,
+        scratch,
+        params    
+    ):
+    """
+    """
+    number_of_OTUs = params.get('num_otus', 10)
+    output_format = params.get('output_format', 'csv')
+    otu_prefix = params.get('otu_prefix', 'OTU')
+
+    metadata_cols = []
+    if params.get('taxonomy_source', None):
+        metadata_cols += ['taxonomy', 'taxonomy_source']
+    if params.get('incl_seq', False):
+        metadata_cols += ['consensus_sequence']
+
+    sample_columns = [s['name'] + " {"+ s['id'] +"}" for s in sample_set['samples']]
+    OTU_ids = [otu_prefix + '_' + str(i+1) for i in range(number_of_OTUs)] 
+    df = pd.DataFrame(
+        data={
+            'OTU id': OTU_ids,
+        }.update({
+            c: [None for _ in range(number_of_OTUs)]
+            for c in sample_columns + metadata_cols
+        })
+    )
+
+    if output_format == 'csv':
+        output_path = os.path.join(scratch, output_file_name + '.csv')
+        df.to_csv(output_path)
+    elif output_format == 'xls':
+        # right now we only write to one sheet for excel
+        output_path = os.path.join(scratch, output_file_name + '.xlsx')
+        df.to_excel(output_path)
+
+    return output_path
 
 
 def update_acls(sample_url, sample_id, acls):

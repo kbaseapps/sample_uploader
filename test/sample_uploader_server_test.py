@@ -60,8 +60,8 @@ class sample_uploaderTest(unittest.TestCase):
             print('Test workspace was deleted')
     
     def compare_sample(self, s, sc):
-        self.assertEqual(s['name'], sc['name'])
-        self.assertEqual(s['node_tree'], sc['node_tree'])
+        self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
+        self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
 
     def verify_samples(self, sample_set, compare):
         token = self.ctx['token']
@@ -86,6 +86,7 @@ class sample_uploaderTest(unittest.TestCase):
 
     # @unittest.skip('x')
     def test_upload_sample_from_csv(self):
+        self.maxDiff = None
         # Prepare test objects in workspace if needed using
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
         params = {
@@ -94,7 +95,9 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': sample_file,
             'file_format': "SESAR",
             'set_name': 'test1',
-            'description': "this is a test sample set."
+            'description': "this is a test sample set.",
+            'num_otus': 10,
+            'taxonomy_source': 'NCBI'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
@@ -103,6 +106,7 @@ class sample_uploaderTest(unittest.TestCase):
 
     # @unittest.skip('x')
     def test_upload_sample_from_xls(self):
+        self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         params = {
             'workspace_name': self.wsName,
@@ -110,7 +114,9 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': sample_file,
             'file_format': "SESAR",
             'set_name': 'test2',
-            'description': "this is a test sample set."
+            'description': "this is a test sample set.",
+            'num_otus': 10,
+            'taxonomy_source': 'NCBI'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:

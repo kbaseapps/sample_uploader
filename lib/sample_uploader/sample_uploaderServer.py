@@ -342,6 +342,10 @@ class Application(object):
                              name='sample_uploader.import_samples',
                              types=[dict])
         self.method_authentication['sample_uploader.import_samples'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.generate_OTU_sheet,
+                             name='sample_uploader.generate_OTU_sheet',
+                             types=[dict])
+        self.method_authentication['sample_uploader.generate_OTU_sheet'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])

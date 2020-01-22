@@ -9,6 +9,7 @@ from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from .utils.importer import import_samples_from_file
 from .utils.mappings import SESAR_verification_mapping, SESAR_cols_mapping, SESAR_groups
+from .utils.sample_utils import sample_set_to_OTU_sheet
 #END_HEADER
 
 
@@ -29,7 +30,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "180dffe89c909ac3e5cb477bc8eede2d0994d05a"
+    GIT_COMMIT_HASH = "1b2cd3c2d44fd7fd8565db2837959b25df32b868"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -51,10 +52,19 @@ class sample_uploader:
 
     def import_samples(self, ctx, params):
         """
-        This example function accepts any number of parameters and returns results in a KBaseReport
-        :param params: instance of mapping from String to unspecified object
-        :returns: instance of type "ReportResults" -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String
+        :param params: instance of type "ImportSampleInputs" -> structure:
+           parameter "sample_file" of String, parameter "workspace_name" of
+           String, parameter "workspace_id" of Long, parameter "file_format"
+           of String, parameter "description" of String, parameter "set_name"
+           of String, parameter "output_format" of String, parameter
+           "taxonomy_source" of String, parameter "num_otus" of Long,
+           parameter "incl_seq" of Long, parameter "otu_prefix" of String
+        :returns: instance of type "ImportSampleOutputs" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String
         """
         # ctx is the context object
         # return variables are: output
@@ -79,27 +89,32 @@ class sample_uploader:
                 }]
             })[0]
             sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
-            # For now, lets create an output csv
-            sample_ids = [s['id'] for s in sample_set['samples']]
-            sample_names = [s['name'] for s in sample_set['samples']]
             sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU.csv'
-            OTU_csv_output =  os.path.join(self.scratch, sample_file_name)
-            with open(OTU_csv_output, 'w') as f:
-                f.write('sample id,' + ','.join(sample_ids) + '\n')
-                f.write('sample name,' + ','.join(sample_names) + '\n')
+
+            if params.get('output_format') in ['csv', 'xls']:
+                otu_path = sample_set_to_OTU_sheet(
+                    sample_set,
+                    sample_file_name,
+                    self.scratch,
+                    params
+                )
+                file_links = [{
+                    'path': otu_path,
+                    'name': sample_file_name,
+                    'label': "OTU template file",
+                    'description': "file with each column containing the assigned sample_id and sample "
+                                   "name of each saved sample. Intended for uploading OTU data."
+                }]
+            else:
+                file_links = []
+
             # create report
             report_client = KBaseReport(self.callback_url)
             report_name = "SampleSet_import_report_" + str(uuid.uuid4())
             report_info = report_client.create_extended_report({
                 'message': f"SampleSet object named \"{set_name}\" imported.",
                 'objects_created': [{'ref': sample_set_ref}],
-                'file_links': [{
-                    'path': OTU_csv_output,
-                    'name': sample_file_name,
-                    'label': "CSV with headers for OTU",
-                    'description': "CSV file with each column containing the assigned sample_id and sample "
-                                   "name of each saved sample. Intended for uploading OTU data."
-                }],
+                'file_links': file_links,
                 'report_object_name': report_name,
                 'workspace_name': params['workspace_name']
             })
@@ -116,6 +131,60 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method import_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def generate_OTU_sheet(self, ctx, params):
+        """
+        :param params: instance of type "GenerateOTUSheetParams" (Generate a
+           customized OTU worksheet using a SampleSet input to generate the
+           appropriate columns.) -> structure: parameter "workspace_name" of
+           String, parameter "workspace_id" of Long, parameter
+           "sample_set_ref" of String, parameter "output_name" of String,
+           parameter "output_format" of String, parameter "num_otus" of Long,
+           parameter "taxonomy_source" of String, parameter "incl_seq" of
+           Long, parameter "otu_prefix" of String
+        :returns: instance of type "GenerateOTUSheetOutputs" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN generate_OTU_sheet
+        # first we download sampleset
+        sample_set_ref = params.get('sample_set_ref')
+        sample_set = dfu.get_objects({'objects': [{'ref': sample_set_ref}]})[0]['data'][0]
+        otu_path = sample_set_to_OTU_sheet(
+            sample_set,
+            output_name,
+            self.scratch,
+            params
+        )
+
+        report_client = KBaseReport(self.callback_url)
+        report_name = "Generate_OTU_sheet_report_" + str(uuid.uuid4())
+        report_info = report_client.create_extended_report({
+            'message': f"SampleSet object named \"{set_name}\" imported.",
+            'file_links': [{
+                'path': otu_path,
+                'name': os.path.basename(otu_path),
+                'label': "CSV with headers for OTU",
+                'description': "CSV file with each column containing the assigned sample_id and sample "
+                               "name of each saved sample. Intended for uploading OTU data."
+            }],
+            'report_object_name': report_name,
+            'workspace_name': params['workspace_name']
+        })
+        output = {
+            'report_ref': report_info['ref'],
+            'report_name': report_info['name'],
+        }
+
+        #END generate_OTU_sheet
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method generate_OTU_sheet return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]
