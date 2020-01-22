@@ -1,0 +1,82 @@
+#
+# define display information
+#
+name: Generate OTU Sheet
+
+tooltip: |
+    Generate template for OTU (Operational Taxonomic Unit) data.
+
+screenshots: []
+
+icon: icon.png
+
+#
+# define a set of similar apps that might be useful to the user
+#
+# suggestions:
+#     apps:
+#         related:
+#         next:
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_ref :
+        ui-name : |
+            Sample Set
+        short-hint : |
+            KBaseSets.SampleSet object
+        long-hint  : |
+            KBaseSets.SampleSet object, used as column headers.
+
+    output_name:
+        ui-name : |
+            Output file name
+        short-hint : |
+            Name of output file
+        long-hint  : |
+            Name of output file
+
+    output_format:
+        ui-name: |
+            Output File Format
+        short-hint : |
+            format for output file
+        long-hint  : |
+            format for output file, CSV (comma separated values) format by default
+
+    taxonomy_source:
+        ui-name: |
+            Taxonomy source
+        short-hint : |
+            source database for taxonomic classifications
+        long-hint  : |
+            source database for taxonomic classifications
+
+    num_otus:
+        ui-name: |
+            Number of OTUs (Operational Taxonomic Units)
+        short-hint : |
+            number of OTUs, for construction of output file
+        long-hint  : |
+            number of OTUs, for construction of output file
+
+    incl_seq:
+        ui-name: |
+            Include Sequence in OTU data
+        short-hint : |
+            Include Sequence in OTU data
+        long-hint  : |
+            Include Sequence in OTU data
+
+    otu_prefix:
+        ui-name: |
+            OTU identifier prefix
+        short-hint : |
+            OTU identifier prefix, a user internal identifier
+        long-hint  : |
+            OTU identifier prefix, a user internal identifier
+
+description : |
+    <p>Generate template for OTU (Operational Taxonomic Unit) data.</p>

@@ -11,43 +11,18 @@
     },
     "parameters": [
         {
-            "id": "sample_file",
+            "id": "sample_set_ref",
             "optional" : false,
             "advanced" : false,
             "allow_multiple" : false,
-            "default_values" : [ "" ],
-            "field_type" : "dynamic_dropdown",
-            "dynamic_dropdown_options" : {
-                "data_source": "ftp_staging"
-            }
-        },
-        {
-            "id": "file_format",
-            "optional" : false,
-            "advanced" : false,
-            "allow_multiple" : false,
-            "default_values" : [ "SESAR" ],
-            "field_type" : "dropdown",
-            "dropdown_options" : {
-                "options": [
-                    {
-                        "value": "SESAR",
-                        "display": "SESAR format"
-                    }
-                ]
-            }
-        },
-        {
-            "id": "set_name",
-            "optional" : false,
-            "advanced" : false,
-            "allow_multiple" : false,
-            "default_values" : [ "" ],
+            "default_values" : [ ],
             "field_type" : "text",
-            "text_options" : {}
+            "text_options" : {
+                "valid_ws_types": ["KBaseSets.SampleSet"]
+            }
         },
         {
-            "id": "description",
+            "id": "output_name",
             "optional" : false,
             "advanced" : false,
             "allow_multiple" : false,
@@ -133,7 +108,7 @@
         "service-mapping": {
             "url": "",
             "name": "sample_uploader",
-            "method": "import_samples",
+            "method": "generate_OTU_sheet",
             "input_mapping": [
                 {
                     "narrative_system_variable": "workspace",
@@ -142,17 +117,12 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "sample_file",
-                    "target_property": "sample_file"
+                    "input_parameter": "sample_set_ref",
+                    "target_property": "sample_set_ref",
+                    "target_type_transform": "resolved-ref"
                 },{
-                    "input_parameter": "file_format",
-                    "target_property": "file_format"
-                },{
-                    "input_parameter": "set_name",
-                    "target_property": "set_name"
-                },{
-                    "input_parameter": "description",
-                    "target_property": "description"
+                    "input_parameter": "output_name",
+                    "target_property": "output_name"
                 },{
                     "input_parameter": "output_format",
                     "target_property": "output_format"
@@ -178,14 +148,8 @@
               {
                 "service_method_output_path": [0, "report_ref"],
                 "target_property": "report_ref"
-              },
-              {
-                "input_parameter": "set_name",
-                "target_property": "id"
               }
             ]
-
-
         }
     },
     "job_id_output_field": "docker"
