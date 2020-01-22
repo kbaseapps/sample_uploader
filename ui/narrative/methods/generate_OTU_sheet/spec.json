@@ -32,17 +32,14 @@
         },
         {
             "id": "output_format",
-            "optional": true,
-            "advanced": true,
+            "optional": false,
+            "advanced": false,
             "allow_multiple": false,
-            "default_values": [ "" ],
+            "default_values": [ "csv" ],
             "field_type": "dropdown",
             "dropdown_options": {
                 "options": [
                     {
-                        "value": "",
-                        "display": "No Output"
-                    },{
                         "value": "csv",
                         "display": "CSV"
                     },{
@@ -54,7 +51,7 @@
         },
         {
             "id": "taxonomy_source",
-            "optional": true,
+            "optional": false,
             "advanced": true,
             "allow_multiple": false,
             "default_values": [ "n/a" ],
@@ -71,7 +68,7 @@
         {
             "id": "num_otus",
             "optional" : false,
-            "advanced" : true,
+            "advanced" : false,
             "allow_multiple" : false,
             "default_values" : [ "20" ],
             "field_type" : "text",
@@ -85,7 +82,7 @@
         {
             "id": "incl_seq",
             "optional" : false,
-            "advanced" : true,
+            "advanced" : false,
             "allow_multiple" : false,
             "default_values" : [ "0" ],
             "field_type" : "checkbox",
@@ -97,7 +94,7 @@
         {
             "id": "otu_prefix",
             "optional" : false,
-            "advanced" : true,
+            "advanced" : false,
             "allow_multiple" : false,
             "default_values" : [ "OTU" ],
             "field_type" : "text",
