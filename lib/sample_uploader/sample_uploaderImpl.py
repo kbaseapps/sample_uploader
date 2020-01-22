@@ -121,7 +121,8 @@ class sample_uploader:
             output = {
                 'report_ref': report_info['ref'],
                 'report_name': report_info['name'],
-                'sample_set': sample_set
+                'sample_set': sample_set,
+                'sample_set_ref': sample_set_ref
             }
 
         else:
@@ -153,18 +154,22 @@ class sample_uploader:
         #BEGIN generate_OTU_sheet
         # first we download sampleset
         sample_set_ref = params.get('sample_set_ref')
-        sample_set = dfu.get_objects({'objects': [{'ref': sample_set_ref}]})[0]['data'][0]
+        ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
+        sample_set = ret['data']
+        if params.get('output_name'):
+            output_name = params.get('output_name')
+        else:
+            # if output_name not specified use name of sample_set as output + "_OTUs"
+            output_name = ret['info'][1] + "_OTUs"
         otu_path = sample_set_to_OTU_sheet(
             sample_set,
             output_name,
             self.scratch,
             params
         )
-
         report_client = KBaseReport(self.callback_url)
         report_name = "Generate_OTU_sheet_report_" + str(uuid.uuid4())
         report_info = report_client.create_extended_report({
-            'message': f"SampleSet object named \"{set_name}\" imported.",
             'file_links': [{
                 'path': otu_path,
                 'name': os.path.basename(otu_path),

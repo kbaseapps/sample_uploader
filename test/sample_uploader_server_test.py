@@ -96,8 +96,11 @@ class sample_uploaderTest(unittest.TestCase):
             'file_format': "SESAR",
             'set_name': 'test1',
             'description': "this is a test sample set.",
+            'output_format': 'csv',
             'num_otus': 10,
-            'taxonomy_source': 'NCBI'
+            'incl_seq': 1,
+            'taxonomy_source': 'n/a',
+            'otu_prefix': 'OTU'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
@@ -115,10 +118,41 @@ class sample_uploaderTest(unittest.TestCase):
             'file_format': "SESAR",
             'set_name': 'test2',
             'description': "this is a test sample set.",
+            'output_format': 'csv',
             'num_otus': 10,
-            'taxonomy_source': 'NCBI'
+            'incl_seq': 1,
+            'taxonomy_source': 'n/a',
+            'otu_prefix': 'OTU'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
+
+    # @unittest.skip('x')
+    def test_generate_OTU_sheet(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'set_name': 'test2',
+            'description': "this is a test sample set.",
+            'output_format': "",
+        }
+        sample_set_ref = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set_ref']
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            "sample_set_ref": sample_set_ref,
+            "output_name": "test_output",
+            "output_format": "csv",
+            "num_otus": 20,
+            "taxonomy_source": "n/a",
+            "incl_seq": 0,
+            "otu_prefix": "science_is_cooool"
+        }
+        ret = self.serviceImpl.generate_OTU_sheet(self.ctx, params)[0]
+        # not sure what we check here.
