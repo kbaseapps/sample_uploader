@@ -25,22 +25,24 @@ def sample_set_to_OTU_sheet(
 
     sample_columns = [s['name'] + " {"+ s['id'] +"}" for s in sample_set['samples']]
     OTU_ids = [otu_prefix + '_' + str(i+1) for i in range(number_of_OTUs)] 
-    df = pd.DataFrame(
-        data={
-            'OTU id': OTU_ids,
-        }.update({
-            c: [None for _ in range(number_of_OTUs)]
-            for c in sample_columns + metadata_cols
-        })
+    data = {'OTU id': OTU_ids}
+    data.update(
+        {c: [None for _ in range(number_of_OTUs)] for c in metadata_cols + sample_columns}
     )
-
+    df = pd.DataFrame(
+        data=data
+    )
     if output_format == 'csv':
-        output_path = os.path.join(scratch, output_file_name + '.csv')
-        df.to_csv(output_path)
+        if '.csv' not in output_file_name:
+            output_file_name += '.csv'
+        output_path = os.path.join(scratch, output_file_name)
+        df.to_csv(output_path, index=False)
     elif output_format == 'xls':
+        if '.xlsx' not in output_file_name:
+            output_file_name += '.xlsx'
         # right now we only write to one sheet for excel
-        output_path = os.path.join(scratch, output_file_name + '.xlsx')
-        df.to_excel(output_path)
+        output_path = os.path.join(scratch, output_file_name)
+        df.to_excel(output_path, index=False)
 
     return output_path
 

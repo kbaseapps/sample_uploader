@@ -5,6 +5,7 @@ import unittest
 import requests
 import uuid
 import json
+import pandas as pd
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
@@ -64,10 +65,9 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
 
     def verify_samples(self, sample_set, compare):
-        token = self.ctx['token']
         for it, samp in enumerate(sample_set['samples']):
             samp_id = samp['id']
-            headers = {"Authorization": token}
+            headers = {"Authorization": self.ctx['token']}
             params = {
                 "id": samp_id,
             }
@@ -84,11 +84,22 @@ class sample_uploaderTest(unittest.TestCase):
             sample = resp_json['result'][0]
             self.compare_sample(sample, compare[it])
 
+    def verify_output_file(self, sample_set, file_path, file_type, num_metadata_cols, num_otus):
+        if file_type == 'csv':
+            df = pd.read_csv(file_path)
+        elif file_type == 'xls':
+            df = pd.read_excel(file_path)
+        else:
+            raise ValueError(f"file_type must be xls or csv not {file_type}")
+        cols = list(df.columns)
+        self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
+
     # @unittest.skip('x')
     def test_upload_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
+        num_otus = 10
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
@@ -97,20 +108,28 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'test1',
             'description': "this is a test sample set.",
             'output_format': 'csv',
-            'num_otus': 10,
+            'num_otus': num_otus,
             'incl_seq': 1,
             'taxonomy_source': 'n/a',
-            'otu_prefix': 'OTU'
+            'otu_prefix': 'test_OTU'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
+        self.verify_output_file(
+            sample_set, 
+            os.path.join(self.scratch, os.path.basename(sample_file).split('.')[0] + '_OTU.csv'),
+            'csv',
+            3,
+            num_otus
+        )
 
     # @unittest.skip('x')
     def test_upload_sample_from_xls(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+        num_otus = 10
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
@@ -119,15 +138,22 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'test2',
             'description': "this is a test sample set.",
             'output_format': 'csv',
-            'num_otus': 10,
+            'num_otus': num_otus,
             'incl_seq': 1,
             'taxonomy_source': 'n/a',
-            'otu_prefix': 'OTU'
+            'otu_prefix': 'test_OTU'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
+        self.verify_output_file(
+            sample_set,
+            os.path.join(self.scratch, os.path.basename(sample_file).split('.')[0] + '_OTU.csv'),
+            'csv',
+            3,
+            num_otus
+        )
 
     # @unittest.skip('x')
     def test_generate_OTU_sheet(self):
@@ -142,17 +168,26 @@ class sample_uploaderTest(unittest.TestCase):
             'description': "this is a test sample set.",
             'output_format': "",
         }
-        sample_set_ref = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set_ref']
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        sample_set_ref = ret['sample_set_ref']
+        num_otus = 20
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             "sample_set_ref": sample_set_ref,
             "output_name": "test_output",
-            "output_format": "csv",
-            "num_otus": 20,
+            "output_format": "xls",
+            "num_otus": num_otus,
             "taxonomy_source": "n/a",
             "incl_seq": 0,
             "otu_prefix": "science_is_cooool"
         }
         ret = self.serviceImpl.generate_OTU_sheet(self.ctx, params)[0]
-        # not sure what we check here.
+        self.verify_output_file(
+            sample_set,
+            os.path.join(self.scratch, 'test_output.xlsx'),
+            'xls',
+            2,
+            num_otus
+        )
