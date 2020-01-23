@@ -1,0 +1,212 @@
+[
+  {
+    "id": "5f59305d-5f0c-483f-9b27-959dbefb9c34",
+    "user": "slebras",
+    "name": "SRS.BR.T3",
+    "node_tree": [
+      {
+        "id": "IEAWH006A.3",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.32361111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.71805556,
+            "units": "degrees"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Locality Description": {
+            "value": "Max's landing"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Purpose": {
+            "value": "U redox characterization"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Collection method": {
+            "value": "Coring"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814161128,
+    "version": 1
+  } ,
+  {
+    "id": "e49126cc-bd3a-446a-8a49-4250ad69e6e7",
+    "user": "slebras",
+    "name": "SRS.Floc.3",
+    "node_tree": [
+      {
+        "id": "IEAWH006E",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.3325,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.71972222,
+            "units": "degrees"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Locality Description": {
+            "value": "downstream Beaver Pond"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Purpose": {
+            "value": "Floc Survey"
+          },
+          "Field name (informal classification)": {
+            "value": "iron oxide floc"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Collection method": {
+            "value": "Manual"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Material": {
+            "value": "Other"
+          },
+          "Primary physiographic feature": {
+            "value": "creek"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814161212,
+    "version": 1
+  } ,
+  {
+    "id": "8d30db50-9f02-4343-ad5a-d23541cbba2b",
+    "user": "slebras",
+    "name": "SRS.Floc.4",
+    "node_tree": [
+      {
+        "id": "IEAWH006F",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.3325,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.71972222,
+            "units": "degrees"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Locality Description": {
+            "value": "downstream Beaver Pond"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Purpose": {
+            "value": "Floc Survey"
+          },
+          "Field name (informal classification)": {
+            "value": "iron oxide floc"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Collection method": {
+            "value": "Manual"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Material": {
+            "value": "Other"
+          },
+          "Primary physiographic feature": {
+            "value": "creek"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814161359,
+    "version": 1
+  }
+]

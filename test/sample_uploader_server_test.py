@@ -53,6 +53,18 @@ class sample_uploaderTest(unittest.TestCase):
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
+        cls.test_files = [
+            (
+                os.path.join(cls.curr_dir, "data", "floc_mini_metadata.xls"),
+                os.path.join(cls.curr_dir, "data", "floc_mini_metadata_cmp.json")
+            ),(
+                os.path.join(cls.curr_dir, "data", "flocs_all_metadata.xls"),
+                os.path.join(cls.curr_dir, "data", "flocs_all_metadata_cmp.json")
+            ),(
+                os.path.join(cls.curr_dir, "data", "moss_f50_metadata.xls"),
+                os.path.join(cls.curr_dir, "data", "moss_f50_metadata_cmp.json")
+            )
+        ]
 
     @classmethod
     def tearDownClass(cls):
@@ -94,7 +106,7 @@ class sample_uploaderTest(unittest.TestCase):
         cols = list(df.columns)
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_upload_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using
@@ -125,7 +137,7 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_upload_sample_from_xls(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
@@ -155,7 +167,27 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    # @unittest.skip('x')
+    #@unittest.skip('x')
+    def test_multiple_inputs(self):
+        """"""
+        self.maxDiff = None
+        for sample_file, compare_file in self.test_files:
+            ss_name = os.path.basename(sample_file).split('.')[0] + '_sample_set'
+            params = {
+                'workspace_name': self.wsName,
+                'workspace_id': self.wsID,
+                'sample_file': sample_file,
+                'file_format': "SESAR",
+                'set_name': ss_name,
+                'description': "this is a test sample set.",
+                'output_format': "",
+            }
+            ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+            with open(compare_file) as f:
+                compare_to = json.load(f)
+            self.verify_samples(ret['sample_set'], compare_to)
+
+    @unittest.skip('x')
     def test_generate_OTU_sheet(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")

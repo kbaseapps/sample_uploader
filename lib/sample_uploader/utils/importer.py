@@ -39,7 +39,7 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
 
     if sample_file.endswith('.csv') or sample_file.endswith('.tsv'):
         df = pd.read_csv(sample_file, parse_dates=["Release Date", "Collection date"], header=1)
-    elif sample_file.endswith('.xls'):
+    elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
         df = pd.read_excel(sample_file, header=1)
     verify_columns(df, column_verification_map)
     df = df.rename(columns=column_mapping)

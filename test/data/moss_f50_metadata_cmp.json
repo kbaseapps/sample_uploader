@@ -1,0 +1,357 @@
+[
+  {
+    "id": "e103ff72-53cf-4c73-b09c-d01c75a197a7",
+    "user": "slebras",
+    "name": "SRS.Moss.Min1",
+    "node_tree": [
+      {
+        "id": "IEAWH006B.1",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.31736111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.715,
+            "units": "degrees"
+          },
+          "Collection method": {
+            "value": "Grab"
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Locality Description": {
+            "value": "SP transect"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Field name (informal classification)": {
+            "value": "mineral soil"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Purpose": {
+            "value": "Microbial characterization"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814735586,
+    "version": 1
+  } ,
+  {
+    "id": "1885df2f-e692-49d2-b47f-9d8a32706765",
+    "user": "slebras",
+    "name": "SRS.Moss.Min2",
+    "node_tree": [
+      {
+        "id": "IEAWH006B.2",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.31736111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.715,
+            "units": "degrees"
+          },
+          "Collection method": {
+            "value": "Grab"
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Locality Description": {
+            "value": "SP transect"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Field name (informal classification)": {
+            "value": "mineral soil"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Purpose": {
+            "value": "Microbial characterization"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814735696,
+    "version": 1
+  } ,
+  {
+    "id": "87774f05-618f-40b6-8ef9-f1241d368c5b",
+    "user": "slebras",
+    "name": "SRS.Moss.OM2",
+    "node_tree": [
+      {
+        "id": "IEAWH006B.5",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.31736111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.715,
+            "units": "degrees"
+          },
+          "Collection method": {
+            "value": "Grab"
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Locality Description": {
+            "value": "SP transect"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Field name (informal classification)": {
+            "value": "organic soil"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Purpose": {
+            "value": "Microbial characterization"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814735842,
+    "version": 1
+  } ,
+  {
+    "id": "c1151939-237b-4d73-9b11-3b8f0d061371",
+    "user": "slebras",
+    "name": "SRS.Moss.Rt.2",
+    "node_tree": [
+      {
+        "id": "IEAWH006B.8",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.31736111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.715,
+            "units": "degrees"
+          },
+          "Collection method": {
+            "value": "Grab"
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Locality Description": {
+            "value": "SP transect"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Field name (informal classification)": {
+            "value": "rhizosphere soil"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Purpose": {
+            "value": "Microbial characterization"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814735978,
+    "version": 1
+  } ,
+  {
+    "id": "5ec1b8cf-c0de-46cf-a16e-79829f0233d1",
+    "user": "slebras",
+    "name": "SRS.Moss.Rt1",
+    "node_tree": [
+      {
+        "id": "IEAWH006B.7",
+        "type": "BioReplicate",
+        "parent": null,
+        "meta_controlled": {},
+        "meta_user": {
+          "Latitude": {
+            "value": 33.31736111,
+            "units": "degrees"
+          },
+          "Collection date": {
+            "value": "2019-10-01 00:00:00",
+            "units": "month"
+          },
+          "Longitude": {
+            "value": 81.715,
+            "units": "degrees"
+          },
+          "Collection method": {
+            "value": "Grab"
+          },
+          "Material": {
+            "value": "Soil"
+          },
+          "Field program/cruise": {
+            "value": "Argonne Wetlands Hydrobiogeochemistry SFA"
+          },
+          "Current archive contact": {
+            "value": "pweisenhorn@anl.gov"
+          },
+          "Name of physiographic feature": {
+            "value": "Tims Branch watershed"
+          },
+          "Locality Description": {
+            "value": "SP transect"
+          },
+          "Coordinate Precision?": {
+            "value": 30
+          },
+          "Field name (informal classification)": {
+            "value": "rhizosphere soil"
+          },
+          "Navigation type": {
+            "value": "GPS"
+          },
+          "Purpose": {
+            "value": "Microbial characterization"
+          },
+          "Current archive": {
+            "value": "Argonne National Lab"
+          },
+          "Primary physiographic feature": {
+            "value": "creek bank"
+          },
+          "Location Description": {
+            "value": "Savannah River Site"
+          },
+          "Collector/Chief Scientist": {
+            "value": "Dan Kaplan"
+          }
+        }
+      }
+    ],
+    "save_date": 1579814736153,
+    "version": 1
+  }
+]
