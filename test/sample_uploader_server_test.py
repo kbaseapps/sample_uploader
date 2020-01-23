@@ -106,7 +106,7 @@ class sample_uploaderTest(unittest.TestCase):
         cols = list(df.columns)
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_upload_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using
@@ -137,7 +137,7 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_upload_sample_from_xls(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
@@ -187,7 +187,7 @@ class sample_uploaderTest(unittest.TestCase):
                 compare_to = json.load(f)
             self.verify_samples(ret['sample_set'], compare_to)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_generate_OTU_sheet(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
