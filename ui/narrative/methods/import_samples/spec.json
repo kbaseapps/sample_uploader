@@ -69,7 +69,7 @@
                         "display": "No Output"
                     },{
                         "value": "csv",
-                        "display": "CSV/TSV"
+                        "display": "CSV"
                     },{
                         "value": "xls",
                         "display": "XLSX"
