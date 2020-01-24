@@ -100,7 +100,7 @@ class sample_uploader:
                 )
                 file_links = [{
                     'path': otu_path,
-                    'name': sample_file_name,
+                    'name': os.path.basename(otu_path),
                     'label': "OTU template file",
                     'description': "file with each column containing the assigned sample_id and sample "
                                    "name of each saved sample. Intended for uploading OTU data."
