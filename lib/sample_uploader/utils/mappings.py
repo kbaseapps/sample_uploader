@@ -131,7 +131,10 @@ SESAR_mappings = {
             "units": "Size unit"
         }
     ],
-    "date_cols": ["Release Date", "Collection date"]
+    "date_cols": [
+        "Release Date",
+        "Collection date"
+    ]
 }
 
 # --------------
@@ -242,6 +245,11 @@ ENIGMA_mappings = {
     },
     "groups": [
     ],
-    "date_cols": ["Date"],
+    "date_cols": [
+        "Date"
+    ],
+    "column_unit_regex": [
+        "\((.+)\)"
+    ]
 }
 

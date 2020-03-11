@@ -77,8 +77,9 @@ class sample_uploader:
                 ctx['token'],
                 ENIGMA_mappings['verification_mapping'],
                 ENIGMA_mappings['cols_mapping'],
-                ENIGMA_mappings['groups'],
+                ENIGMA_mappings.get('groups'),
                 ENIGMA_mappings['date_cols'],
+                ENIGMA_mappings.get('column_unit_regex'),
                 header_index=0
             )
         elif params.get('file_format') == 'SESAR':
@@ -88,8 +89,9 @@ class sample_uploader:
                 ctx['token'],
                 SESAR_mappings['verification_mapping'],
                 SESAR_mappings['cols_mapping'],
-                SESAR_mappings['groups'],
+                SESAR_mappings.get('groups'),
                 SESAR_mappings['date_cols'],
+                SESAR_mappings.get('column_unit_regex'),
                 header_index=1
             )
         else:

@@ -49,7 +49,7 @@ def load_file(sample_file, header_index, date_columns):
     return df
 
 
-def produce_samples(df, cols, column_groups, sample_url, token):
+def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, token):
     """
     """
     samples = []
@@ -67,11 +67,16 @@ def produce_samples(df, cols, column_groups, sample_url, token):
                     "parent": None,
                     "type": "BioReplicate",
                     "meta_controlled": {},
-                    "meta_user": generate_metadata(row, cols, column_groups)
+                    "meta_user": generate_metadata(
+                        row,
+                        cols,
+                        column_groups,
+                        column_unit_regex
+                    )
                 }],
                 'name': name,
             }
-            # print(json.dumps(sample, indent=2, default=str), ',')
+            continue
             sample_id = save_sample(sample, sample_url, token)
             samples.append({
                 "id": sample_id,
@@ -102,6 +107,7 @@ def import_samples_from_file(
     column_mapping,
     column_groups,
     date_columns,
+    column_unit_regex,
     header_index
 ):
     """
@@ -117,7 +123,14 @@ def import_samples_from_file(
     cols = list(set(cols) - set(REGULATED_COLS))
     # process and save samples
     sample_url = get_sample_service_url(sw_url)
-    samples = produce_samples(df, cols, column_groups, sample_url, token)
+    samples = produce_samples(
+        df,
+        cols,
+        column_groups,
+        column_unit_regex,
+        sample_url,
+        token
+    )
 
     return {
         "samples": samples,
