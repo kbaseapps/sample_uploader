@@ -76,7 +76,6 @@ def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, toke
                 }],
                 'name': name,
             }
-            continue
             sample_id = save_sample(sample, sample_url, token)
             samples.append({
                 "id": sample_id,
