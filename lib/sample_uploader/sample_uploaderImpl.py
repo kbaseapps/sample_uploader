@@ -8,7 +8,7 @@ import uuid
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from .utils.importer import import_samples_from_file
-from .utils.mappings import SESAR_verification_mapping, SESAR_cols_mapping, SESAR_groups
+from .utils.mappings import SESAR_mappings, ENIGMA_mappings
 from .utils.sample_utils import sample_set_to_OTU_sheet
 #END_HEADER
 
@@ -69,64 +69,77 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN import_samples
-        desc = params.get('description', None)
         set_name = params.get("set_name")
-        if params.get('file_format') == 'SESAR':
+        if params.get('file_format') == 'ENIGMA':
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
                 ctx['token'],
-                SESAR_verification_mapping,
-                SESAR_cols_mapping,
-                SESAR_groups,
+                ENIGMA_mappings['verification_mapping'],
+                ENIGMA_mappings['cols_mapping'],
+                ENIGMA_mappings['groups'],
+                ENIGMA_mappings['date_cols'],
+                header_index=0
             )
-            obj_info = self.dfu.save_objects({
-                'id': params.get('workspace_id'),
-                'objects': [{
-                    "type": "KBaseSets.SampleSet",
-                    "data": sample_set,
-                    "name": set_name
-                }]
-            })[0]
-            sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
-            sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
-
-            if params.get('output_format') in ['csv', 'xls']:
-                otu_path = sample_set_to_OTU_sheet(
-                    sample_set,
-                    sample_file_name,
-                    self.scratch,
-                    params
-                )
-                file_links = [{
-                    'path': otu_path,
-                    'name': os.path.basename(otu_path),
-                    'label': "OTU template file",
-                    'description': "file with each column containing the assigned sample_id and sample "
-                                   "name of each saved sample. Intended for uploading OTU data."
-                }]
-            else:
-                file_links = []
-
-            # create report
-            report_client = KBaseReport(self.callback_url)
-            report_name = "SampleSet_import_report_" + str(uuid.uuid4())
-            report_info = report_client.create_extended_report({
-                'message': f"SampleSet object named \"{set_name}\" imported.",
-                'objects_created': [{'ref': sample_set_ref}],
-                'file_links': file_links,
-                'report_object_name': report_name,
-                'workspace_name': params['workspace_name']
-            })
-            output = {
-                'report_ref': report_info['ref'],
-                'report_name': report_info['name'],
-                'sample_set': sample_set,
-                'sample_set_ref': sample_set_ref
-            }
-
+        elif params.get('file_format') == 'SESAR':
+            sample_set = import_samples_from_file(
+                params,
+                self.sw_url,
+                ctx['token'],
+                SESAR_mappings['verification_mapping'],
+                SESAR_mappings['cols_mapping'],
+                SESAR_mappings['groups'],
+                SESAR_mappings['date_cols'],
+                header_index=1
+            )
         else:
-            raise ValueError(f"Only SESAR format is currently supported for importing samples.")
+            raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples.")
+        
+        obj_info = self.dfu.save_objects({
+            'id': params.get('workspace_id'),
+            'objects': [{
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set,
+                "name": set_name
+            }]
+        })[0]
+        sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
+        sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
+
+        if params.get('output_format') in ['csv', 'xls']:
+            otu_path = sample_set_to_OTU_sheet(
+                sample_set,
+                sample_file_name,
+                self.scratch,
+                params
+            )
+            file_links = [{
+                'path': otu_path,
+                'name': os.path.basename(otu_path),
+                'label': "OTU template file",
+                'description': "file with each column containing the assigned sample_id and sample "
+                               "name of each saved sample. Intended for uploading OTU data."
+            }]
+        else:
+            file_links = []
+
+        # create report
+        report_client = KBaseReport(self.callback_url)
+        report_name = "SampleSet_import_report_" + str(uuid.uuid4())
+        report_info = report_client.create_extended_report({
+            'message': f"SampleSet object named \"{set_name}\" imported.",
+            'objects_created': [{'ref': sample_set_ref}],
+            'file_links': file_links,
+            'report_object_name': report_name,
+            'workspace_name': params['workspace_name']
+        })
+        output = {
+            'report_ref': report_info['ref'],
+            'report_name': report_info['name'],
+            'sample_set': sample_set,
+            'sample_set_ref': sample_set_ref
+        }
+
         #END import_samples
 
         # At some point might do deeper type checking...

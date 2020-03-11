@@ -19,16 +19,12 @@ def verify_columns(df, column_verification_map):
             raise ValueError(f"error parsing column \"{col}\" - {err}")
 
 
-def import_samples_from_file(params, sw_url, token, column_verification_map, column_mapping, column_groups):
-    """
-    import samples from '.csv' or '.xls' files in SESAR format    """
-    # verify inputs
+def validate_params(params):
     if not params.get('sample_file'):
         raise ValueError(f"sample_file argument required in params: {params}")
     if not params.get('workspace_name'):
         raise ValueError(f"workspace_name argument required in params: {params}")
     sample_file = params.get('sample_file')
-    # make sure that sample file exists,
     if not os.path.isfile(sample_file):
         # try prepending '/staging/' to file and check then
         if os.path.isfile(os.path.join('/staging', sample_file)):
@@ -36,22 +32,35 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
         else:
             raise ValueError(f"input file {sample_file} does not exist.")
     ws_name = params.get('workspace_name')
+    return sample_file
 
-    if sample_file.endswith('.csv') or sample_file.endswith('.tsv'):
-        df = pd.read_csv(sample_file, parse_dates=["Release Date", "Collection date"], header=1)
+
+def load_file(sample_file, header_index, date_columns):
+    """"""
+    if sample_file.endswith('.tsv'):
+        df = pd.read_csv(sample_file, sep="\t", parse_dates=date_columns, header=header_index)
+    elif sample_file.endswith('.csv'):
+        df = pd.read_csv(sample_file, parse_dates=date_columns, header=header_index)
     elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
-        df = pd.read_excel(sample_file, header=1)
-    verify_columns(df, column_verification_map)
-    df = df.rename(columns=column_mapping)
-    cols = df.columns
-    cols = list(set(cols) - set(REGULATED_COLS))
-    # process and save samples
-    sample_url = get_sample_service_url(sw_url)
+        df = pd.read_excel(sample_file, header=header_index)
+    else:
+        raise ValueError(f"File {os.path.basename(sample_file)} is not in an accepted file format, "
+                         f"accepted file formats are '.xls' '.csv' '.tsv' or '.xlsx'")
+    return df
 
+
+def produce_samples(df, cols, column_groups, sample_url, token):
+    """
+    """
     samples = []
     for idx, row in df.iterrows():
         if row['id']:
-            name  = str(row['name'])
+            # use name field as name, if there is non-reuse id.
+            if row.get('name'):
+                name = str(row['name'])
+            else:
+                name = str(row['id'])
+            parent = str(row['parent_id'])
             sample = {
                 'node_tree': [{
                     "id": str(row['id']),
@@ -82,6 +91,34 @@ def import_samples_from_file(params, sw_url, token, column_verification_map, col
                 update_acls(sample_url, sample_id, acls)
         else:
             raise RuntimeError(f"{row['id']} evaluates as false")
+    return samples
+
+
+def import_samples_from_file(
+    params,
+    sw_url,
+    token,
+    column_verification_map,
+    column_mapping,
+    column_groups,
+    date_columns,
+    header_index
+):
+    """
+    import samples from '.csv' or '.xls' files in SESAR  format
+    """
+    # verify inputs
+    sample_file = validate_params(params)
+    ws_name = params.get('workspace_name')
+    df = load_file(sample_file, header_index, date_columns)
+    verify_columns(df, column_verification_map)
+    df = df.rename(columns=column_mapping)
+    cols = df.columns
+    cols = list(set(cols) - set(REGULATED_COLS))
+    # process and save samples
+    sample_url = get_sample_service_url(sw_url)
+    samples = produce_samples(df, cols, column_groups, sample_url, token)
+
     return {
         "samples": samples,
         "description": params.get('description')
