@@ -33,6 +33,10 @@
                     {
                         "value": "SESAR",
                         "display": "SESAR format"
+                    },
+                    {
+                        "value": "ENIGMA",
+                        "display": "ENIGMA format"
                     }
                 ]
             }
