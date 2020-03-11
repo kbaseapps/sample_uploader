@@ -125,6 +125,14 @@ class sample_uploader:
         else:
             file_links = []
 
+        if params.get('incl_input_in_output'):
+            file_links.append({
+                "path": params['sample_file'],
+                "name": sample_file_name,
+                "label": "Input Sample file",
+                "description": "Input file provided to create the sample set."
+            })
+
         # create report
         report_client = KBaseReport(self.callback_url)
         report_name = "SampleSet_import_report_" + str(uuid.uuid4())

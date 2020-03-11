@@ -131,6 +131,18 @@
             "default_values" : [ "OTU" ],
             "field_type" : "text",
             "text_options" : {}
+        },
+        {
+            "id": "incl_input_in_output",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "1" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
         }
     ],
     "behavior": {
@@ -172,6 +184,9 @@
                 },{
                     "input_parameter": "otu_prefix",
                     "target_property": "otu_prefix"
+                },{
+                    "input_parameter": "incl_input_in_output",
+                    "target_property": "incl_input_in_output"
                 }
             ],
             "output_mapping": [

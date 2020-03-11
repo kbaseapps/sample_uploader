@@ -156,7 +156,8 @@ class sample_uploaderTest(unittest.TestCase):
             'num_otus': num_otus,
             'incl_seq': 1,
             'taxonomy_source': 'n/a',
-            'otu_prefix': 'test_OTU'
+            'otu_prefix': 'test_OTU',
+            "incl_input_in_output": 1
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
@@ -184,6 +185,7 @@ class sample_uploaderTest(unittest.TestCase):
                 'set_name': ss_name,
                 'description': "this is a test sample set.",
                 'output_format': "",
+                "incl_input_in_output": 1
             }
             ret = self.serviceImpl.import_samples(self.ctx, params)[0]
             with open(compare_file) as f:
@@ -202,6 +204,7 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'test2',
             'description': "this is a test sample set.",
             'output_format': "",
+            "incl_input_in_output": 1
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
@@ -216,7 +219,7 @@ class sample_uploaderTest(unittest.TestCase):
             "num_otus": num_otus,
             "taxonomy_source": "n/a",
             "incl_seq": 0,
-            "otu_prefix": "science_is_cooool"
+            "otu_prefix": "science_is_cooool",
         }
         ret = self.serviceImpl.generate_OTU_sheet(self.ctx, params)[0]
         self.verify_output_file(
@@ -239,6 +242,7 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'Enigma_test',
             'description': "this is a test sample set.",
             'output_format': "",
+            "incl_input_in_output": 1
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA.json')) as f:
