@@ -127,8 +127,15 @@ class sample_uploader:
             file_links = []
 
         if params.get('incl_input_in_output'):
-            sample_file_copy = os.path.join(self.scratch, os.path.basename(params['sample_file']))
-            shutil.copy(params['sample_file'], sample_file_copy)
+            sample_file = params.get('sample_file')
+            if not os.path.isfile(sample_file):
+                # try prepending '/staging/' to file and check then
+                if os.path.isfile(os.path.join('/staging', sample_file)):
+                    sample_file = os.path.join('/staging', sample_file)
+                else:
+                    raise ValueError(f"input file {sample_file} does not exist.")
+            sample_file_copy = os.path.join(self.scratch, os.path.basename(sample_file))
+            shutil.copy(sample_file, sample_file_copy)
             file_links.append({
                 "path": sample_file_copy,
                 "name": sample_file_name,
