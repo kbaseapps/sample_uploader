@@ -4,6 +4,7 @@ import logging
 import os
 import json
 import uuid
+import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -126,8 +127,10 @@ class sample_uploader:
             file_links = []
 
         if params.get('incl_input_in_output'):
+            sample_file_copy = os.path.join(self.scratch, os.path.basename(params['sample_file']))
+            shutil.copy(params['sample_file'], sample_file_copy)
             file_links.append({
-                "path": params['sample_file'],
+                "path": sample_file_copy,
                 "name": sample_file_name,
                 "label": "Input Sample file",
                 "description": "Input file provided to create the sample set."
