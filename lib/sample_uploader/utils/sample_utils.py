@@ -2,6 +2,7 @@ import requests
 import uuid
 import json
 import os
+import re
 import pandas as pd
 
 
@@ -92,7 +93,7 @@ def get_sample_service_url(sw_url):
     return wiz_resp['result'][0]['url']
 
 
-def generate_metadata(row, cols, groups):
+def generate_metadata(row, cols, groups, unit_rules):
     """"""
     # first we iterate through the groups
     metadata = {}
@@ -115,7 +116,22 @@ def generate_metadata(row, cols, groups):
     cols = list(set(cols) - used_cols)
     for col in cols:
         if not pd.isnull(row[col]):
-            metadata[col] = {"value": row[col]}
+            # if there are column unit rules
+            units = None
+            alt_col = ""
+            if unit_rules:
+                for unit_rule in unit_rules:
+                    result = re.search(unit_rule, col)
+                    if result:
+                        # we assume the regex has capturing parantheses.
+                        match = result.group(1)
+                        units = match
+                        # use only first match.
+                        break
+            if units:
+                metadata[col] = {"value": row[col], "units": units}
+            else:
+                metadata[col] = {"value": row[col]}
     return metadata
 
 

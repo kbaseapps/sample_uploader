@@ -77,6 +77,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
 
     def verify_samples(self, sample_set, compare):
+        # print('[')
         for it, samp in enumerate(sample_set['samples']):
             samp_id = samp['id']
             headers = {"Authorization": self.ctx['token']}
@@ -94,7 +95,9 @@ class sample_uploaderTest(unittest.TestCase):
             if resp_json.get('error'):
                 raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
             sample = resp_json['result'][0]
+            # print(json.dumps(sample), ',')
             self.compare_sample(sample, compare[it])
+        # print(']')
 
     def verify_output_file(self, sample_set, file_path, file_type, num_metadata_cols, num_otus):
         if file_type == 'csv':
@@ -107,7 +110,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
 
     # @unittest.skip('x')
-    def test_upload_sample_from_csv(self):
+    def test_upload_SESAR_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2-forKB.csv")
@@ -138,7 +141,7 @@ class sample_uploaderTest(unittest.TestCase):
         )
 
     # @unittest.skip('x')
-    def test_upload_sample_from_xls(self):
+    def test_upload_SESAR_sample_from_xls(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         num_otus = 10
@@ -153,7 +156,8 @@ class sample_uploaderTest(unittest.TestCase):
             'num_otus': num_otus,
             'incl_seq': 1,
             'taxonomy_source': 'n/a',
-            'otu_prefix': 'test_OTU'
+            'otu_prefix': 'test_OTU',
+            "incl_input_in_output": 1
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
         with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
@@ -167,8 +171,8 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    #@unittest.skip('x')
-    def test_multiple_inputs(self):
+    # @unittest.skip('x')
+    def test_SESAR_multiple_inputs(self):
         """"""
         self.maxDiff = None
         for sample_file, compare_file in self.test_files:
@@ -181,6 +185,7 @@ class sample_uploaderTest(unittest.TestCase):
                 'set_name': ss_name,
                 'description': "this is a test sample set.",
                 'output_format': "",
+                "incl_input_in_output": 1
             }
             ret = self.serviceImpl.import_samples(self.ctx, params)[0]
             with open(compare_file) as f:
@@ -188,7 +193,7 @@ class sample_uploaderTest(unittest.TestCase):
             self.verify_samples(ret['sample_set'], compare_to)
 
     # @unittest.skip('x')
-    def test_generate_OTU_sheet(self):
+    def test_SESAR_generate_OTU_sheet(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         params = {
@@ -199,6 +204,7 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'test2',
             'description': "this is a test sample set.",
             'output_format': "",
+            "incl_input_in_output": 1
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
@@ -213,7 +219,7 @@ class sample_uploaderTest(unittest.TestCase):
             "num_otus": num_otus,
             "taxonomy_source": "n/a",
             "incl_seq": 0,
-            "otu_prefix": "science_is_cooool"
+            "otu_prefix": "science_is_cooool",
         }
         ret = self.serviceImpl.generate_OTU_sheet(self.ctx, params)[0]
         self.verify_output_file(
@@ -223,3 +229,26 @@ class sample_uploaderTest(unittest.TestCase):
             2,
             num_otus
         )
+
+    # @unittest.skip('x')
+    def test_upload_ENIGMA_samples(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "SampleMetaData.tsv")
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "ENIGMA",
+            'set_name': 'Enigma_test',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA.json')) as f:
+            compare_to = json.load(f)
+        self.verify_samples(
+            ret['sample_set'],
+            compare_to
+        )
+

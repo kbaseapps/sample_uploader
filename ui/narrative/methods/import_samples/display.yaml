@@ -96,5 +96,13 @@ parameters :
         long-hint  : |
             OTU identifier prefix, a user internal identifier
 
+    incl_input_in_output:
+        ui-name: |
+            Include Input as Output
+        short-hint : |
+            whether to include the input file as an output, default=True
+        long-hint  : |
+            whether to include the input file as an output, default=True. This is an option so that collaborators can access raw data.
+
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>
