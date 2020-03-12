@@ -138,7 +138,7 @@ class sample_uploader:
             shutil.copy(sample_file, sample_file_copy)
             file_links.append({
                 "path": sample_file_copy,
-                "name": sample_file_name,
+                "name": os.path.basename(sample_file_copy),
                 "label": "Input Sample file",
                 "description": "Input file provided to create the sample set."
             })
