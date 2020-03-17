@@ -231,7 +231,7 @@ class sample_uploaderTest(unittest.TestCase):
         )
 
     # @unittest.skip('x')
-    def test_upload_ENIGMA_samples(self):
+    def test_upload_adams_ENIGMA_samples(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "SampleMetaData.tsv")
         params = {
@@ -251,4 +251,30 @@ class sample_uploaderTest(unittest.TestCase):
             ret['sample_set'],
             compare_to
         )
+
+    # @unittest.skip('x')
+    def test_upload_jon_marcs_ENIGMA_samples(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "samples_merged.tsv")
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "ENIGMA",
+            'set_name': 'Enigma_test_2',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')) as f:
+            compare_to = json.load(f)
+        # compare_to = []
+        self.verify_samples(
+            ret['sample_set'],
+            compare_to
+        )
+
+
+
 

@@ -237,7 +237,20 @@ ENIGMA_mappings = {
         "Open Interval Start Depth (ft BGS)": (is_string, []),
         "Open Interval End Depth (ft BGS)": (is_string, []),
         "Open Interval Diameter (in)": (is_string, []),
-        "Rock Formation":  (is_string, [])
+        "Rock Formation":  (is_string, []),
+        # Jon-Marcs columns
+        "depth": (is_string, []),
+        "elevation": (is_string, []),
+        "date": (is_date, []),
+        "time": (is_string, []),
+        "timezone": (is_string, []),
+        "material": (is_string, []),
+        "env_package": (is_string, []),
+        "continent": (is_string, []),
+        "country": (is_string, []),
+        "region": (is_string, []),
+        "biome": (is_string, []),
+        "feature": (is_string, [])
     },
     "cols_mapping": {
         "SampleID": "id",
