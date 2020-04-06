@@ -10,7 +10,11 @@ from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from .utils.importer import import_samples_from_file
 from .utils.mappings import SESAR_mappings, ENIGMA_mappings
-from .utils.sample_utils import sample_set_to_OTU_sheet
+from .utils.sample_utils import (
+    sample_set_to_OTU_sheet,
+    update_acls,
+    get_sample_service_url
+)
 #END_HEADER
 
 
@@ -29,9 +33,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.1"
+    VERSION = "0.0.3"
     GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "57395d708fea34eecae8a899f5e87c7346fb17a8"
+    GIT_COMMIT_HASH = "f4cb837fe0fb4dc281b6ca8363a76fcaf134464a"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -65,7 +69,8 @@ class sample_uploader:
            String, parameter "sample_set" of type "SampleSet" -> structure:
            parameter "samples" of list of type "sample_info" -> structure:
            parameter "id" of type "sample_id", parameter "name" of String,
-           parameter "description" of String
+           parameter "description" of String, parameter "sample_set_ref" of
+           String
         """
         # ctx is the context object
         # return variables are: output
@@ -223,6 +228,52 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method generate_OTU_sheet return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def update_sample_set_acls(self, ctx, params):
+        """
+        :param params: instance of type "update_sample_set_acls_params" ->
+           structure: parameter "sample_set_ref" of String, parameter
+           "username" of String, parameter "is_reader" of Long, parameter
+           "is_writer" of Long, parameter "is_admin" of Long
+        :returns: instance of type "update_sample_set_acls_output" ->
+           structure: parameter "report_name" of String, parameter
+           "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN update_sample_set_acls
+
+        # first get sample_set object
+        sample_set_ref = params.get('sample_set_ref')
+        ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
+        sample_set = ret['data']
+        sample_url = get_sample_service_url(self.sw_url)
+
+        acls = {
+            'reader': [],
+            'writer': [],
+            'admin': []
+        }
+        for new_user in params.get('new_users'):
+            if params.get('is_admin'):
+                acls['admin'].append(new_user)
+            elif params.get('is_writer'):
+                acls['writer'].append(new_user)
+            elif params.get('is_reader'):
+                acls['reader'].append(new_user)
+
+        for sample in sample_set['samples']:
+            sample_id = sample['id']
+            status = update_acls(sample_url, sample_id, acls, ctx['token'])
+        output = {"status": status}
+        #END update_sample_set_acls
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method update_sample_set_acls return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

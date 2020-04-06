@@ -5,6 +5,8 @@ import os
 import re
 import pandas as pd
 
+from sample_uploader.utils.mappings import shared_fields
+
 
 def sample_set_to_OTU_sheet(
         sample_set,
@@ -48,7 +50,7 @@ def sample_set_to_OTU_sheet(
     return output_path
 
 
-def update_acls(sample_url, sample_id, acls):
+def update_acls(sample_url, sample_id, acls, token):
     """
     Query sample service to replace access control list for given sample id.
         sample_url - url of sample service
@@ -61,6 +63,7 @@ def update_acls(sample_url, sample_id, acls):
             }
         "owner" value currently not updateable
     """
+    headers = {"Authorization": token}
     ReplaceSampleACLsParams = {
         "acls": acls,
         "id": sample_id
@@ -75,7 +78,7 @@ def update_acls(sample_url, sample_id, acls):
     resp_json = resp.json()
     if resp_json.get('error'):
         raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
-
+    return resp.status_code
 
 def get_sample_service_url(sw_url):
     """"""
@@ -93,8 +96,15 @@ def get_sample_service_url(sw_url):
     return wiz_resp['result'][0]['url']
 
 
-def generate_metadata(row, cols, groups, unit_rules):
-    """"""
+def generate_user_metadata(row, cols, groups, unit_rules):
+    """
+    row        - row from input pandas.DataFrame object to convert to metadata
+    cols       - columns of input pandas.DataFrame to conver to metadata
+    groups     - list of dictionaries to group in same metadata field
+    unit_rules - list of regexes that capture the units associated with all fields.
+                 the first entry is used before the second which is used before the third and so on..
+                 NOTE: empty list is valid input and results in no unit fields captured from regex.
+    """
     # first we iterate through the groups
     metadata = {}
     used_cols = set([])
@@ -115,10 +125,10 @@ def generate_metadata(row, cols, groups, unit_rules):
 
     cols = list(set(cols) - used_cols)
     for col in cols:
+        # col = col.lower( )
         if not pd.isnull(row[col]):
             # if there are column unit rules
             units = None
-            alt_col = ""
             if unit_rules:
                 for unit_rule in unit_rules:
                     result = re.search(unit_rule, col)
@@ -135,11 +145,29 @@ def generate_metadata(row, cols, groups, unit_rules):
     return metadata
 
 
+def generate_controlled_metadata(row):
+    """
+    row  - row from input pandas.DataFrame object to convert to metadata
+    cols - columns of input pandas.DataFrame to conver to metadata
+    """
+    metadata = {}
+    # use the shared fields 
+    cols = shared_fields
+    for col in cols:
+        # make sure the column is lowercase
+        col = col.lower()
+        # check if column exists in row.
+        if col in row:
+            if not pd.isnull(row[col]):
+                metadata[col] = {"value": row[col]}
+    return metadata
+
+
 def save_sample(sample, sample_url, token):
     """
-    sample - completed sample as per 
+    sample     - completed sample as per 
     sample_url - url to sample service
-    token - workspace token for Authorization
+    token      - workspace token for Authorization
     """
     headers = {"Authorization": token}
     params = {

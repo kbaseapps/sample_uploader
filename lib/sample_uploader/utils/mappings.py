@@ -8,6 +8,20 @@ FILE-FORMAT_groups: list of
 from .verifiers import *
 
 
+shared_fields = [
+    "name"
+    "well"
+    "depth"
+    "elevation"
+    "Date"
+    "Time"
+    "Timezone"
+    "Material"
+    "Env_pakcage"
+    "Description"
+]
+
+
 # -------
 #  SESAR
 # -------
