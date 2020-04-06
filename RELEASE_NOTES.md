@@ -1,6 +1,10 @@
 # sample_uploader release notes
 =========================================
 
+0.0.4
+-----
+* adding in update_samnple_set_acls function
+
 0.0.3
 -----
 * adding in option for simple ENIGMA uploader and using input file as an output.
