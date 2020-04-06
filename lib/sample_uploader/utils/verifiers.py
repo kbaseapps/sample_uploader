@@ -35,6 +35,7 @@ def controlled_vocab(df_col, vocab, allow_nan=True):
 
 def regex_string(df_col, allow_nan=True):
     # TODO
+    is_string(df_col)
     pass
 
 
@@ -50,5 +51,6 @@ def is_numeric(df_col, allow_nan=True):
 
 def is_email(df_col, allow_nan=True):
     # TODO
+    is_string(df_col)
     pass
 

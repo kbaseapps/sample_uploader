@@ -65,6 +65,20 @@ class sample_uploaderTest(unittest.TestCase):
                 os.path.join(cls.curr_dir, "data", "moss_f50_metadata_cmp.json")
             )
         ]
+        sample_file = os.path.join(cls.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+        params = {
+            'workspace_name': cls.wsName,
+            'workspace_id': cls.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'set_name': 'test2',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
+        cls.sample_set = ret['sample_set']
+        cls.sample_set_ref = ret['sample_set_ref']
 
     @classmethod
     def tearDownClass(cls):
@@ -195,25 +209,12 @@ class sample_uploaderTest(unittest.TestCase):
     # @unittest.skip('x')
     def test_SESAR_generate_OTU_sheet(self):
         self.maxDiff = None
-        sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
-        params = {
-            'workspace_name': self.wsName,
-            'workspace_id': self.wsID,
-            'sample_file': sample_file,
-            'file_format': "SESAR",
-            'set_name': 'test2',
-            'description': "this is a test sample set.",
-            'output_format': "",
-            "incl_input_in_output": 1
-        }
-        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
-        sample_set = ret['sample_set']
-        sample_set_ref = ret['sample_set_ref']
         num_otus = 20
+        sample_set = self.sample_set
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
-            "sample_set_ref": sample_set_ref,
+            "sample_set_ref": self.sample_set_ref,
             "output_name": "test_output",
             "output_format": "xls",
             "num_otus": num_otus,
@@ -275,6 +276,17 @@ class sample_uploaderTest(unittest.TestCase):
             compare_to
         )
 
-
-
-
+    # @unittest.skip('x')
+    def test_change_acls(self):
+        self.maxDiff = None
+        params = {
+            'new_users': [
+                "eapearson"
+            ],
+            'is_admin': 1,
+            'is_reader': 0,
+            'is_writer': 0,
+            'sample_set_ref': self.sample_set_ref,
+        }
+        ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
+        print(ret)

@@ -3,8 +3,16 @@ import datetime
 import time
 import json
 import os
-from .sample_utils import get_sample_service_url, save_sample, generate_metadata, update_acls
+from sample_uploader.utils.sample_utils import (
+    get_sample_service_url,
+    save_sample,
+    generate_user_metadata,
+    generate_controlled_metadata,
+    update_acls
+)
+# from sample_uploader.utils.mappings import shared_fields
 
+# These columns should all be in lower case.
 REGULATED_COLS = ['name', 'id', 'parent_id']
 
 
@@ -12,11 +20,14 @@ def verify_columns(df, column_verification_map):
     """"""
     cols = df.columns
     for col in cols:
-        func, args = column_verification_map.get(col)
-        try:
-            func(df[col], *args)
-        except Exception as err:
-            raise ValueError(f"error parsing column \"{col}\" - {err}")
+        if column_verification_map.get(col):
+            func, args = column_verification_map.get(col)
+            try:
+                func(df[col], *args)
+            except Exception as err:
+                raise ValueError(f"error parsing column \"{col}\" - {err}")
+        else:
+            raise ValueError(f"column {col} not supported in input format.")
 
 
 def validate_params(params):
@@ -66,8 +77,10 @@ def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, toke
                     "id": str(row['id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    "meta_controlled": {},
-                    "meta_user": generate_metadata(
+                    "meta_controlled": generate_controlled_metadata(
+                        row
+                    ),
+                    "meta_user": generate_user_metadata(
                         row,
                         cols,
                         column_groups,
@@ -92,7 +105,7 @@ def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, toke
                     "writer": [w for w in writer],
                     "admin": [a for a in admin]
                 }
-                update_acls(sample_url, sample_id, acls)
+                update_acls(sample_url, sample_id, acls, token)
         else:
             raise RuntimeError(f"{row['id']} evaluates as false")
     return samples
@@ -117,11 +130,15 @@ def import_samples_from_file(
     ws_name = params.get('workspace_name')
     df = load_file(sample_file, header_index, date_columns)
     verify_columns(df, column_verification_map)
+    # column_mapping = {k: v.lower() for k, v in column_mapping.iteritems()}
     df = df.rename(columns=column_mapping)
-    cols = df.columns
-    cols = list(set(cols) - set(REGULATED_COLS))
-    # process and save samples
+    # # make sure all fields are lower case
+    # to_lower_cols = {col: col.lower() for col in df.columns}
+    # df = df.rename(columns=to_lower_cols)
+    # # get arguments for produce_samples
+    cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)
+    # process and save samples
     samples = produce_samples(
         df,
         cols,

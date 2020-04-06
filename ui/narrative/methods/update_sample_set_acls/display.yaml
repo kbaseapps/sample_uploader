@@ -1,0 +1,66 @@
+#
+# define display information
+#
+name: Update SampleSet Access Controls
+
+tooltip: |
+    Update SampleSet access controls list to allow other users to access samples.
+
+screenshots: []
+
+icon: icon.png
+
+#
+# define a set of similar apps that might be useful to the user
+#
+# suggestions:
+#     apps:
+#         related:
+#         next:
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_ref :
+        ui-name : |
+            Sample Set
+        short-hint : |
+            KBaseSets.SampleSet object to reassign Access controls.
+        long-hint  : |
+            KBaseSets.SampleSet object to reassign Access controls.
+
+    new_users:
+        ui-name : |
+            KBase Username(s)
+        short-hint : |
+            list of KBase Usernames
+        long-hint  : |
+            list of KBase Usernames to assign credentials to
+
+    is_reader:
+        ui-name: |
+            Reader
+        short-hint : |
+            assign users as readers
+        long-hint  : |
+            assign users as readers
+
+    is_writer:
+        ui-name: |
+            Writer
+        short-hint : |
+            assign users as writers
+        long-hint  : |
+            assign users as writers
+
+    is_admin:
+        ui-name: |
+            Admin
+        short-hint : |
+            assign users as admin
+        long-hint  : |
+            assign users as admin
+
+description : |
+    <p>Update SampleSet access controls list to allow other users to access samples. Update new users to be readers, writers, or admins of the Samples in the SampleSet</p>
