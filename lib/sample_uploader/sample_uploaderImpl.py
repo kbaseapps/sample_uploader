@@ -33,9 +33,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.3"
-    GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "f4cb837fe0fb4dc281b6ca8363a76fcaf134464a"
+    VERSION = "0.0.4"
+    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
+    GIT_COMMIT_HASH = "9bc612605a1f39b01270ca0870b00c9a97f67db4"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -236,11 +236,10 @@ class sample_uploader:
         """
         :param params: instance of type "update_sample_set_acls_params" ->
            structure: parameter "sample_set_ref" of String, parameter
-           "username" of String, parameter "is_reader" of Long, parameter
-           "is_writer" of Long, parameter "is_admin" of Long
+           "new_users" of list of String, parameter "is_reader" of Long,
+           parameter "is_writer" of Long, parameter "is_admin" of Long
         :returns: instance of type "update_sample_set_acls_output" ->
-           structure: parameter "report_name" of String, parameter
-           "report_ref" of String
+           structure: parameter "status" of String
         """
         # ctx is the context object
         # return variables are: output
