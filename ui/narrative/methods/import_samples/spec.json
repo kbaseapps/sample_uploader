@@ -43,7 +43,7 @@
         },
         {
             "id": "set_name",
-            "optional" : false,
+            "optional" : true,
             "advanced" : false,
             "allow_multiple" : false,
             "default_values" : [ "" ],
@@ -58,6 +58,17 @@
             "default_values" : [ "" ],
             "field_type" : "text",
             "text_options" : {}
+        },
+        {
+            "id": "sample_set_ref",
+            "optional" : true,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "" ],
+            "field_type" : "text",
+            "text_options" : {
+                "valid_ws_types": ["KBaseSets.SampleSet"]
+            }
         },
         {
             "id": "output_format",

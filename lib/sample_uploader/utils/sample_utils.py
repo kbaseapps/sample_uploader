@@ -155,10 +155,11 @@ def generate_controlled_metadata(row):
     cols = shared_fields
     for col in cols:
         # make sure the column is lowercase
-        col = col.lower()
+        # col = col.lower()
         # check if column exists in row.
         if col in row:
             if not pd.isnull(row[col]):
+                col = col.strip()
                 metadata[col] = {"value": row[col]}
     return metadata
 

@@ -54,3 +54,12 @@ def is_email(df_col, allow_nan=True):
     is_string(df_col)
     pass
 
+verifiers = {
+    "is_string": is_string,
+    "controlled_vocab": controlled_vocab,
+    "regex_string": regex_string,
+    "is_date": is_date,
+    "is_numeric": is_numeric,
+    "is_email": is_email
+}
+

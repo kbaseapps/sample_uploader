@@ -8,9 +8,9 @@ import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
-from .utils.importer import import_samples_from_file
-from .utils.mappings import SESAR_mappings, ENIGMA_mappings
-from .utils.sample_utils import (
+from sample_uploader.utils.importer import import_samples_from_file
+from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
+from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
     get_sample_service_url
@@ -34,8 +34,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.4"
-    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
-    GIT_COMMIT_HASH = "9bc612605a1f39b01270ca0870b00c9a97f67db4"
+    GIT_URL = "https://github.com/slebras/sample_uploader"
+    GIT_COMMIT_HASH = "4f07e7358926a32bd2945e8bdd75e7c11c8919d2"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -58,12 +58,13 @@ class sample_uploader:
     def import_samples(self, ctx, params):
         """
         :param params: instance of type "ImportSampleInputs" -> structure:
-           parameter "sample_file" of String, parameter "workspace_name" of
-           String, parameter "workspace_id" of Long, parameter "file_format"
-           of String, parameter "description" of String, parameter "set_name"
-           of String, parameter "output_format" of String, parameter
-           "taxonomy_source" of String, parameter "num_otus" of Long,
-           parameter "incl_seq" of Long, parameter "otu_prefix" of String
+           parameter "sample_set_ref" of String, parameter "sample_file" of
+           String, parameter "workspace_name" of String, parameter
+           "workspace_id" of Long, parameter "file_format" of String,
+           parameter "description" of String, parameter "set_name" of String,
+           parameter "output_format" of String, parameter "taxonomy_source"
+           of String, parameter "num_otus" of Long, parameter "incl_seq" of
+           Long, parameter "otu_prefix" of String
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -77,40 +78,68 @@ class sample_uploader:
         #BEGIN import_samples
         set_name = params.get("set_name")
         if params.get('file_format') == 'ENIGMA':
+            ENIGMA_mappings['verification_mapping'].update(
+                {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
+            )
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
                 ctx['token'],
                 ENIGMA_mappings['verification_mapping'],
-                ENIGMA_mappings['cols_mapping'],
-                ENIGMA_mappings.get('groups'),
-                ENIGMA_mappings['date_cols'],
-                ENIGMA_mappings.get('column_unit_regex'),
+                ENIGMA_mappings['column_mapping'],
+                ENIGMA_mappings.get('groups', []),
+                ENIGMA_mappings['date_columns'],
+                ENIGMA_mappings.get('column_unit_regex', []),
                 header_index=0
             )
         elif params.get('file_format') == 'SESAR':
+            SESAR_mappings['verification_mapping'].update(
+                {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
+            )
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
                 ctx['token'],
                 SESAR_mappings['verification_mapping'],
-                SESAR_mappings['cols_mapping'],
-                SESAR_mappings.get('groups'),
-                SESAR_mappings['date_cols'],
-                SESAR_mappings.get('column_unit_regex'),
+                SESAR_mappings['column_mapping'],
+                SESAR_mappings.get('groups', []),
+                SESAR_mappings['date_columns'],
+                SESAR_mappings.get('column_unit_regex', []),
                 header_index=1
             )
         else:
             raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples.")
-        
-        obj_info = self.dfu.save_objects({
-            'id': params.get('workspace_id'),
-            'objects': [{
-                "type": "KBaseSets.SampleSet",
-                "data": sample_set,
-                "name": set_name
-            }]
-        })[0]
+
+        if params.get('sample_set_ref'):
+            input_sample_set_ref = params['sample_set_ref']
+            input_ref_obj_id = input_sample_set_ref.split('/')[1]
+            input_ref_ws_id  = input_sample_set_ref.split('/')[0]
+            ret = self.dfu.get_objects({'object_refs': [input_sample_set_ref]})['data'][0]
+            input_sample_set = ret['data']
+            # set name of set
+            set_name = ret['info'][1]
+            sample_set['samples'] = input_sample_set['samples'] + sample_set['samples']
+            obj_info = self.dfu.save_objects({
+                'id': input_ref_ws_id,
+                'objects': [{
+                    'objid': input_ref_obj_id,
+                    "type": "KBaseSets.SampleSet",
+                    "data": sample_set,
+                }]
+            })[0]
+
+        else:
+            if not params.get('set_name'):
+                raise ValueError(f"Sample set Name required, when SampleSet object not specified for update.")
+            set_name = params['set_name']
+            obj_info = self.dfu.save_objects({
+                'id': params.get('workspace_id'),
+                'objects': [{
+                    "type": "KBaseSets.SampleSet",
+                    "data": sample_set,
+                    "name": set_name
+                }]
+            })[0]
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
@@ -164,7 +193,6 @@ class sample_uploader:
             'sample_set': sample_set,
             'sample_set_ref': sample_set_ref
         }
-
         #END import_samples
 
         # At some point might do deeper type checking...
@@ -276,6 +304,7 @@ class sample_uploader:
                              'output is not type dict as required.')
         # return the results
         return [output]
+
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
