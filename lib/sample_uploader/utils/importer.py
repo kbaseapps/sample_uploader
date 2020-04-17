@@ -10,18 +10,25 @@ from sample_uploader.utils.sample_utils import (
     generate_controlled_metadata,
     update_acls
 )
+from sample_uploader.utils.verifiers import verifiers
 # from sample_uploader.utils.mappings import shared_fields
 
 # These columns should all be in lower case.
-REGULATED_COLS = ['name', 'id', 'parent_id']
+REGULATED_COLS = ['Name', 'Id', 'Parent_id']
 
 
-def verify_columns(df, column_verification_map):
+def verify_columns(
+    df,
+    column_verification_map
+):
     """"""
     cols = df.columns
     for col in cols:
         if column_verification_map.get(col):
-            func, args = column_verification_map.get(col)
+            func_str, args = column_verification_map.get(col)
+            func = verifiers.get(func_str)
+            if not func:
+                raise ValueError(f"no such verifying function {func_str}")
             try:
                 func(df[col], *args)
             except Exception as err:
@@ -46,7 +53,11 @@ def validate_params(params):
     return sample_file
 
 
-def load_file(sample_file, header_index, date_columns):
+def load_file(
+    sample_file,
+    header_index,
+    date_columns
+):
     """"""
     if sample_file.endswith('.tsv'):
         df = pd.read_csv(sample_file, sep="\t", parse_dates=date_columns, header=header_index)
@@ -55,31 +66,40 @@ def load_file(sample_file, header_index, date_columns):
     elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
         df = pd.read_excel(sample_file, header=header_index)
     else:
-        raise ValueError(f"File {os.path.basename(sample_file)} is not in an accepted file format, "
-                         f"accepted file formats are '.xls' '.csv' '.tsv' or '.xlsx'")
+        raise ValueError(f"File {os.path.basename(sample_file)} is not in "
+                         f"an accepted file format, accepted file formats "
+                         f"are '.xls' '.csv' '.tsv' or '.xlsx'")
     return df
 
 
-def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, token):
+def produce_samples(
+    df,
+    cols,
+    column_groups,
+    column_unit_regex,
+    sample_url,
+    token
+):
     """
     """
     samples = []
     for idx, row in df.iterrows():
-        if row['id']:
+        if row['Id']:
             # use name field as name, if there is non-reuse id.
-            if row.get('name'):
-                name = str(row['name'])
+            if row.get('Name'):
+                name = str(row['Name'])
             else:
-                name = str(row['id'])
-            parent = str(row['parent_id'])
+                name = str(row['Id'])
+            parent = str(row['Parent_id'])
             sample = {
                 'node_tree': [{
-                    "id": str(row['id']),
+                    "id": str(row['Id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    "meta_controlled": generate_controlled_metadata(
-                        row
-                    ),
+                    "meta_controlled": {},
+                    # "meta_controlled": generate_controlled_metadata(
+                    #     row
+                    # ),
                     "meta_user": generate_user_metadata(
                         row,
                         cols,
@@ -107,7 +127,7 @@ def produce_samples(df, cols, column_groups, column_unit_regex, sample_url, toke
                 }
                 update_acls(sample_url, sample_id, acls, token)
         else:
-            raise RuntimeError(f"{row['id']} evaluates as false")
+            raise RuntimeError(f"{row['Id']} evaluates as false")
     return samples
 
 
@@ -132,13 +152,12 @@ def import_samples_from_file(
     verify_columns(df, column_verification_map)
     # column_mapping = {k: v.lower() for k, v in column_mapping.iteritems()}
     df = df.rename(columns=column_mapping)
-    # # make sure all fields are lower case
-    # to_lower_cols = {col: col.lower() for col in df.columns}
-    # df = df.rename(columns=to_lower_cols)
-    # # get arguments for produce_samples
+    # make sure all columns have the first letter Upper cased.
+    to_lower_cols = {col: col[0].upper() + col[1:] for col in df.columns}
+    df = df.rename(columns=to_lower_cols)
+    # process and save samples
     cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)
-    # process and save samples
     samples = produce_samples(
         df,
         cols,

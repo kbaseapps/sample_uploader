@@ -290,3 +290,20 @@ class sample_uploaderTest(unittest.TestCase):
         }
         ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
         print(ret)
+
+    # @unittest.skip('x')
+    def test_import_with_existing(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "samples_merged.tsv")
+        params = {
+            'sample_set_ref': self.sample_set_ref,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "ENIGMA",
+            'set_name': 'Enigma_test_2',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]

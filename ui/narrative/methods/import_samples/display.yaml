@@ -22,7 +22,7 @@ icon: icon.png
 # Configure the display and description of parameters
 #
 parameters :
-    sample_file :
+    sample_file:
         ui-name : |
             Samples file
         short-hint : |
@@ -30,14 +30,13 @@ parameters :
         long-hint  : |
             Samples file, in '.xls' or '.csv' formats
 
-    file_format :
+    file_format:
         ui-name : |
             File format
         short-hint : |
             Format source of the input file, files downloaded from KBase are in SESAR format.
         long-hint  : |
             Format source of the input file, files downloaded from KBase are in SESAR format.
-
 
     set_name:
         ui-name : |
@@ -54,6 +53,14 @@ parameters :
             description of the set of samples
         long-hint  : |
             description of the set of samples
+
+    sample_set_ref:
+        ui-name: |
+            SampleSet (optional)
+        short-hint: |
+            SampleSet object to update (optional)
+        long-hint: |
+            SampleSet object to update with input file
 
     output_format:
         ui-name: |
@@ -78,7 +85,6 @@ parameters :
             number of OTUs, for construction of output file
         long-hint  : |
             number of OTUs, for construction of output file
-
 
     incl_seq:
         ui-name: |

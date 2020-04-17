@@ -2,3 +2,4 @@ xlrd==1.2.0
 pandas==0.25.3
 openpyxl==3.0.3
 python-dateutil==2.7.5
+pyyaml==5.3.1

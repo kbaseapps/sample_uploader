@@ -7,6 +7,8 @@ module sample_uploader {
 	typedef string sample_id;
 
 	typedef structure {
+		string sample_set_ref;
+
 		string sample_file;
 		string workspace_name;
 		int workspace_id;
@@ -39,6 +41,7 @@ module sample_uploader {
     } ImportSampleOutputs;
 
     funcdef import_samples(ImportSampleInputs params) returns (ImportSampleOutputs output) authentication required;
+
 
     /*
     Generate a customized OTU worksheet using a SampleSet 
