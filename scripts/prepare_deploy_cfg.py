@@ -35,6 +35,11 @@ if __name__ == "__main__":
             props += "auth_service_url = " + os.environ.get("AUTH_SERVICE_URL") + "\n"
         props += "auth_service_url_allow_insecure = " + \
                  os.environ.get("AUTH_SERVICE_URL_ALLOW_INSECURE", "false") + "\n"
+        props += "config_release_url =  " + \
+                 os.environ.get(
+                    "CONFIG_RELEASE_URL",
+                    "https://api.github.com/repos/kbaseincubator/sample_service_validator_config/releases/25379962"
+                 ) + "\n"
         for key in os.environ:
             if key.startswith('KBASE_SECURE_CONFIG_PARAM_'):
                 param_name = key[len('KBASE_SECURE_CONFIG_PARAM_'):]
