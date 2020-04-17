@@ -1,6 +1,10 @@
 # sample_uploader release notes
 =========================================
 
+0.0.5
+-----
+* adding ability to update sample_set from import_samples
+
 0.0.4
 -----
 * adding in update_samnple_set_acls function
