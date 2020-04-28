@@ -80,8 +80,7 @@ def produce_samples(
     sample_url,
     token
 ):
-    """
-    """
+    """"""
     samples = []
     for idx, row in df.iterrows():
         if row['Id']:
@@ -96,10 +95,10 @@ def produce_samples(
                     "id": str(row['Id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    "meta_controlled": {},
-                    # "meta_controlled": generate_controlled_metadata(
-                    #     row
-                    # ),
+                    # "meta_controlled": {},
+                    "meta_controlled": generate_controlled_metadata(
+                        row
+                    ),
                     "meta_user": generate_user_metadata(
                         row,
                         cols,
