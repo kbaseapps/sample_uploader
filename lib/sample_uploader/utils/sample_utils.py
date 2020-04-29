@@ -188,4 +188,5 @@ def save_sample(sample, sample_url, token):
     if resp_json.get('error'):
         raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
     sample_id = resp_json['result'][0]['id']
-    return sample_id
+    sample_ver = resp_json['result'][0]['version']
+    return sample_id, sample_ver

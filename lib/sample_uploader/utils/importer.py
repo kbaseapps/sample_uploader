@@ -95,7 +95,6 @@ def produce_samples(
                     "id": str(row['Id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    # "meta_controlled": {},
                     "meta_controlled": generate_controlled_metadata(
                         row
                     ),
@@ -108,10 +107,11 @@ def produce_samples(
                 }],
                 'name': name,
             }
-            sample_id = save_sample(sample, sample_url, token)
+            sample_id, sample_ver = save_sample(sample, sample_url, token)
             samples.append({
                 "id": sample_id,
-                "name": name
+                "name": name,
+                "version": sample_ver
             })
             # check input for any reason to update access control list
             # should have a "writer", "reader", "admin" entry

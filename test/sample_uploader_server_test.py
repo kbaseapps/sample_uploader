@@ -94,9 +94,11 @@ class sample_uploaderTest(unittest.TestCase):
         # print('[')
         for it, samp in enumerate(sample_set['samples']):
             samp_id = samp['id']
+            samp_ver = samp['version']
             headers = {"Authorization": self.ctx['token']}
             params = {
                 "id": samp_id,
+                "version": samp_ver
             }
             payload = {
                 "method": "SampleService.get_sample",
