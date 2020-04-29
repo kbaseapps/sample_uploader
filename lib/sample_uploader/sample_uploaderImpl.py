@@ -34,7 +34,7 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.4"
-    GIT_URL = "https://github.com/slebras/sample_uploader"
+    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
     GIT_COMMIT_HASH = "4f07e7358926a32bd2945e8bdd75e7c11c8919d2"
 
     #BEGIN_CLASS_HEADER

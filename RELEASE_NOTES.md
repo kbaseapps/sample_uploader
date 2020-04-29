@@ -1,6 +1,11 @@
 # sample_uploader release notes
 =========================================
 
+0.0.6
+-----
+* Updating for KBaseSets.SampleSet-2.0: including version in samples
+* Adding support for controlled_metadata in saved samples
+
 0.0.5
 -----
 * adding ability to update sample_set from import_samples
