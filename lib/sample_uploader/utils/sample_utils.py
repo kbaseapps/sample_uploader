@@ -26,7 +26,7 @@ def sample_set_to_OTU_sheet(
     if params.get('incl_seq', False):
         metadata_cols += ['consensus_sequence']
 
-    sample_columns = [s['name'] + " {"+ s['id'] +"}" for s in sample_set['samples']]
+    sample_columns = [str(s['name']) + " {"+ str(s['id']) +"} (" + str(s['version']) + ")" for s in sample_set['samples']]
     OTU_ids = [otu_prefix + '_' + str(i+1) for i in range(number_of_OTUs)] 
     data = {'OTU id': OTU_ids}
     data.update(
@@ -188,4 +188,5 @@ def save_sample(sample, sample_url, token):
     if resp_json.get('error'):
         raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
     sample_id = resp_json['result'][0]['id']
-    return sample_id
+    sample_ver = resp_json['result'][0]['version']
+    return sample_id, sample_ver

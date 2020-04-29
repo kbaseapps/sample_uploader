@@ -80,8 +80,7 @@ def produce_samples(
     sample_url,
     token
 ):
-    """
-    """
+    """"""
     samples = []
     for idx, row in df.iterrows():
         if row['Id']:
@@ -96,10 +95,9 @@ def produce_samples(
                     "id": str(row['Id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    "meta_controlled": {},
-                    # "meta_controlled": generate_controlled_metadata(
-                    #     row
-                    # ),
+                    "meta_controlled": generate_controlled_metadata(
+                        row
+                    ),
                     "meta_user": generate_user_metadata(
                         row,
                         cols,
@@ -109,10 +107,11 @@ def produce_samples(
                 }],
                 'name': name,
             }
-            sample_id = save_sample(sample, sample_url, token)
+            sample_id, sample_ver = save_sample(sample, sample_url, token)
             samples.append({
                 "id": sample_id,
-                "name": name
+                "name": name,
+                "version": sample_ver
             })
             # check input for any reason to update access control list
             # should have a "writer", "reader", "admin" entry
