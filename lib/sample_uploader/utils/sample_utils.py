@@ -26,7 +26,7 @@ def sample_set_to_OTU_sheet(
     if params.get('incl_seq', False):
         metadata_cols += ['consensus_sequence']
 
-    sample_columns = [s['name'] + " {"+ s['id'] +"}" for s in sample_set['samples']]
+    sample_columns = [str(s['name']) + " {"+ str(s['id']) +"} (" + str(s['version']) + ")" for s in sample_set['samples']]
     OTU_ids = [otu_prefix + '_' + str(i+1) for i in range(number_of_OTUs)] 
     data = {'OTU id': OTU_ids}
     data.update(

@@ -143,6 +143,7 @@ class sample_uploader:
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
+        # if output file format specified, add one to output
         if params.get('output_format') in ['csv', 'xls']:
             otu_path = sample_set_to_OTU_sheet(
                 sample_set,
