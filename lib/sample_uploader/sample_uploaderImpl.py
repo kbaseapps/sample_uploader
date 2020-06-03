@@ -13,7 +13,9 @@ from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    get_sample_service_url
+    get_sample_service_url,
+    get_sample,
+    format_sample_as_row
 )
 #END_HEADER
 
@@ -33,9 +35,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.4"
-    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
-    GIT_COMMIT_HASH = "4f07e7358926a32bd2945e8bdd75e7c11c8919d2"
+    VERSION = "0.0.6"
+    GIT_URL = "https://github.com/slebras/sample_uploader"
+    GIT_COMMIT_HASH = "18af6231ddd3025c96e5f67a2f13830071d8803e"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -76,7 +78,20 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN import_samples
-        set_name = params.get("set_name")
+        sample_set = {"samples": []}
+        if params.get('sample_set_ref'):
+            ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
+            sample_set = ret['data']
+            # input_sample_set = ret['data']
+            # set name of set
+            set_name = ret['info'][1]
+
+        else:
+            if not params.get('set_name'):
+                raise ValueError(f"Sample set name required, when new SampleSet object is created.")
+            set_name = params['set_name']
+
+
         if params.get('file_format') == 'ENIGMA':
             ENIGMA_mappings['verification_mapping'].update(
                 {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
@@ -90,6 +105,7 @@ class sample_uploader:
                 ENIGMA_mappings.get('groups', []),
                 ENIGMA_mappings['date_columns'],
                 ENIGMA_mappings.get('column_unit_regex', []),
+                sample_set,
                 header_index=0
             )
         elif params.get('file_format') == 'SESAR':
@@ -105,6 +121,7 @@ class sample_uploader:
                 SESAR_mappings.get('groups', []),
                 SESAR_mappings['date_columns'],
                 SESAR_mappings.get('column_unit_regex', []),
+                sample_set,
                 header_index=1
             )
         else:
@@ -113,33 +130,24 @@ class sample_uploader:
         if params.get('sample_set_ref'):
             input_sample_set_ref = params['sample_set_ref']
             input_ref_obj_id = input_sample_set_ref.split('/')[1]
-            input_ref_ws_id  = input_sample_set_ref.split('/')[0]
-            ret = self.dfu.get_objects({'object_refs': [input_sample_set_ref]})['data'][0]
-            input_sample_set = ret['data']
+            save_ws_id = input_sample_set_ref.split('/')[0]
             # set name of set
-            set_name = ret['info'][1]
-            sample_set['samples'] = input_sample_set['samples'] + sample_set['samples']
-            obj_info = self.dfu.save_objects({
-                'id': input_ref_ws_id,
-                'objects': [{
-                    'objid': input_ref_obj_id,
-                    "type": "KBaseSets.SampleSet",
-                    "data": sample_set,
-                }]
-            })[0]
-
+            obj = {
+                'objid': input_ref_obj_id,
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set
+            }
         else:
-            if not params.get('set_name'):
-                raise ValueError(f"Sample set Name required, when SampleSet object not specified for update.")
-            set_name = params['set_name']
-            obj_info = self.dfu.save_objects({
-                'id': params.get('workspace_id'),
-                'objects': [{
-                    "type": "KBaseSets.SampleSet",
-                    "data": sample_set,
-                    "name": set_name
-                }]
-            })[0]
+            save_ws_id = params.get('workspace_id')
+            obj = {
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set,
+                "name": set_name
+            }
+        obj_info = self.dfu.save_objects({
+            'id': params.get('workspace_id'),
+            'objects': [obj]
+        })[0]
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
@@ -306,6 +314,74 @@ class sample_uploader:
         # return the results
         return [output]
 
+    def export_samples(self, ctx, params):
+        """
+        :param params: instance of type "ExportParams" (export function for
+           samples) -> structure: parameter "input_ref" of String
+        :returns: instance of type "ExportOutput" -> structure: parameter
+           "shock_id" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN export_samples
+        if not params.get('input_ref'):
+            raise ValueError(f"variable input_ref required")
+        if not params.get('file_format'):
+            raise ValueError(f"variable file_format required")
+        sample_set_ref = params.get('input_ref')
+        output_file_format = params.get('file_format')
+
+        ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
+        sample_set = ret['data']
+        sample_set_name = ret['info'][1]
+        sample_url = get_sample_service_url(self.sw_url)
+
+        def get_headers(sample_set, sample_url):
+            sample = get_sample(sample_set['samples'][0], sample_url, ctx['token'])
+            sample_headers, _ = format_sample_as_row(sample, file_format=output_file_format)
+            return sample_headers
+
+        export_package_dir = os.path.join(self.scratch, "output")
+        if not os.path.isdir(export_package_dir):
+            os.mkdir(export_package_dir)
+        output_file = os.path.join(export_package_dir, '_'.join(sample_set_name.split()) + ".csv")
+        sample_headers = get_headers(sample_set, sample_url)
+
+        # len_headers = len(sample_headers.split(','))
+
+        with open(output_file, 'w') as f:
+            f.write("Object Type:,Individual Sample,User Code:,\n")
+            f.write(sample_headers)
+        for samp in sample_set['samples']:
+            sample = get_sample(samp, sample_url, ctx['token'])
+            _, sample_row = format_sample_as_row(sample, sample_headers, file_format=output_file_format)
+            # if len(sample_row.split(',')) > len_headers:
+            #     print('='*80)
+            #     print(len(sample_row.split(',')))
+            #     print(jkjk)
+            #     print(sample_row)
+            #     print('='*80)
+            with open(output_file, 'a') as f:
+                f.write(sample_row)
+
+        # package it up
+        package_details = self.dfu.package_for_download({
+            'file_path': export_package_dir,
+            'ws_refs': [params['input_ref']]
+        })
+
+        output = {
+            'shock_id': package_details['shock_id'],
+            'result_dir': export_package_dir
+        }
+        #END export_samples
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method export_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

@@ -350,6 +350,10 @@ class Application(object):
                              name='sample_uploader.update_sample_set_acls',
                              types=[dict])
         self.method_authentication['sample_uploader.update_sample_set_acls'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.export_samples,
+                             name='sample_uploader.export_samples',
+                             types=[dict])
+        self.method_authentication['sample_uploader.export_samples'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])
