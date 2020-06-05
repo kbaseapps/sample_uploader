@@ -38,7 +38,7 @@ if __name__ == "__main__":
         props += "config_release_url =  " + \
                  os.environ.get(
                     "CONFIG_RELEASE_URL",
-                    "https://api.github.com/repos/kbaseincubator/sample_service_validator_config/releases/25379962"
+                    "https://api.github.com/repos/kbaseincubator/sample_service_validator_config/releases/tags/0.4"
                  ) + "\n"
         for key in os.environ:
             if key.startswith('KBASE_SECURE_CONFIG_PARAM_'):
