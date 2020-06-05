@@ -5,14 +5,20 @@ import os
 import re
 import pandas as pd
 
-from sample_uploader.utils.mappings import shared_fields
+from sample_uploader.utils.mappings import shared_fields, SAMP_SERV_CONFIG
+from sample_uploader.utils.parsing_utils import (
+    parse_grouped_data,
+    check_value_in_list,
+    handle_groups_metadata,
+    upload_key_format
+)
 
 
 def sample_set_to_OTU_sheet(
         sample_set,
         output_file_name,
         scratch,
-        params    
+        params
     ):
     """
     """
@@ -80,6 +86,7 @@ def update_acls(sample_url, sample_id, acls, token):
         raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
     return resp.status_code
 
+
 def get_sample_service_url(sw_url):
     """"""
     payload = {
@@ -106,23 +113,7 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                  NOTE: empty list is valid input and results in no unit fields captured from regex.
     """
     # first we iterate through the groups
-    metadata = {}
-    used_cols = set([])
-    for group in groups:
-        mtd = {}
-        if group['value'] not in cols:
-            continue
-        for val in group:
-            # if starts with 'str:', not a column
-            if group[val].startswith('str:'):
-                mtd[val] = group[val][4:]
-            # default behaviour expects a column as the value
-            else:
-                if not pd.isnull(row[group[val]]):
-                    mtd[val] = row[group[val]]
-                    used_cols.add(group[val])
-        metadata[group["value"]] = mtd
-
+    metadata, used_cols = handle_groups_metadata(row, cols, groups)
     cols = list(set(cols) - used_cols)
     for col in cols:
         # col = col.lower( )
@@ -138,43 +129,103 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                         units = match
                         # use only first match.
                         break
+            # try to assing value as a float if possible
+            try:
+                val = float(row[col])
+            except:
+                val = row[col]
+            metadata[upload_key_format(col)] = {"value": val}
             if units:
-                metadata[col] = {"value": row[col], "units": units}
-            else:
-                metadata[col] = {"value": row[col]}
+                metadata[upload_key_format(col)]["units"] = units
+
     return metadata
 
 
-def generate_controlled_metadata(row):
+def generate_controlled_metadata(row, groups):
     """
     row  - row from input pandas.DataFrame object to convert to metadata
     cols - columns of input pandas.DataFrame to conver to metadata
     """
     metadata = {}
-    # use the shared fields 
-    cols = shared_fields
-    for col in cols:
-        # make sure the column is lowercase
-        # col = col.lower()
-        # check if column exists in row.
-        if col in row:
-            if not pd.isnull(row[col]):
-                col = col.strip()
-                metadata[col] = {"value": row[col]}
+    # use the shared fields
+    for col in shared_fields:
+        col = upload_key_format(col)
+        ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
+        if ss_validator:
+            if col in row and not pd.isnull(row[col]):
+                idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
+                try:
+                    val = float(row[col])
+                except:
+                    val = row[col]
+                mtd = {"value": val}
+                if idx is not None:
+                    mtd, _ = parse_grouped_data(row, groups[idx])
+                # verify against validator
+                missing_fields = _find_missing_fields(mtd, ss_validator)
+                for field, default in missing_fields.items():
+                    mtd[field] = default
+                metadata[col] = mtd
+
     return metadata
 
 
-def save_sample(sample, sample_url, token):
+def _find_missing_fields(mtd, ss_validator):
+    missing_fields = {}
+    for val in ss_validator.get('validators'):
+        if val.get('parameters'):
+            for key in ['key', 'keys']:
+                if val['parameters'].get(key):
+                    if val['parameters'][key] not in mtd:
+                        missing_fields[val['parameters'][key]] = val['parameters'][val['parameters'][key]]
+    return missing_fields
+
+
+def get_sample(sample_info, sample_url, token):
+    """ Get sample from SampleService
+    sample_info - dict containing 'id' and 'version' of a sample
+    sample_url - SampleService Url
+    token      - Authorization token
+    """
+    headers = {"Authorization": token}
+    params = {
+        "id": sample_info['id']
+    }
+    if sample_info.get('version'):
+        params['version'] = sample_info['version']
+    payload = {
+        "method": "SampleService.get_sample",
+        "id": str(uuid.uuid4()),
+        "params": [params],
+        "version": "1.1"
+    }
+    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload))
+    resp_json = resp.json()
+    if resp_json.get('error'):
+        raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+    sample = resp_json['result'][0]
+    return sample
+
+
+def save_sample(sample, sample_url, token, previous_version=None):
     """
     sample     - completed sample as per 
     sample_url - url to sample service
     token      - workspace token for Authorization
+    previous_version - previous version of sample
     """
     headers = {"Authorization": token}
-    params = {
-        "sample": sample,
-        "prior_version": None,
-    }
+    if previous_version:
+        sample['id'] = previous_version['id']
+        params = {
+            "sample": sample,
+            "prior_version": previous_version['version'],
+        }
+    else:
+        params = {
+            "sample": sample,
+            "prior_version": None
+        }
     payload = {
         "method": "SampleService.create_sample",
         "id": str(uuid.uuid4()),
@@ -183,6 +234,11 @@ def save_sample(sample, sample_url, token):
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     if not resp.ok:
+        print('-'*80)
+        print('-'*80)
+        print("broken sample:", sample)
+        print('-'*80)
+        print('-'*80)
         raise RuntimeError(f'Error from SampleService - {resp.text}')
     resp_json = resp.json()
     if resp_json.get('error'):

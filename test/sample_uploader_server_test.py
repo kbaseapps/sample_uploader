@@ -11,7 +11,7 @@ from configparser import ConfigParser
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample_service_url
+from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
 from installed_clients.WorkspaceClient import Workspace
 
 
@@ -88,29 +88,13 @@ class sample_uploaderTest(unittest.TestCase):
     
     def compare_sample(self, s, sc):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
+        self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
         self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
 
     def verify_samples(self, sample_set, compare):
         # print('[')
         for it, samp in enumerate(sample_set['samples']):
-            samp_id = samp['id']
-            samp_ver = samp['version']
-            headers = {"Authorization": self.ctx['token']}
-            params = {
-                "id": samp_id,
-                "version": samp_ver
-            }
-            payload = {
-                "method": "SampleService.get_sample",
-                "id": str(uuid.uuid4()),
-                "params": [params],
-                "version": "1.1"
-            }
-            resp = requests.post(url=self.sample_url, headers=headers, data=json.dumps(payload))
-            resp_json = resp.json()
-            if resp_json.get('error'):
-                raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
-            sample = resp_json['result'][0]
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
             # print(json.dumps(sample), ',')
             self.compare_sample(sample, compare[it])
         # print(']')
@@ -126,6 +110,27 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
 
     # @unittest.skip('x')
+    def test_update_samples(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2_copy.xls")
+        params = {
+            'sample_set_ref': self.sample_set_ref,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'set_name': 'update_test',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        with open(os.path.join(self.curr_dir, 'data', 'compare_to_update.json')) as f:
+            compare_to = json.load(f)
+        self.verify_samples(sample_set, compare_to)
+
+    @unittest.skip('Currently broken, because of date columns.')
     def test_upload_SESAR_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using

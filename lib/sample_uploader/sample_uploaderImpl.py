@@ -76,7 +76,18 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN import_samples
-        set_name = params.get("set_name")
+        sample_set = {"samples": []}
+        if params.get('sample_set_ref'):
+            ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
+            sample_set = ret['data']
+            set_name = ret['info'][1]
+            save_ws_id = params['sample_set_ref'].split('/')[0]
+        else:
+            if not params.get('set_name'):
+                raise ValueError(f"Sample set name required, when new SampleSet object is created.")
+            set_name = params['set_name']
+            save_ws_id = params.get('workspace_id')
+
         if params.get('file_format') == 'ENIGMA':
             ENIGMA_mappings['verification_mapping'].update(
                 {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
@@ -90,6 +101,7 @@ class sample_uploader:
                 ENIGMA_mappings.get('groups', []),
                 ENIGMA_mappings['date_columns'],
                 ENIGMA_mappings.get('column_unit_regex', []),
+                sample_set,
                 header_index=0
             )
         elif params.get('file_format') == 'SESAR':
@@ -105,41 +117,21 @@ class sample_uploader:
                 SESAR_mappings.get('groups', []),
                 SESAR_mappings['date_columns'],
                 SESAR_mappings.get('column_unit_regex', []),
+                sample_set,
                 header_index=1
             )
         else:
             raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples.")
 
-        if params.get('sample_set_ref'):
-            input_sample_set_ref = params['sample_set_ref']
-            input_ref_obj_id = input_sample_set_ref.split('/')[1]
-            input_ref_ws_id  = input_sample_set_ref.split('/')[0]
-            ret = self.dfu.get_objects({'object_refs': [input_sample_set_ref]})['data'][0]
-            input_sample_set = ret['data']
-            # set name of set
-            set_name = ret['info'][1]
-            sample_set['samples'] = input_sample_set['samples'] + sample_set['samples']
-            obj_info = self.dfu.save_objects({
-                'id': input_ref_ws_id,
-                'objects': [{
-                    'objid': input_ref_obj_id,
-                    "type": "KBaseSets.SampleSet",
-                    "data": sample_set,
-                }]
-            })[0]
+        obj_info = self.dfu.save_objects({
+            'id': save_ws_id,
+            'objects': [{
+                "name": set_name,
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set
+            }]
+        })[0]
 
-        else:
-            if not params.get('set_name'):
-                raise ValueError(f"Sample set Name required, when SampleSet object not specified for update.")
-            set_name = params['set_name']
-            obj_info = self.dfu.save_objects({
-                'id': params.get('workspace_id'),
-                'objects': [{
-                    "type": "KBaseSets.SampleSet",
-                    "data": sample_set,
-                    "name": set_name
-                }]
-            })[0]
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
