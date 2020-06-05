@@ -27,7 +27,11 @@ def parse_grouped_data(row, group):
         else:
             # check if the column is in the data and is not null
             if group[val] in row and not pd.isnull(row[group[val]]):
-                mtd[val] = row[group[val]]
+                try:
+                    mtd_val = float(row[group[val]])
+                except (ValueError, TypeError):
+                    mtd_val = row[group[val]]
+                mtd[val] = mtd_val
                 used_cols.add(group[val])
     return mtd, used_cols
 

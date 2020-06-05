@@ -5,7 +5,7 @@ import os
 import re
 import pandas as pd
 
-from sample_uploader.utils.mappings import shared_fields
+from sample_uploader.utils.mappings import shared_fields, SAMP_SERV_CONFIG
 from sample_uploader.utils.parsing_utils import (
     parse_grouped_data,
     check_value_in_list,
@@ -113,24 +113,7 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                  NOTE: empty list is valid input and results in no unit fields captured from regex.
     """
     # first we iterate through the groups
-    # metadata = {}
-    # used_cols = set([])
-    # for group in groups:
-    #     mtd = {}
-    #     if group['value'] not in cols:
-    #         continue
-    #     for val in group:
-    #         # if starts with 'str:', not a column
-    #         if group[val].startswith('str:'):
-    #             mtd[val] = group[val][4:]
-    #         # default behaviour expects a column as the value
-    #         else:
-    #             if not pd.isnull(row[group[val]]):
-    #                 mtd[val] = row[group[val]]
-    #                 used_cols.add(group[val])
-    #     metadata[group["value"]] = mtd
     metadata, used_cols = handle_groups_metadata(row, cols, groups)
-
     cols = list(set(cols) - used_cols)
     # print('+'*80)
     # print('current row:', row)
@@ -154,10 +137,15 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                         units = match
                         # use only first match.
                         break
+            # try to assing value as a float if possible
+            try:
+                val = float(row[col])
+            except (ValueError, TypeError):
+                val = row[col]
+            metadata[upload_key_format(col)] = {"value": val}
             if units:
-                metadata[upload_key_format(col)] = {"value": row[col], "units": units}
-            else:
-                metadata[upload_key_format(col)] = {"value": row[col]}
+                metadata[upload_key_format(col)]["units"] = units
+
     return metadata
 
 
@@ -167,24 +155,38 @@ def generate_controlled_metadata(row, groups):
     cols - columns of input pandas.DataFrame to convert to metadata
     """
     metadata = {}
-    # use the shared fields from the mapping.
-    # row_cols = row.columns
-    # row.rename(columns = {r: r.lower() for r in row_cols}, inplace=True)
-
+    # use the shared fields
     for col in shared_fields:
-        # make sure the column is lowercase
-        # col = col.lower()
-        # check if column exists in row.
-        if col in row and not pd.isnull(row[col]):
-            col = col.strip()
-            idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
-            if idx:
-                # metadata[col_map[col]] = {"value": row[col]}
-                mtd, _ = parse_grouped_data(row, groups[idx])
-                metadata[upload_key_format(col)] = mtd
-            else:
-                metadata[upload_key_format(col)] = {"value": row[col]}
+        col = upload_key_format(col)
+        ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
+        if ss_validator:
+            if col in row and not pd.isnull(row[col]):
+                idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
+                try:
+                    val = float(row[col])
+                except (ValueError, TypeError):
+                    val = row[col]
+                mtd = {"value": val}
+                if idx is not None:
+                    mtd, _ = parse_grouped_data(row, groups[idx])
+                # verify against validator
+                missing_fields = _find_missing_fields(mtd, ss_validator)
+                for field, default in missing_fields.items():
+                    mtd[field] = default
+                metadata[col] = mtd
+
     return metadata
+
+
+def _find_missing_fields(mtd, ss_validator):
+    missing_fields = {}
+    for val in ss_validator.get('validators'):
+        if val.get('parameters'):
+            for key in ['key', 'keys']:
+                if val['parameters'].get(key):
+                    if val['parameters'][key] not in mtd:
+                        missing_fields[val['parameters'][key]] = val['parameters'][val['parameters'][key]]
+    return missing_fields
 
 
 def get_sample(sample_info, sample_url, token):
@@ -215,9 +217,9 @@ def get_sample(sample_info, sample_url, token):
 
 def save_sample(sample, sample_url, token, previous_version=None):
     """
-    sample           - Sample
-    sample_url       - url to sample service
-    token            - workspace token for Authorization
+    sample     - completed sample as per 
+    sample_url - url to sample service
+    token      - workspace token for Authorization
     previous_version - previous version of sample
     """
     headers = {"Authorization": token}
@@ -240,6 +242,11 @@ def save_sample(sample, sample_url, token, previous_version=None):
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     if not resp.ok:
+        print('-'*80)
+        print('-'*80)
+        print("broken sample:", sample)
+        print('-'*80)
+        print('-'*80)
         raise RuntimeError(f'Error from SampleService - {resp.text}')
     resp_json = resp.json()
     if resp_json.get('error'):

@@ -82,15 +82,13 @@ class sample_uploader:
         if params.get('sample_set_ref'):
             ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
             sample_set = ret['data']
-            # input_sample_set = ret['data']
-            # set name of set
             set_name = ret['info'][1]
-
+            save_ws_id = params['sample_set_ref'].split('/')[0]
         else:
             if not params.get('set_name'):
                 raise ValueError(f"Sample set name required, when new SampleSet object is created.")
             set_name = params['set_name']
-
+            save_ws_id = params.get('workspace_id')
 
         if params.get('file_format') == 'ENIGMA':
             ENIGMA_mappings['verification_mapping'].update(
@@ -127,27 +125,15 @@ class sample_uploader:
         else:
             raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples.")
 
-        if params.get('sample_set_ref'):
-            input_sample_set_ref = params['sample_set_ref']
-            input_ref_obj_id = input_sample_set_ref.split('/')[1]
-            save_ws_id = input_sample_set_ref.split('/')[0]
-            # set name of set
-            obj = {
-                'objid': input_ref_obj_id,
+        obj_info = self.dfu.save_objects({
+            'id': save_ws_id,
+            'objects': [{
+                "name": set_name,
                 "type": "KBaseSets.SampleSet",
                 "data": sample_set
-            }
-        else:
-            save_ws_id = params.get('workspace_id')
-            obj = {
-                "type": "KBaseSets.SampleSet",
-                "data": sample_set,
-                "name": set_name
-            }
-        obj_info = self.dfu.save_objects({
-            'id': params.get('workspace_id'),
-            'objects': [obj]
+            }]
         })[0]
+
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 

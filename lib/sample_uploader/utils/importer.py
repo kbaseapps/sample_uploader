@@ -17,6 +17,7 @@ from sample_uploader.utils.parsing_utils import upload_key_format
 
 # These columns should all be in lower case.
 REGULATED_COLS = ['name', 'id', 'parent_id']
+NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A']
 
 
 def verify_columns(
@@ -72,12 +73,10 @@ def load_file(
     #             new_dcs.append(dc)
     #     return new_dcs
     if sample_file.endswith('.tsv'):
-        # dcs = find_date_cols(sample_file, date_columns, sep="\t")
-        # df = pd.read_csv(sample_file, sep="\t", parse_dates=dcs, header=header_index)
+        # df = pd.read_csv(sample_file, sep="\t", parse_dates=date_columns, header=header_index)
         df = pd.read_csv(sample_file, sep="\t", header=header_index)
     elif sample_file.endswith('.csv'):
-        # dcs = find_date_cols(sample_file, date_columns, sep=",")
-        # df = pd.read_csv(sample_file, parse_dates=dcs, header=header_index)
+        # df = pd.read_csv(sample_file, parse_dates=date_columns, header=header_index)
         df = pd.read_csv(sample_file, header=header_index)
     elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
         df = pd.read_excel(sample_file, header=header_index)
@@ -102,7 +101,7 @@ def produce_samples(
     existing_sample_names = {sample['name']: sample for sample in existing_samples}
     for idx, row in df.iterrows():
         if row.get('id'):
-            # first we check if a 'kbase_sample_id' column specified.
+            # first we check if a 'kbase_sample_id' column is specified
             kbase_sample_id = None
             if row.get('kbase_sample_id'):
                 kbase_sample_id = str(row['kbase_sample_id'])
@@ -140,14 +139,13 @@ def produce_samples(
             # Save sample
             elif name in existing_sample_names:
                 # Here we compare the existing sample to the newly formed one.
-                #   if they are the same, we don't save a new version.
+                #    if they are the same we don't save a new version.
                 if existing_sample_names[name] == sample:
                     continue
                 sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=existing_sample_names[name])
                 existing_sample_names.pop(name)
             else:
                 sample_id, sample_ver = save_sample(sample, sample_url, token)
-
 
             samples.append({
                 "id": sample_id,
@@ -196,6 +194,11 @@ def import_samples_from_file(
     df = df.rename(columns={c: upload_key_format(c) for c in df.columns})
     verify_columns(df, column_verification_map)
     df = df.rename(columns=column_mapping)
+    # for col in date_columns:
+    #     df[upload_key_format(col)] = pd.to_datetime(df[upload_key_format(col)])
+    # change values in noop list to 'Nan'
+    df.replace({n:None for n in NOOP_VALS}, inplace=True)
+
     # process and save samples
     cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)

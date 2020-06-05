@@ -96,9 +96,7 @@ class sample_uploaderTest(unittest.TestCase):
     def verify_samples(self, sample_set, compare):
         # print('[')
         for it, samp in enumerate(sample_set['samples']):
-            samp_id = samp['id']
-            samp_ver = samp['version']
-            sample = get_sample(samp_id, samp_ver, self.sample_url, self.ctx['token'])
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
             # print(json.dumps(sample), ',')
             self.compare_sample(sample, compare[it])
         # print(']')
@@ -204,7 +202,7 @@ class sample_uploaderTest(unittest.TestCase):
             compare_to = json.load(f)
         self.verify_samples(sample_set, compare_to)
 
-    @unittest.skip('x')
+    @unittest.skip('Currently broken, because of date columns.')
     def test_upload_SESAR_sample_from_csv(self):
         self.maxDiff = None
         # Prepare test objects in workspace if needed using

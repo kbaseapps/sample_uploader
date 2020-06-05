@@ -14,7 +14,7 @@ from .verifiers import *
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
 
-def _fetch_global_config(config_url, github_release_url, gh_token):
+def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
     """
     Fetch the index_runner_spec configuration file from the Github release
     using either the direct URL to the file or by querying the repo's release
@@ -34,21 +34,33 @@ def _fetch_global_config(config_url, github_release_url, gh_token):
             headers = {}
         release_info = requests.get(github_release_url, headers=headers).json()
         for asset in release_info['assets']:
-            if asset['name'] == 'sample_uploader_mappings.yml':
+            if asset['name'] == file_name:
                 download_url = asset['browser_download_url']
                 with urllib.request.urlopen(download_url) as res:  # nosec
                     return yaml.safe_load(res)
         raise RuntimeError("Unable to load the config.yaml file from index_runner_spec")
 
-data = _fetch_global_config(
+uploader_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
         "https://api.github.com/repos/kbaseIncubator/sample_service_validator_config/releases/tags/0.4"
     ),
-    None
+    None,
+    "sample_uploader_mappings.yml"
 )
 
-shared_fields = data["shared_fields"]
-SESAR_mappings = data["SESAR"]
-ENIGMA_mappings = data["ENIGMA"]
+SAMP_SERV_CONFIG = _fetch_global_config(
+    None,
+    os.environ.get(
+        'CONFIG_RELEASE_URL',
+        "https://api.github.com/repos/kbaseincubator/sample_service_validator_config/releases/tags/0.4"
+    ),
+    None,
+    "metadata_validation.yml"
+)
+
+shared_fields = uploader_config["shared_fields"]
+SESAR_mappings = uploader_config["SESAR"]
+ENIGMA_mappings = uploader_config["ENIGMA"]
+
