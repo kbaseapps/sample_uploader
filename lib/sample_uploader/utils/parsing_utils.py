@@ -29,7 +29,7 @@ def parse_grouped_data(row, group):
             if group[val] in row and not pd.isnull(row[group[val]]):
                 try:
                     mtd_val = float(row[group[val]])
-                except:
+                except (ValueError, TypeError):
                     mtd_val = row[group[val]]
                 mtd[val] = mtd_val
                 used_cols.add(group[val])

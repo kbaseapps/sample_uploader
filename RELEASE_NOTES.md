@@ -1,6 +1,12 @@
 # sample_uploader release notes
 =========================================
 
+0.0.7
+-----
+* Adding in access to sample service config
+* Adding ability to update samples to new versions (given same sample name, or kbase_sample_id)
+* Now uses sample service config for "Default" units
+
 0.0.6
 -----
 * Updating for KBaseSets.SampleSet-2.0: including version in samples

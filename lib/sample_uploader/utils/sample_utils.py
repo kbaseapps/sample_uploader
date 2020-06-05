@@ -132,7 +132,7 @@ def generate_user_metadata(row, cols, groups, unit_rules):
             # try to assing value as a float if possible
             try:
                 val = float(row[col])
-            except:
+            except (ValueError, TypeError):
                 val = row[col]
             metadata[upload_key_format(col)] = {"value": val}
             if units:
@@ -156,7 +156,7 @@ def generate_controlled_metadata(row, groups):
                 idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
                 try:
                     val = float(row[col])
-                except:
+                except (ValueError, TypeError):
                     val = row[col]
                 mtd = {"value": val}
                 if idx is not None:
