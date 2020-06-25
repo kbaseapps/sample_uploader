@@ -1,6 +1,11 @@
 # sample_uploader release notes
 =========================================
 
+0.0.8
+-----
+* Fixing version updates for samples
+* adding sample set exporter function
+
 0.0.7
 -----
 * Adding in access to sample service config
