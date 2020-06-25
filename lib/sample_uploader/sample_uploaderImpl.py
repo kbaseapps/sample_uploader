@@ -315,10 +315,8 @@ class sample_uploader:
         #BEGIN export_samples
         if not params.get('input_ref'):
             raise ValueError(f"variable input_ref required")
-        if not params.get('file_format'):
-            raise ValueError(f"variable file_format required")
         sample_set_ref = params.get('input_ref')
-        output_file_format = params.get('file_format')
+        output_file_format = params.get('file_format', 'SESAR')
 
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']
