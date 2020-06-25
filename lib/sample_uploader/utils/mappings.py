@@ -44,7 +44,7 @@ uploader_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbaseincubator/sample_service_validator_config/releases/tags/0.4"
+        "https://api.github.com/repos/kbaseIncubator/sample_service_validator_config/releases/tags/0.4"
     ),
     None,
     "sample_uploader_mappings.yml"

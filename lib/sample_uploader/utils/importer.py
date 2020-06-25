@@ -5,7 +5,9 @@ import json
 import os
 from sample_uploader.utils.sample_utils import (
     get_sample_service_url,
+    get_sample,
     save_sample,
+    compare_samples,
     generate_user_metadata,
     generate_controlled_metadata,
     update_acls
@@ -61,6 +63,16 @@ def load_file(
     date_columns
 ):
     """"""
+    # def find_date_cols(sample_file, date_columns, sep=','):
+    #     with open(sample_file) as f:
+    #         for i in range(header_index + 1):
+    #             col_line = f.readline()
+    #     cols = [c.lower() for c in col_line.split(sep)]
+    #     new_dcs = []
+    #     for dc in date_columns:
+    #         if dc.lower() in cols:
+    #             new_dcs.append(dc)
+    #     return new_dcs
     if sample_file.endswith('.tsv'):
         # df = pd.read_csv(sample_file, sep="\t", parse_dates=date_columns, header=header_index)
         df = pd.read_csv(sample_file, sep="\t", header=header_index)
@@ -88,18 +100,29 @@ def produce_samples(
     """"""
     samples = []
     existing_sample_names = {sample['name']: sample for sample in existing_samples}
+
     for idx, row in df.iterrows():
         if row.get('id'):
             # first we check if a 'kbase_sample_id' column is specified
             kbase_sample_id = None
             if row.get('kbase_sample_id'):
-                kbase_sample_id = str(row['kbase_sample_id'])
+                kbase_sample_id = str(row.pop('kbase_sample_id'))
+                if 'kbase_sample_id' in cols:
+                    cols.pop(cols.index('kbase_sample_id'))
             # use name field as name, if there is non-reuse id.
             if row.get('name'):
                 name = str(row['name'])
             else:
                 name = str(row['id'])
-            parent = str(row['parent_id'])
+            if row.get('parent_id'):
+                parent = str(row.pop('parent_id'))
+                if 'parent_id' in cols:
+                    cols.pop(cols.index('parent_id'))
+            if 'id' in cols:
+                cols.pop(cols.index('id'))
+            if 'name' in cols:
+                cols.pop(cols.index('name'))
+
             sample = {
                 'node_tree': [{
                     "id": str(row['id']),
@@ -118,22 +141,27 @@ def produce_samples(
                 }],
                 'name': name,
             }
+            prev_sample = None
             if kbase_sample_id:
-                query_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
-                if query_sample == sample:
-                    continue
-                sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=query_sample)
-                if name in existing_sample_names:
-                    existing_sample_names.pop(name)
+                prev_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
+                if name in existing_sample_names and prev_sample['name'] == name:
+                    # now we check if the sample 'id' and 'name' are the same
+                    if existing_sample_names[name]['id'] != prev_sample['id']:
+                        raise ValueError(f"'kbase_sample_id' and input sample set have different ID's for sample: {name}")
+                elif name in existing_sample_names and name != prev_sample['name']:
+                    # not sure if this is an error case
+                    raise ValueError(f"Cannot rename existing sample from {prev_sample['name']} to {name}")
             elif name in existing_sample_names:
-                # Here we compare the existing sample to the newly formed one.
-                #    if they are the same we don't save a new version.
-                if existing_sample_names[name] == sample:
-                    continue
-                sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=existing_sample_names[name])
+                prev_sample = get_sample(existing_sample_names[name], sample_url, token)
+            
+            if compare_samples(sample, prev_sample):
+                if sample.get('name') not in existing_sample_names:
+                    existing_sample_names[sample['name']] = prev_sample
+                continue
+            elif name in existing_sample_names:
                 existing_sample_names.pop(name)
-            else:
-                sample_id, sample_ver = save_sample(sample, sample_url, token)
+
+            sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
 
             samples.append({
                 "id": sample_id,
@@ -153,7 +181,7 @@ def produce_samples(
                 }
                 update_acls(sample_url, sample_id, acls, token)
         else:
-            raise RuntimeError(f"{row['Id']} evaluates as false")
+            raise RuntimeError(f"{row['id']} evaluates as false")
     # add the missing samples from existing_sample_names
     samples += [existing_sample_names[key] for key in existing_sample_names]
     return samples
@@ -182,10 +210,8 @@ def import_samples_from_file(
     df = df.rename(columns={c: upload_key_format(c) for c in df.columns})
     verify_columns(df, column_verification_map)
     df = df.rename(columns=column_mapping)
-    # for col in date_columns:
-    #     df[upload_key_format(col)] = pd.to_datetime(df[upload_key_format(col)])
-    # change values in noop list to 'Nan'
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
+
     # process and save samples
     cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)
@@ -198,7 +224,6 @@ def import_samples_from_file(
         token,
         input_sample_set['samples']
     )
-
     return {
         "samples": samples,
         "description": params.get('description')

@@ -79,6 +79,21 @@ module sample_uploader {
         string status;
     } update_sample_set_acls_output;
 
-    funcdef update_sample_set_acls(update_sample_set_acls_params params) returns (update_sample_set_acls_output output) authentication required; 
+    funcdef update_sample_set_acls(update_sample_set_acls_params params) returns (update_sample_set_acls_output output) authentication required;
+
+    /*
+        export function for samples
+    */
+
+    typedef structure {
+        string input_ref;
+        string file_format;
+    } ExportParams;
+
+    typedef structure {
+        string shock_id;
+    } ExportOutput;
+
+    funcdef export_samples(ExportParams params) returns (ExportOutput output) authentication required;
 
 };

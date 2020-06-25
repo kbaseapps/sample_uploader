@@ -5,6 +5,7 @@ import unittest
 import requests
 import uuid
 import json
+import shutil
 import pandas as pd
 from configparser import ConfigParser
 
@@ -66,12 +67,13 @@ class sample_uploaderTest(unittest.TestCase):
             )
         ]
         sample_file = os.path.join(cls.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
+        cls.sample_set_name = "test2"
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
-            'set_name': 'test2',
+            'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
             'output_format': "",
             "incl_input_in_output": 1
@@ -86,10 +88,21 @@ class sample_uploaderTest(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
     
-    def compare_sample(self, s, sc):
+    def compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
-        self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
+        if check_version:
+            self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
+        if check_id:
+            self.assertEqual(s['id'], sc['id'])
         self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
+
+    def compare_sample_sets(self, sample_set, sample_set_2):
+        sample_set_2 = {sam['name']: sam for sam in sample_set_2['samples']}
+        for it, samp in enumerate(sample_set['samples']):
+            self.assertTrue(sample_set_2.get(samp['name']))
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
+            sample2 = get_sample(sample_set_2[samp['name']], self.sample_url, self.ctx['token'])
+            self.compare_sample(sample, sample2, check_id=True, check_version=True)
 
     def verify_samples(self, sample_set, compare):
         # print('[')
@@ -108,6 +121,52 @@ class sample_uploaderTest(unittest.TestCase):
             raise ValueError(f"file_type must be xls or csv not {file_type}")
         cols = list(df.columns)
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
+
+    @unittest.skip('x')
+    def test_local(self):
+        self.maxDiff = None
+        local_file = "secret_save_2.csv"
+        sample_file = os.path.join(self.curr_dir, "data", local_file)
+        num_otus = 10
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'set_name': 'test1',
+            'description': "this is a test sample set.",
+            'output_format': '',
+            "incl_input_in_output": 1
+        }
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+
+    # @unittest.skip('x')
+    def test_export_samples(self):
+        self.maxDiff = None
+        params = {
+            "input_ref": self.sample_set_ref,
+            "file_format": "SESAR"
+        }
+        ret = self.serviceImpl.export_samples(self.ctx, params)[0]
+        shock_id = ret['shock_id']
+        result_dir = ret['result_dir']
+        result_file_name = '_'.join(self.sample_set_name.split()) + ".csv"
+        self.assertTrue(result_file_name in os.listdir(result_dir))
+        result_file_path = os.path.join(result_dir, result_file_name)
+        df = pd.read_csv(result_file_path, header=1)
+        # now run with output as input to import samples.
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': result_file_path,
+            'file_format': "SESAR",
+            'set_name': 'reupload_test',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        self.compare_sample_sets(self.sample_set, ret['sample_set'])
 
     # @unittest.skip('x')
     def test_update_samples(self):
@@ -277,7 +336,6 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')) as f:
             compare_to = json.load(f)
-        # compare_to = []
         self.verify_samples(
             ret['sample_set'],
             compare_to

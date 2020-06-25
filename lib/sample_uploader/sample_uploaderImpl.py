@@ -8,13 +8,17 @@ import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
+from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    get_sample_service_url
+    get_sample_service_url,
+    get_sample,
+    format_sample_as_row
 )
+import pandas as pd
 #END_HEADER
 
 
@@ -33,9 +37,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.4"
+    VERSION = "0.0.8"
     GIT_URL = "https://github.com/kbaseapps/sample_uploader"
-    GIT_COMMIT_HASH = "4f07e7358926a32bd2945e8bdd75e7c11c8919d2"
+    GIT_COMMIT_HASH = "8a574414105761f44305e24689a85e9f00a42262"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -298,6 +302,54 @@ class sample_uploader:
         # return the results
         return [output]
 
+    def export_samples(self, ctx, params):
+        """
+        :param params: instance of type "ExportParams" (export function for
+           samples) -> structure: parameter "input_ref" of String, parameter
+           "file_format" of String
+        :returns: instance of type "ExportOutput" -> structure: parameter
+           "shock_id" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN export_samples
+        if not params.get('input_ref'):
+            raise ValueError(f"variable input_ref required")
+        if not params.get('file_format'):
+            raise ValueError(f"variable file_format required")
+        sample_set_ref = params.get('input_ref')
+        output_file_format = params.get('file_format')
+
+        ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
+        sample_set = ret['data']
+        sample_set_name = ret['info'][1]
+        sample_url = get_sample_service_url(self.sw_url)
+
+        export_package_dir = os.path.join(self.scratch, "output")
+        if not os.path.isdir(export_package_dir):
+            os.mkdir(export_package_dir)
+        output_file = os.path.join(export_package_dir, '_'.join(sample_set_name.split()) + ".csv")
+
+        sample_set_to_output(sample_set, sample_url, ctx['token'], output_file, output_file_format)
+
+        # package it up
+        package_details = self.dfu.package_for_download({
+            'file_path': export_package_dir,
+            'ws_refs': [params['input_ref']]
+        })
+
+        output = {
+            'shock_id': package_details['shock_id'],
+            'result_dir': export_package_dir
+        }
+        #END export_samples
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method export_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
