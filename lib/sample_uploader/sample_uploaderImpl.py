@@ -37,9 +37,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.6"
-    GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "18af6231ddd3025c96e5f67a2f13830071d8803e"
+    VERSION = "0.0.8"
+    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
+    GIT_COMMIT_HASH = "8a574414105761f44305e24689a85e9f00a42262"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -305,7 +305,8 @@ class sample_uploader:
     def export_samples(self, ctx, params):
         """
         :param params: instance of type "ExportParams" (export function for
-           samples) -> structure: parameter "input_ref" of String
+           samples) -> structure: parameter "input_ref" of String, parameter
+           "file_format" of String
         :returns: instance of type "ExportOutput" -> structure: parameter
            "shock_id" of String
         """
