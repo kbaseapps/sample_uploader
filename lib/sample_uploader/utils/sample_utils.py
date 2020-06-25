@@ -115,13 +115,6 @@ def generate_user_metadata(row, cols, groups, unit_rules):
     # first we iterate through the groups
     metadata, used_cols = handle_groups_metadata(row, cols, groups)
     cols = list(set(cols) - used_cols)
-    # print('+'*80)
-    # print('current row:', row)
-    # print('groups:', groups)
-    # print('metadata from groups:',metadata)
-    # print('used_columns from groups:', used_cols)
-    # print('left over cols', cols)
-    # print('+'*80)
 
     for col in cols:
         # col = col.lower( )
@@ -189,6 +182,16 @@ def _find_missing_fields(mtd, ss_validator):
     return missing_fields
 
 
+def compare_samples(s1, s2):
+    """
+    s1, s2 - samples with the following fields:
+        'node_tree', 'name'
+    """
+    if s1 is None or s2 is None:
+        return False
+    else:
+        return s1['name'] == s2['name'] and s1['node_tree'] == s2['node_tree']
+
 def get_sample(sample_info, sample_url, token):
     """ Get sample from SampleService
     sample_info - dict containing 'id' and 'version' of a sample
@@ -224,6 +227,9 @@ def save_sample(sample, sample_url, token, previous_version=None):
     """
     headers = {"Authorization": token}
     if previous_version:
+        prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
+        if compare_samples(sample, prev_sample):
+            return None, None
         sample['id'] = previous_version['id']
         params = {
             "sample": sample,
@@ -242,11 +248,6 @@ def save_sample(sample, sample_url, token, previous_version=None):
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     if not resp.ok:
-        print('-'*80)
-        print('-'*80)
-        print("broken sample:", sample)
-        print('-'*80)
-        print('-'*80)
         raise RuntimeError(f'Error from SampleService - {resp.text}')
     resp_json = resp.json()
     if resp_json.get('error'):
@@ -261,29 +262,24 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
     if sample_headers:
         sample_headers = sample_headers.split(',')
 
-    def metadata_to_str(metadata, used_headers):
-        h_str, r_str = [], []
+    def metadata_to_str(meta_controlled, meta_user, used_headers):
+        r_str = []
         if sample_headers:
             for key_metadata in sample_headers:
-                if key_metadata not in used_headers:
-                    h_str.append(str(key_metadata))
-                    used_headers.add(str(key_metadata))
-                    if key_metadata in metadata:
-                        for key, val in metadata[key_metadata].items():
-                            if key == "value":
-                                r_str.append(str(val))
-                    else:
-                        r_str.append("")
-        else:
-            for key_metadata, values in metadata.items():
-                if key_metadata not in used_headers:
-                    h_str.append(str(key_metadata))
-                    used_headers.add(str(key_metadata))
-                    for key, val in values.items():
+                used_headers.add(key_metadata)
+                if key_metadata in meta_controlled:
+                    for key, val in meta_controlled[key_metadata].items():
                         if key == "value":
                             r_str.append(str(val))
-
-        return ",".join(h_str), ",".join(r_str), used_headers
+                elif key_metadata in meta_user:
+                    for key, val in meta_user[key_metadata].items():
+                        if key == "value":
+                            r_str.append(str(val))
+                else:
+                    r_str.append("")
+        else:
+            raise RuntimeError(f"No sample headers provided -- {sample_headers}")
+        return ",".join(r_str), used_headers
 
     if file_format == "SESAR":
         header_str = "kbase_sample_id,Sample name"
@@ -291,20 +287,9 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
         used_headers = set(["kbase_sample_id", "name"])
         i = 0
         for node in sample['node_tree']:
-            h_str, r_str, used_headers = metadata_to_str(node['meta_controlled'], used_headers)
-            if i == 0 and not sample_headers:
-                print('-')
-                print('controlled rows:', r_str, '--', used_headers)
-            if h_str and r_str:
-                header_str += "," + h_str
-                row_str += "," + r_str
-            h_str, r_str, used_headers = metadata_to_str(node['meta_user'], used_headers)
-            if i == 0 and not sample_headers:
-                print('user row:', r_str, '--', used_headers)
-            if h_str and r_str:
-                header_str += "," + h_str
-                row_str += "," +r_str
+            r_str, used_headers = metadata_to_str(node['meta_controlled'], node['meta_user'], used_headers)
+            row_str += "," + r_str
             i = 1 + i
-        return header_str + '\n', row_str + '\n'
+        return header_str.strip() + '\n', row_str.strip() + '\n'
     else:
         return None, None

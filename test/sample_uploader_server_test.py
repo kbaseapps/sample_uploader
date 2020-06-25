@@ -88,10 +88,21 @@ class sample_uploaderTest(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
     
-    def compare_sample(self, s, sc):
+    def compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
-        self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
+        if check_version:
+            self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
+        if check_id:
+            self.assertEqual(s['id'], sc['id'])
         self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
+
+    def compare_sample_sets(self, sample_set, sample_set_2):
+        sample_set_2 = {sam['name']: sam for sam in sample_set_2['samples']}
+        for it, samp in enumerate(sample_set['samples']):
+            self.assertTrue(sample_set_2.get(samp['name']))
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
+            sample2 = get_sample(sample_set_2[samp['name']], self.sample_url, self.ctx['token'])
+            self.compare_sample(sample, sample2, check_id=True, check_version=True)
 
     def verify_samples(self, sample_set, compare):
         # print('[')
@@ -114,7 +125,8 @@ class sample_uploaderTest(unittest.TestCase):
     @unittest.skip('x')
     def test_local(self):
         self.maxDiff = None
-        sample_file = os.path.join(self.curr_dir, "data", "secret_save_2.csv")
+        local_file = "secret_save_2.csv"
+        sample_file = os.path.join(self.curr_dir, "data", local_file)
         num_otus = 10
         params = {
             'workspace_name': self.wsName,
@@ -141,33 +153,7 @@ class sample_uploaderTest(unittest.TestCase):
         result_file_name = '_'.join(self.sample_set_name.split()) + ".csv"
         self.assertTrue(result_file_name in os.listdir(result_dir))
         result_file_path = os.path.join(result_dir, result_file_name)
-        # print('='*80)
-        # print('='*80)
-        # print('='*80)
-        # with open(result_file_path) as f:
-        #     lines = f.readlines()
-        #     for line in lines:
-        #         print(line)
-        # print('='*80)
-        # print('='*80)
-        # print('='*80)
-        # headers = lines[1]
-        # lines = lines[2:]
-        # header_len = len(headers.split(','))
-        # print('header len', header_len, headers)
-        # # for lin in lines:
-        # #     splin = lin.split(',')
-        # #     if len(splin) != header_len:
-        # #         print("line not conforming: ",len(splin), lin)
         df = pd.read_csv(result_file_path, header=1)
-        # print('-'*80)
-        # print('-'*80)
-        # print('-'*80)
-        # print(df.columns)
-        # print(df.head(10))
-        # print('-'*80)
-        # print('-'*80)
-        # print('-'*80)
         # now run with output as input to import samples.
         params = {
             'workspace_name': self.wsName,
@@ -179,9 +165,10 @@ class sample_uploaderTest(unittest.TestCase):
             'output_format': "",
             "incl_input_in_output": 1
         }
-        # ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        self.compare_sample_sets(self.sample_set, ret['sample_set'])
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_update_samples(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2_copy.xls")
@@ -233,7 +220,7 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_upload_SESAR_sample_from_xls(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
@@ -264,7 +251,7 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_SESAR_multiple_inputs(self):
         """"""
         self.maxDiff = None
@@ -285,7 +272,7 @@ class sample_uploaderTest(unittest.TestCase):
                 compare_to = json.load(f)
             self.verify_samples(ret['sample_set'], compare_to)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_SESAR_generate_OTU_sheet(self):
         self.maxDiff = None
         num_otus = 20
@@ -310,7 +297,7 @@ class sample_uploaderTest(unittest.TestCase):
             num_otus
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_upload_adams_ENIGMA_samples(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "SampleMetaData.tsv")
@@ -332,7 +319,7 @@ class sample_uploaderTest(unittest.TestCase):
             compare_to
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_upload_jon_marcs_ENIGMA_samples(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "samples_merged.tsv")
@@ -349,13 +336,12 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')) as f:
             compare_to = json.load(f)
-        # compare_to = []
         self.verify_samples(
             ret['sample_set'],
             compare_to
         )
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_change_acls(self):
         self.maxDiff = None
         params = {
@@ -370,7 +356,7 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
         print(ret)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_import_with_existing(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, "data", "samples_merged.tsv")

@@ -8,6 +8,7 @@ import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
+from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
 from sample_uploader.utils.sample_utils import (
@@ -17,6 +18,7 @@ from sample_uploader.utils.sample_utils import (
     get_sample,
     format_sample_as_row
 )
+import pandas as pd
 #END_HEADER
 
 
@@ -322,33 +324,12 @@ class sample_uploader:
         sample_set_name = ret['info'][1]
         sample_url = get_sample_service_url(self.sw_url)
 
-        def get_headers(sample_set, sample_url):
-            sample = get_sample(sample_set['samples'][0], sample_url, ctx['token'])
-            sample_headers, _ = format_sample_as_row(sample, file_format=output_file_format)
-            return sample_headers
-
         export_package_dir = os.path.join(self.scratch, "output")
         if not os.path.isdir(export_package_dir):
             os.mkdir(export_package_dir)
         output_file = os.path.join(export_package_dir, '_'.join(sample_set_name.split()) + ".csv")
-        sample_headers = get_headers(sample_set, sample_url)
 
-        # len_headers = len(sample_headers.split(','))
-
-        with open(output_file, 'w') as f:
-            f.write("Object Type:,Individual Sample,User Code:,\n")
-            f.write(sample_headers)
-        for samp in sample_set['samples']:
-            sample = get_sample(samp, sample_url, ctx['token'])
-            _, sample_row = format_sample_as_row(sample, sample_headers, file_format=output_file_format)
-            # if len(sample_row.split(',')) > len_headers:
-            #     print('='*80)
-            #     print(len(sample_row.split(',')))
-            #     print(jkjk)
-            #     print(sample_row)
-            #     print('='*80)
-            with open(output_file, 'a') as f:
-                f.write(sample_row)
+        sample_set_to_output(sample_set, sample_url, ctx['token'], output_file, output_file_format)
 
         # package it up
         package_details = self.dfu.package_for_download({

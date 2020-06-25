@@ -42,6 +42,8 @@ def handle_groups_metadata(row, cols, groups):
     for group in groups:
         if group['value'] not in cols:
             continue
+        if pd.isnull(row[group['value']]):
+            continue
         mtd, curr_used_cols = parse_grouped_data(row, group)
         used_cols = used_cols | curr_used_cols
         metadata[group["value"]] = mtd
