@@ -149,11 +149,11 @@ def generate_controlled_metadata(row, groups):
     """
     metadata = {}
     # use the shared fields
-    for col in shared_fields:
+    for col, val in row.iteritems():
         col = upload_key_format(col)
         ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
         if ss_validator:
-            if col in row and not pd.isnull(row[col]):
+            if not pd.isnull(row[col]):
                 idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
                 try:
                     val = float(row[col])

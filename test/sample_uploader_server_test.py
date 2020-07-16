@@ -81,6 +81,7 @@ class sample_uploaderTest(unittest.TestCase):
         ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
         cls.sample_set = ret['sample_set']
         cls.sample_set_ref = ret['sample_set_ref']
+        cls.update_test_files = False
 
     @classmethod
     def tearDownClass(cls):
@@ -104,13 +105,20 @@ class sample_uploaderTest(unittest.TestCase):
             sample2 = get_sample(sample_set_2[samp['name']], self.sample_url, self.ctx['token'])
             self.compare_sample(sample, sample2, check_id=True, check_version=True)
 
-    def verify_samples(self, sample_set, compare):
-        # print('[')
-        for it, samp in enumerate(sample_set['samples']):
-            sample = get_sample(samp, self.sample_url, self.ctx['token'])
-            # print(json.dumps(sample), ',')
-            self.compare_sample(sample, compare[it])
-        # print(']')
+    def verify_samples(self, sample_set, compare_path):
+        if self.update_test_files:
+            samples = []
+            for it, samp in enumerate(sample_set['samples']):
+                sample = get_sample(samp, self.sample_url, self.ctx['token'])
+                samples.append(sample)
+            with open(compare_path, 'w') as f:
+                json.dump(samples, f)
+        else:
+            with open(compare_path) as f:
+                compare = json.load(f)
+            for it, samp in enumerate(sample_set['samples']):
+                sample = get_sample(samp, self.sample_url, self.ctx['token'])
+                self.compare_sample(sample, compare[it])
 
     def verify_output_file(self, sample_set, file_path, file_type, num_metadata_cols, num_otus):
         if file_type == 'csv':
@@ -122,7 +130,28 @@ class sample_uploaderTest(unittest.TestCase):
         cols = list(df.columns)
         self.assertEqual(len(cols), len(sample_set['samples']) + 1 + num_metadata_cols, msg=f"number of columns in output file not correct: {cols}")
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
+    def test_user_defined_column(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "floc_mini_metadata_copy.xls")
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'set_name': "user_defined_columns",
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+        self.verify_samples(
+            sample_set,
+            os.path.join(self.curr_dir, 'data', 'floc_mini_metadata_copy_cmp.json')
+        )
+
+
+    @unittest.skip('Only for local tests. Not part of official test suite.')
     def test_local(self):
         self.maxDiff = None
         local_file = "secret_save_2.csv"
@@ -185,9 +214,10 @@ class sample_uploaderTest(unittest.TestCase):
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
-        with open(os.path.join(self.curr_dir, 'data', 'compare_to_update.json')) as f:
-            compare_to = json.load(f)
-        self.verify_samples(sample_set, compare_to)
+        self.verify_samples(
+            sample_set,
+            os.path.join(self.curr_dir, 'data', 'compare_to_update.json')
+        )
 
     @unittest.skip('Currently broken, because of date columns.')
     def test_upload_SESAR_sample_from_csv(self):
@@ -209,9 +239,10 @@ class sample_uploaderTest(unittest.TestCase):
             'otu_prefix': 'test_OTU'
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
-        with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
-            compare_to = json.load(f)
-        self.verify_samples(sample_set, compare_to)
+        self.verify_samples(
+            sample_set,
+            os.path.join(self.curr_dir, 'data', 'compare_to.json')
+        )
         self.verify_output_file(
             sample_set, 
             os.path.join(self.scratch, os.path.basename(sample_file).split('.')[0] + '_OTU.csv'),
@@ -240,9 +271,10 @@ class sample_uploaderTest(unittest.TestCase):
             "incl_input_in_output": 1
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
-        with open(os.path.join(self.curr_dir, 'data', 'compare_to.json')) as f:
-            compare_to = json.load(f)
-        self.verify_samples(sample_set, compare_to)
+        self.verify_samples(
+            sample_set,
+            os.path.join(self.curr_dir, 'data', 'compare_to.json')
+        )
         self.verify_output_file(
             sample_set,
             os.path.join(self.scratch, os.path.basename(sample_file).split('.')[0] + '_OTU.csv'),
@@ -268,9 +300,10 @@ class sample_uploaderTest(unittest.TestCase):
                 "incl_input_in_output": 1
             }
             ret = self.serviceImpl.import_samples(self.ctx, params)[0]
-            with open(compare_file) as f:
-                compare_to = json.load(f)
-            self.verify_samples(ret['sample_set'], compare_to)
+            self.verify_samples(
+                ret['sample_set'],
+                compare_file
+            )
 
     # @unittest.skip('x')
     def test_SESAR_generate_OTU_sheet(self):
@@ -312,11 +345,9 @@ class sample_uploaderTest(unittest.TestCase):
             "incl_input_in_output": 1
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
-        with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA.json')) as f:
-            compare_to = json.load(f)
         self.verify_samples(
             ret['sample_set'],
-            compare_to
+            os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA.json')
         )
 
     # @unittest.skip('x')
@@ -334,11 +365,9 @@ class sample_uploaderTest(unittest.TestCase):
             "incl_input_in_output": 1
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
-        with open(os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')) as f:
-            compare_to = json.load(f)
         self.verify_samples(
             ret['sample_set'],
-            compare_to
+            os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')
         )
 
     # @unittest.skip('x')

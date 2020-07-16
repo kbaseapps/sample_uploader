@@ -1,6 +1,11 @@
 # sample_uploader release notes
 =========================================
 
+0.0.9
+-----
+* Adding more values to the controlled vocabulary.
+* fixing exporter bug
+
 0.0.8
 -----
 * Fixing version updates for samples
