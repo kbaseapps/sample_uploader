@@ -212,6 +212,10 @@ def import_samples_from_file(
     df = df.rename(columns=column_mapping)
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
 
+    if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
+        if 'material' in df.columns:
+            df.rename({"material": params['file_format'].upper() + ":material"}, inplace=True)
+
     # process and save samples
     cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)

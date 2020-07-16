@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 from sample_uploader.utils.sample_utils import get_sample
 from sample_uploader.utils.mappings import SESAR_mappings  #, ENIGMA_mappings
 from sample_uploader.utils.parsing_utils import (
@@ -41,6 +42,7 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
                             idx = check_value_in_list(key_metadata, [upload_key_format(g['value']) for g in groups], return_idx=True)
                             if idx is not None and not groups[idx]['units'].startswith('str:'):
                                 output = add_to_output(output, groups[idx]['units'], val)
+                                used_headers.add(groups[idx]['units'])
 
             for key_metadata in node['meta_user']:
                 if key_metadata not in used_headers:
