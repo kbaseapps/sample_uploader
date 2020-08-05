@@ -91,11 +91,19 @@ class sample_uploaderTest(unittest.TestCase):
     
     def compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
+        # self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
+        for i, s_node in enumerate(s['node_tree']):
+            sc_node = sc['node_tree'][i]
+            # check all fields except 'source_meta'
+            if 'source_meta' in s_node:
+                s_node.pop('source_meta')
+            if 'source_meta' in sc_node:
+                sc_node.pop('source_meta')
+            self.assertEqual(s_node, sc_node, msg=f"s: {json.dumps(s_node)}\nsc: {json.dumps(sc_node)}")
         if check_version:
             self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
         if check_id:
             self.assertEqual(s['id'], sc['id'])
-        self.assertEqual(s['node_tree'], sc['node_tree'], msg=f"s: {json.dumps(s['node_tree'])}\nsc: {json.dumps(sc['node_tree'])}")
 
     def compare_sample_sets(self, sample_set, sample_set_2):
         sample_set_2 = {sam['name']: sam for sam in sample_set_2['samples']}
@@ -103,6 +111,9 @@ class sample_uploaderTest(unittest.TestCase):
             self.assertTrue(sample_set_2.get(samp['name']))
             sample = get_sample(samp, self.sample_url, self.ctx['token'])
             sample2 = get_sample(sample_set_2[samp['name']], self.sample_url, self.ctx['token'])
+            # print('gen sample', sample)
+            # print('jsn sample', sample2)
+
             self.compare_sample(sample, sample2, check_id=True, check_version=True)
 
     def verify_samples(self, sample_set, compare_path):
@@ -116,9 +127,12 @@ class sample_uploaderTest(unittest.TestCase):
         else:
             with open(compare_path) as f:
                 compare = json.load(f)
+            # print('[')
             for it, samp in enumerate(sample_set['samples']):
                 sample = get_sample(samp, self.sample_url, self.ctx['token'])
+                # print(json.dumps(sample), ',')
                 self.compare_sample(sample, compare[it])
+            # print(']')
 
     def verify_output_file(self, sample_set, file_path, file_type, num_metadata_cols, num_otus):
         if file_type == 'csv':
