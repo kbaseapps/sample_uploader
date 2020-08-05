@@ -1,6 +1,11 @@
 # sample_uploader release notes
 =========================================
 
+0.0.10
+-----
+* Adding 'source_meta' field to samples
+* Fixing some importer bugs
+
 0.0.9
 -----
 * Adding more values to the controlled vocabulary.
