@@ -10,6 +10,7 @@ from sample_uploader.utils.sample_utils import (
     compare_samples,
     generate_user_metadata,
     generate_controlled_metadata,
+    generate_source_meta,
     update_acls
 )
 from sample_uploader.utils.verifiers import verifiers
@@ -95,7 +96,8 @@ def produce_samples(
     column_unit_regex,
     sample_url,
     token,
-    existing_samples
+    existing_samples,
+    columns_to_input_names
 ):
     """"""
     samples = []
@@ -123,20 +125,26 @@ def produce_samples(
             if 'name' in cols:
                 cols.pop(cols.index('name'))
 
+            controlled_metadata = generate_controlled_metadata(
+                row,
+                column_groups
+            )
             sample = {
                 'node_tree': [{
                     "id": str(row['id']),
                     "parent": None,
                     "type": "BioReplicate",
-                    "meta_controlled": generate_controlled_metadata(
-                        row,
-                        column_groups
-                    ),
+                    "meta_controlled": controlled_metadata,
                     "meta_user": generate_user_metadata(
                         row,
                         cols,
                         column_groups,
                         column_unit_regex
+                    ),
+                    'source_meta': generate_source_meta(
+                        row,
+                        controlled_metadata.keys(),
+                        columns_to_input_names
                     )
                 }],
                 'name': name,
@@ -153,7 +161,6 @@ def produce_samples(
                     raise ValueError(f"Cannot rename existing sample from {prev_sample['name']} to {name}")
             elif name in existing_sample_names:
                 prev_sample = get_sample(existing_sample_names[name], sample_url, token)
-            
             if compare_samples(sample, prev_sample):
                 if sample.get('name') not in existing_sample_names:
                     existing_sample_names[sample['name']] = prev_sample
@@ -207,9 +214,14 @@ def import_samples_from_file(
     ws_name = params.get('workspace_name')
     df = load_file(sample_file, header_index, date_columns)
     # change columns to upload format
+    columns_to_input_names = {upload_key_format(c): c for c in df.columns}
     df = df.rename(columns={c: upload_key_format(c) for c in df.columns})
     verify_columns(df, column_verification_map)
     df = df.rename(columns=column_mapping)
+    for key in column_mapping:
+        if key in columns_to_input_names:
+            val = columns_to_input_names.pop(key)
+            columns_to_input_names[column_mapping[key]] = val
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
 
     if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
@@ -226,7 +238,8 @@ def import_samples_from_file(
         column_unit_regex,
         sample_url,
         token,
-        input_sample_set['samples']
+        input_sample_set['samples'],
+        columns_to_input_names
     )
     return {
         "samples": samples,

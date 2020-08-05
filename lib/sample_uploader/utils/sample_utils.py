@@ -103,6 +103,22 @@ def get_sample_service_url(sw_url):
     return wiz_resp['result'][0]['url']
 
 
+def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
+    """
+    """
+    source_meta = []
+    # for col, val in row.iteritems():
+    for col in contr_meta_keys:
+        val = row.get(col)
+        source_meta.append({
+            'key': col,
+            'skey': columns_to_input_names.get(col),
+            'svalue': {
+                "value": val
+            }
+        })
+    return source_meta
+
 def generate_user_metadata(row, cols, groups, unit_rules):
     """
     row        - row from input pandas.DataFrame object to convert to metadata
@@ -190,7 +206,15 @@ def compare_samples(s1, s2):
     if s1 is None or s2 is None:
         return False
     else:
-        return s1['name'] == s2['name'] and s1['node_tree'] == s2['node_tree']
+        def remove_field(node, field):
+            if field in node:
+                node.pop(field)
+            return node
+        # don't compare 'source_meta' field
+        s1_nt = [remove_field(n, 'source_meta') for n in s1['node_tree']]
+        s2_nt = [remove_field(n, 'source_meta') for n in s2['node_tree']]
+
+        return s1['name'] == s2['name'] and s1_nt == s2_nt
 
 def get_sample(sample_info, sample_url, token):
     """ Get sample from SampleService
