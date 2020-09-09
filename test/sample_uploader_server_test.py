@@ -73,6 +73,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': cls.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
             'output_format': "",
@@ -153,6 +154,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': "user_defined_columns",
             'description': "this is a test sample set.",
             'output_format': "",
@@ -168,20 +170,26 @@ class sample_uploaderTest(unittest.TestCase):
     @unittest.skip('Only for local tests. Not part of official test suite.')
     def test_local(self):
         self.maxDiff = None
-        local_file = "secret_save_2.csv"
+        local_file = "Marcins_data.tsv"
         sample_file = os.path.join(self.curr_dir, "data", local_file)
         num_otus = 10
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "SESAR",
+            'file_format': "ENIGMA",
+            'header_row_index': 1,
             'set_name': 'test1',
             'description': "this is a test sample set.",
             'output_format': '',
             "incl_input_in_output": 1
         }
         sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+        self.verify_samples(
+            sample_set,
+            os.path.join(self.curr_dir, 'data', 'compare_to_update.json')
+        )
+
 
     # @unittest.skip('x')
     def test_export_samples(self):
@@ -203,6 +211,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': result_file_path,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': 'reupload_test',
             'description': "this is a test sample set.",
             'output_format': "",
@@ -221,6 +230,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': 'update_test',
             'description': "this is a test sample set.",
             'output_format': "",
@@ -244,6 +254,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': 'test1',
             'description': "this is a test sample set.",
             'output_format': 'csv',
@@ -275,6 +286,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "SESAR",
+            'header_row_index': 2,
             'set_name': 'test2',
             'description': "this is a test sample set.",
             'output_format': 'csv',
@@ -308,6 +320,7 @@ class sample_uploaderTest(unittest.TestCase):
                 'workspace_id': self.wsID,
                 'sample_file': sample_file,
                 'file_format': "SESAR",
+                'header_row_index': 2,
                 'set_name': ss_name,
                 'description': "this is a test sample set.",
                 'output_format': "",
@@ -353,6 +366,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "ENIGMA",
+            'header_row_index': 1,
             'set_name': 'Enigma_test',
             'description': "this is a test sample set.",
             'output_format': "",
@@ -373,6 +387,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "ENIGMA",
+            'header_row_index': 1,
             'set_name': 'Enigma_test_2',
             'description': "this is a test sample set.",
             'output_format': "",
@@ -409,9 +424,45 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "ENIGMA",
+            'header_row_index': 1,
             'set_name': 'Enigma_test_2',
             'description': "this is a test sample set.",
             'output_format': "",
             "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+
+    # @unittest.skip('x')
+    def test_kbase_format(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, 'data', 'kbase_style_samples.tsv')
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "KBASE",
+            'header_row_index': 1,
+            'set_name': 'kbase_test_1',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 0
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+
+    # @unittest.skip('x')
+    def test_id_field_argument(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, 'data', 'test_id_field.tsv')
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "KBASE",
+            'header_row_index': 1,
+            'set_name': 'kbase_test_1',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 0,
+            'id_field': "Jumbo Name of the Day"
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]

@@ -46,6 +46,22 @@ parameters :
         long-hint  : |
             Name of output SampleSet object
 
+    header_row_index:
+        ui-name : |
+            Headers Row
+        short-hint : |
+            Row that the column headers are on (default=1)
+        long-hint  : |
+            Row that the column headers are on (default=1)
+
+    id_field:
+        ui-name: |
+            ID field
+        short-hint: |
+            Main identifier field in input file. Unique per row.
+        long-hint: |
+            Main identifier field in input file. Unique per row.
+
     description:
         ui-name : |
             Sample Set description

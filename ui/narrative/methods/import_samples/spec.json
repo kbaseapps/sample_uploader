@@ -37,6 +37,10 @@
                     {
                         "value": "ENIGMA",
                         "display": "ENIGMA format"
+                    },
+                    {
+                        "value": "KBASE",
+                        "display": "KBase format"
                     }
                 ]
             }
@@ -49,6 +53,30 @@
             "default_values" : [ "" ],
             "field_type" : "text",
             "text_options" : {}
+        },
+        {
+            "id": "header_row_index",
+            "optional": false,
+            "advanced": true,
+            "allow_multiple": false,
+            "default_values": [ "1" ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": [],
+                "validate_as": "int",
+                "min_int": 1,
+                "max_int": 10
+            }
+
+        },
+        {
+            "id": "id_field",
+            "optional": true,
+            "advanced": true,
+            "allow_multiple": false,
+            "field_type": "text",
+            "default_values": [ "" ],
+            "text_options": {}
         },
         {
             "id": "description",

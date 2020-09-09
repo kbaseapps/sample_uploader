@@ -90,10 +90,10 @@ def update_acls(sample_url, sample_id, acls, token):
 def get_sample_service_url(sw_url):
     """"""
     payload = {
-        "method":"ServiceWizard.get_service_status",
-        "id":'',
-        "params":[{"module_name":"SampleService","version":"dev"}], # TODO: change to beta/release
-        "version":"1.1"
+        "method": "ServiceWizard.get_service_status",
+        "id": '',
+        "params": [{"module_name":"SampleService", "version":"dev"}],  # TODO: change to beta/release
+        "version": "1.1"
     }
 
     sw_resp  = requests.post(url=sw_url, data=json.dumps(payload))
@@ -247,7 +247,7 @@ def save_sample(sample, sample_url, token, previous_version=None):
     sample     - completed sample as per 
     sample_url - url to sample service
     token      - workspace token for Authorization
-    previous_version - previous version of sample
+    previous_version - data of previous version of sample
     """
     headers = {"Authorization": token}
     if previous_version:
