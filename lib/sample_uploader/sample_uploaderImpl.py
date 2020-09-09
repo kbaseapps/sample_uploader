@@ -81,6 +81,8 @@ class sample_uploader:
         # return variables are: output
         #BEGIN import_samples
         sample_set = {"samples": []}
+        # We subtract by 1 for zero indexing.
+        header_row_index = int(params.get("header_row_index", 1)) - 1
         if params.get('sample_set_ref'):
             ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
             sample_set = ret['data']
@@ -93,39 +95,50 @@ class sample_uploader:
             save_ws_id = params.get('workspace_id')
 
         if params.get('file_format') == 'ENIGMA':
-            ENIGMA_mappings['verification_mapping'].update(
-                {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
-            )
+            # ENIGMA_mappings['verification_mapping'].update(
+            #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
+            # )
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
                 ctx['token'],
-                ENIGMA_mappings['verification_mapping'],
                 ENIGMA_mappings['column_mapping'],
                 ENIGMA_mappings.get('groups', []),
                 ENIGMA_mappings['date_columns'],
                 ENIGMA_mappings.get('column_unit_regex', []),
                 sample_set,
-                header_index=0
+                header_row_index
             )
         elif params.get('file_format') == 'SESAR':
-            SESAR_mappings['verification_mapping'].update(
-                {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
-            )
+            # SESAR_mappings['verification_mapping'].update(
+            #     {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
+            # )
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
                 ctx['token'],
-                SESAR_mappings['verification_mapping'],
                 SESAR_mappings['column_mapping'],
                 SESAR_mappings.get('groups', []),
                 SESAR_mappings['date_columns'],
                 SESAR_mappings.get('column_unit_regex', []),
                 sample_set,
-                header_index=1
+                header_row_index
+            );
+        elif params.get('file_format') == 'KBASE':
+            sample_set = import_samples_from_file(
+                params,
+                self.sw_url,
+                ctx['token'],
+                {},
+                [],
+                [],
+                [],
+                sample_set,
+                header_row_index
             )
         else:
-            raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples.")
+            raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples. "
+                             "File of format {params.get('file_format')} not supported.")
 
         obj_info = self.dfu.save_objects({
             'id': save_ws_id,

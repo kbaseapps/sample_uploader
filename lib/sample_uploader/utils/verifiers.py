@@ -10,11 +10,11 @@ Functions should error on incorrect input.
 import pandas as pd
 
 
-def is_string(df_col, allow_nan=True):
-    if allow_nan:
-        return
-    if not df_col.isnull().values.any():
-        raise ValueError(f"nan value found in column.")
+def is_string(df_col, params):
+    if params.get('max-len'):
+        for val in df_col.values:
+            if val and len(str(val)) > params['max-len']:
+                raise ValueError(f"string {val} in column {df_col.name} exceeds max length {params['max-len']}")
 
 
 def controlled_vocab(df_col, vocab, allow_nan=True):
@@ -33,33 +33,30 @@ def controlled_vocab(df_col, vocab, allow_nan=True):
                 raise ValueError(f"value \"{val}\" not in accepted vocabulary - {vocab}")
 
 
-def regex_string(df_col, allow_nan=True):
-    # TODO
-    is_string(df_col)
-    pass
-
-
 def is_date(df_col, allow_nan=True):
     # TODO
     pass
 
 
-def is_numeric(df_col, allow_nan=True):
-    # TODO
-    pass
+def is_numeric(df_col, params):
+    for val in df_col.values:
+        if val is not None:
+            try:
+                val = float(val)
+            except Exception as err:
+                raise Exception(f"{err} - {val} in column {df_col.name} is not numeric")
+            if params.get('lte'):
+                if val > params['lte']:
+                    raise Exception(f"{val} in column {df_col.name} must be less than or equal to {params['lte']}")
+            if params.get('gte'):
+                if val < params['gte']:
+                    raise Exception(f"{val} in column {df_col.name} must be greater than or equal to {params['gte']}")
 
-
-def is_email(df_col, allow_nan=True):
-    # TODO
-    is_string(df_col)
-    pass
 
 verifiers = {
-    "is_string": is_string,
+    "string": is_string,
     "controlled_vocab": controlled_vocab,
-    "regex_string": regex_string,
-    "is_date": is_date,
-    "is_numeric": is_numeric,
-    "is_email": is_email
+    "date": is_date,
+    "number": is_numeric
 }
 

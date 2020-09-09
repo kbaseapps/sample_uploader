@@ -3,7 +3,10 @@ import pandas as pd
 
 
 def upload_key_format(key):
-    return "_".join(key.strip().lower().replace("(", "").replace(")", "").replace("/", "_").split())
+    try:
+        return "_".join(key.strip().lower().replace("(", "").replace(")", "").replace("/", "_").split())
+    except Exception as err:
+        raise Exception(f"could not change key \"{key}\" to upload format - {err}")
 
 
 def check_value_in_list(val, array, return_idx=False):
@@ -15,6 +18,7 @@ def check_value_in_list(val, array, return_idx=False):
         return None
     else:
         return str(val).strip().lower() in [str(a).strip().lower() for a in array]
+
 
 def parse_grouped_data(row, group):
     mtd = {}
