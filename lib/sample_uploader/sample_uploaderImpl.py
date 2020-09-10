@@ -97,9 +97,9 @@ class sample_uploader:
         if params.get('header_row_index'):
             header_row_index = int(params["header_row_index"]) - 1
         else:
-            header_row_index = 1
+            header_row_index = 0
             if params.get('file_format') == "SESAR":
-                header_row_index = 0
+                header_row_index = 1
 
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
