@@ -101,7 +101,6 @@ class sample_uploader:
             if params.get('file_format') == "SESAR":
                 header_row_index = 0
 
-
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
