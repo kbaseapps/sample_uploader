@@ -37,9 +37,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.8"
-    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
-    GIT_COMMIT_HASH = "8a574414105761f44305e24689a85e9f00a42262"
+    VERSION = "0.0.10"
+    GIT_URL = "https://github.com/slebras/sample_uploader"
+    GIT_COMMIT_HASH = "92a99f9efb3f5611c1f9dc2da5ca1bd0ccca257d"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -66,9 +66,10 @@ class sample_uploader:
            String, parameter "workspace_name" of String, parameter
            "workspace_id" of Long, parameter "file_format" of String,
            parameter "description" of String, parameter "set_name" of String,
-           parameter "output_format" of String, parameter "taxonomy_source"
-           of String, parameter "num_otus" of Long, parameter "incl_seq" of
-           Long, parameter "otu_prefix" of String
+           parameter "header_row_index" of Long, parameter "id_field" of
+           String, parameter "output_format" of String, parameter
+           "taxonomy_source" of String, parameter "num_otus" of Long,
+           parameter "incl_seq" of Long, parameter "otu_prefix" of String
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -97,9 +98,9 @@ class sample_uploader:
         if params.get('header_row_index'):
             header_row_index = int(params["header_row_index"]) - 1
         else:
-            header_row_index = 1
+            header_row_index = 0
             if params.get('file_format') == "SESAR":
-                header_row_index = 0
+                header_row_index = 1
 
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
