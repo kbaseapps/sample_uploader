@@ -206,8 +206,17 @@
                     "input_parameter": "set_name",
                     "target_property": "set_name"
                 },{
+                    "input_parameter": "id_field",
+                    "target_property": "id_field"
+                },{
+                    "input_parameter": "header_row_index",
+                    "target_property": "header_row_index"
+                },{
                     "input_parameter": "description",
                     "target_property": "description"
+                },{
+                    "input_parameter": "sample_set_ref",
+                    "target_property": "sample_set_ref"
                 },{
                     "input_parameter": "output_format",
                     "target_property": "output_format"
