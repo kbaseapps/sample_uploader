@@ -220,7 +220,9 @@ def import_samples_from_file(
             if column_mapping:
                 column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
         else:
-            raise ValueError(f"'{params['id_field']}' is not a field in the input file.")
+            raise ValueError(f"'{params['id_field']}' is not a column field in the input file.")
+    else:
+        print(f"{params.get('id_field')} evaluates as false. No id_field argument present in params")
 
     if column_mapping:
         df = df.rename(columns=column_mapping)
