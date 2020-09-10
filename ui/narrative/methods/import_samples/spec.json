@@ -56,10 +56,10 @@
         },
         {
             "id": "header_row_index",
-            "optional": false,
+            "optional": true,
             "advanced": true,
             "allow_multiple": false,
-            "default_values": [ "1" ],
+            "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
                 "valid_ws_types": [],

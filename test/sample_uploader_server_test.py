@@ -190,7 +190,6 @@ class sample_uploaderTest(unittest.TestCase):
             os.path.join(self.curr_dir, 'data', 'compare_to_update.json')
         )
 
-
     # @unittest.skip('x')
     def test_export_samples(self):
         self.maxDiff = None

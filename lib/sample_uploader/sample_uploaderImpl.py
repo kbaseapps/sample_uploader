@@ -80,9 +80,10 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN import_samples
+        print(f"Beginning sample import with following parameters:")
+        print(f"params -- {params}")
         sample_set = {"samples": []}
         # We subtract by 1 for zero indexing.
-        header_row_index = int(params.get("header_row_index", 1)) - 1
         if params.get('sample_set_ref'):
             ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
             sample_set = ret['data']
@@ -93,6 +94,13 @@ class sample_uploader:
                 raise ValueError(f"Sample set name required, when new SampleSet object is created.")
             set_name = params['set_name']
             save_ws_id = params.get('workspace_id')
+        if params.get('header_row_index'):
+            header_row_index = int(params["header_row_index"]) - 1
+        else:
+            header_row_index = 1
+            if params.get('file_format') == "SESAR":
+                header_row_index = 0
+
 
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
