@@ -212,12 +212,15 @@ def import_samples_from_file(
 
     if params.get('id_field'):
         id_field = upload_key_format(params['id_field'])
-        # here we rename whatever the id field was/is to "id"
-        columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
-        df.rename(columns={id_field: "id"}, inplace=True)
-        # remove "id" rename field from column mapping if exists
-        if column_mapping:
-            column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
+        if id_field in list(df.columns):
+            # here we rename whatever the id field was/is to "id"
+            columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
+            df.rename(columns={id_field: "id"}, inplace=True)
+            # remove "id" rename field from column mapping if exists
+            if column_mapping:
+                column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
+        else:
+            raise ValueError(f"'{params['id_field']}' is not a field in the input file.")
 
     if column_mapping:
         df = df.rename(columns=column_mapping)

@@ -453,6 +453,7 @@ class sample_uploaderTest(unittest.TestCase):
     def test_id_field_argument(self):
         self.maxDiff = None
         sample_file = os.path.join(self.curr_dir, 'data', 'test_id_field.tsv')
+
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
@@ -462,7 +463,12 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': 'kbase_test_1',
             'description': "this is a test sample set.",
             'output_format': "",
-            "incl_input_in_output": 0,
+            'otu_prefix': 'OTU',
+            'sample_set_ref': None,
+            'taxonomy_source': 'n/a',
+            "incl_input_in_output": 1,
+            "incl_seq": 0,
+            "num_otus": 20,
             'id_field': "Jumbo Name of the Day"
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
