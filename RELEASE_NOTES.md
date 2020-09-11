@@ -1,6 +1,12 @@
 # sample_uploader release notes
 =========================================
 
+0.0.11
+------
+* Completing spec
+* Adding 'id_field' and 'header_row_index' parameters
+* Cleaning up error handling for more clear error messages
+
 0.0.10
 -----
 * Adding 'source_meta' field to samples
