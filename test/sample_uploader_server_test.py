@@ -68,6 +68,7 @@ class sample_uploaderTest(unittest.TestCase):
         ]
         sample_file = os.path.join(cls.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         cls.sample_set_name = "test2"
+        return
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
@@ -471,3 +472,27 @@ class sample_uploaderTest(unittest.TestCase):
             'id_field': "Jumbo Name of the Day"
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+
+    # @unittest.skip('x')
+    def test_error_state(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "error_file.tsv")
+
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "KBASE",
+            'header_row_index': 1,
+            'set_name': 'kbase_error_test',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'otu_prefix': 'OTU',
+            'sample_set_ref': None,
+            'taxonomy_source': 'n/a',
+            "incl_input_in_output": 1,
+            "incl_seq": 0,
+            "num_otus": 20,
+        }
+        with self.assertRaises(RuntimeError):
+            ret = self.serviceImpl.import_samples(self.ctx, params)[0]

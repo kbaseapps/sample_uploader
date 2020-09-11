@@ -14,6 +14,27 @@ from sample_uploader.utils.parsing_utils import (
 )
 
 
+def _handle_response(resp):
+    """
+    resp - response object from request to SampleService
+    """
+    if not resp.ok:
+        try:
+            resp_data = json.loads(resp.text)
+            resp_mess = resp_data['error']['message']
+        except:
+            resp_mess = str(resp.text)
+        raise RuntimeError(f"{resp_mess}")
+    resp_json = resp.json()
+    if resp_json.get('error'):
+        try:
+            resp_mess = resp_json['error']['message']
+        except:
+            resp_mess = resp_json['error']
+        raise RuntimeError(f"{resp_mess}")
+    return resp_json
+
+
 def sample_set_to_OTU_sheet(
         sample_set,
         output_file_name,
@@ -81,9 +102,7 @@ def update_acls(sample_url, sample_id, acls, token):
         "version": "1.1"
     }
     resp = requests.post(url=sample_url, data=json.dumps(payload), headers=headers)
-    resp_json = resp.json()
-    if resp_json.get('error'):
-        raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+    _ = _handle_response(resp)
     return resp.status_code
 
 
@@ -99,7 +118,7 @@ def get_sample_service_url(sw_url):
     sw_resp  = requests.post(url=sw_url, data=json.dumps(payload))
     wiz_resp = sw_resp.json()
     if wiz_resp.get('error'):
-        raise RuntimeError("ServiceWizard Error - "+ str(wiz_resp['error']))
+        raise RuntimeError(f"ServiceWizard Error - {wiz_resp['error']}")
     return wiz_resp['result'][0]['url']
 
 
@@ -235,9 +254,7 @@ def get_sample(sample_info, sample_url, token):
         "version": "1.1"
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload))
-    resp_json = resp.json()
-    if resp_json.get('error'):
-        raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+    resp_json = _handle_response(resp)
     sample = resp_json['result'][0]
     return sample
 
@@ -271,11 +288,7 @@ def save_sample(sample, sample_url, token, previous_version=None):
         "version": "1.1"
     }
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
-    if not resp.ok:
-        raise RuntimeError(f'Error from SampleService - {resp.text}')
-    resp_json = resp.json()
-    if resp_json.get('error'):
-        raise RuntimeError(f"Error from SampleService - {resp_json['error']}")
+    resp_json = _handle_response(resp)
     sample_id = resp_json['result'][0]['id']
     sample_ver = resp_json['result'][0]['version']
     return sample_id, sample_ver

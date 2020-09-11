@@ -39,7 +39,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "0.0.10"
     GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "92a99f9efb3f5611c1f9dc2da5ca1bd0ccca257d"
+    GIT_COMMIT_HASH = "3a8a3855e1b66612ef538c3375b1d92bc0e785f2"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
