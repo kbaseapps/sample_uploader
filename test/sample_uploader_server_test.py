@@ -68,7 +68,6 @@ class sample_uploaderTest(unittest.TestCase):
         ]
         sample_file = os.path.join(cls.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         cls.sample_set_name = "test2"
-        return
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
