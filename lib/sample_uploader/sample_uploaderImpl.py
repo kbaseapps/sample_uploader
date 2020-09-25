@@ -49,6 +49,7 @@ class sample_uploader:
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.workspace_url = config['workspace-url']
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
@@ -102,6 +103,8 @@ class sample_uploader:
             if params.get('file_format') == "SESAR":
                 header_row_index = 1
 
+        username = ctx['user_id']
+
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
@@ -109,6 +112,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 ENIGMA_mappings['column_mapping'],
                 ENIGMA_mappings.get('groups', []),
@@ -124,6 +129,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 SESAR_mappings['column_mapping'],
                 SESAR_mappings.get('groups', []),
@@ -136,6 +143,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 {},
                 [],
@@ -160,6 +169,7 @@ class sample_uploader:
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
+        # -- Format outputs below --
         # if output file format specified, add one to output
         if params.get('output_format') in ['csv', 'xls']:
             otu_path = sample_set_to_OTU_sheet(

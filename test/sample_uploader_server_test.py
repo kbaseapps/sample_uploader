@@ -43,7 +43,7 @@ class sample_uploaderTest(unittest.TestCase):
                              }],
                         'authenticated': 1})
         cls.wsURL = cls.cfg['workspace-url']
-        cls.wsClient = Workspace(cls.wsURL)
+        cls.wsClient = Workspace(cls.wsURL, token=token)
         cls.serviceImpl = sample_uploader(cls.cfg)
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
@@ -495,3 +495,46 @@ class sample_uploaderTest(unittest.TestCase):
         }
         with self.assertRaises(RuntimeError):
             ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+
+    # @unittest.skip('x')
+    def test_workspace_acls_on_import(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, 'data', 'kbase_style_samples.tsv')
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "KBASE",
+            'header_row_index': 1,
+            'set_name': 'kbase_test_1',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 0,
+            "share_within_workspace": 1
+        }
+        # add new user to permissions for test
+        self.wsClient.set_permissions({
+            "id": self.wsID,
+            "new_permission": "w",
+            "users": ["jrbolton"]
+        })
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        # get WS perms
+        perms = self.wsClient.get_permissions_mass({
+            'workspaces': [{'id': self.wsID}]
+        })['perms'][0]
+        sample_id = ret['sample_set']['samples'][0]['id']
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.post(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
+        resp_json = resp.json()
+        print('+'*80)
+        print('+'*80)
+        print(resp_json)
+        print(perms)
+        print('+'*80)
+        print('+'*80)

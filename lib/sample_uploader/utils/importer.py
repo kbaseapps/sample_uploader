@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 import os
+from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
     get_sample_service_url,
     get_sample,
@@ -79,6 +80,25 @@ def load_file(
     return df
 
 
+def _get_workspace_user_perms(workspace_url, workspace_id, token, username, acls):
+    """
+    """
+    ws_client = Workspace(workspace_url, token=token)
+    results = ws_client.get_permissions_mass({'workspaces': [{'id': workspace_id}]}) 
+    for user in results['perms'][0]:
+        # skip owner of the samples.
+        if user == username:
+            continue
+        if results['perms'][0][user] == 'a':
+            acls['admin'].append(user)
+        if results['perms'][0][user] == 'r':
+            acls['reader'].append(user)
+        if results['perms'][0][user] == 'w':
+            acls['writer'].append(user)
+        if results['perms'][0][user] == 'n':
+            continue
+    return acls
+
 def produce_samples(
     df,
     cols,
@@ -87,7 +107,8 @@ def produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names
+    columns_to_input_names,
+    acls
 ):
     """"""
     samples = []
@@ -174,11 +195,10 @@ def produce_samples(
             reader = row.get('reader')
             admin  = row.get('admin')
             if writer or reader or admin:
-                acls = {
-                    "reader": [r for r in reader],
-                    "writer": [w for w in writer],
-                    "admin": [a for a in admin]
-                }
+                acls["reader"] +=  [r for r in reader]
+                acls["writer"] += [w for w in writer]
+                acls["admin"] += [a for a in admin]
+            if len(acls["reader"]) > 0 or len(acls['writer']) > 0 or len(acls['admin']) > 0:
                 update_acls(sample_url, sample_id, acls, token)
         else:
             raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
@@ -190,6 +210,8 @@ def produce_samples(
 def import_samples_from_file(
     params,
     sw_url,
+    workspace_url,
+    username,
     token,
     column_mapping,
     column_groups,
@@ -239,7 +261,14 @@ def import_samples_from_file(
         if 'material' in df.columns:
             df.rename({"material": "SESAR:material"}, inplace=True)
 
-
+    acls = {
+        "reader": [],
+        "writer": [],
+        "admin": []
+    }
+    if params.get('share_within_workspace'):
+        # query workspace for user permissions.
+        acls = _get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
     groups = SAMP_SERV_CONFIG['validators']
 
     # process and save samples
@@ -253,7 +282,8 @@ def import_samples_from_file(
         sample_url,
         token,
         input_sample_set['samples'],
-        columns_to_input_names
+        columns_to_input_names,
+        acls
     )
     return {
         "samples": samples,

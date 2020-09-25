@@ -23,6 +23,8 @@ module sample_uploader {
         int num_otus;
         int incl_seq;
         string otu_prefix;
+
+        int share_within_workspace;
     } ImportSampleInputs;
 
     typedef structure {
