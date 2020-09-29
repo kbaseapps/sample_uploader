@@ -18,6 +18,7 @@ from sample_uploader.utils.sample_utils import (
     get_sample,
     format_sample_as_row
 )
+from sample_uploader.utils.misc_utils import get_workspace_user_perms
 import pandas as pd
 #END_HEADER
 
@@ -308,17 +309,21 @@ class sample_uploader:
         sample_url = get_sample_service_url(self.sw_url)
 
         acls = {
-            'reader': [],
-            'writer': [],
+            'read': [],
+            'write': [],
             'admin': []
         }
+
+        if params.get('share_within_workspace'):
+            acls = get_workspace_user_perms(self.workspace_url, params.get('workspace_id'), ctx['token'], ctx['user_id'], acls)
+
         for new_user in params.get('new_users'):
             if params.get('is_admin'):
                 acls['admin'].append(new_user)
             elif params.get('is_writer'):
-                acls['writer'].append(new_user)
+                acls['write'].append(new_user)
             elif params.get('is_reader'):
-                acls['reader'].append(new_user)
+                acls['read'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']

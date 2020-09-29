@@ -72,11 +72,16 @@ module sample_uploader {
     funcdef generate_OTU_sheet(GenerateOTUSheetParams params) returns (GenerateOTUSheetOutputs output) authentication required;
 
     typedef structure {
+        string workspace_name;
+        int workspace_id;
+
         string sample_set_ref;
         list<string> new_users;
         int is_reader;
         int is_writer;
         int is_admin;
+
+        int share_within_workspace;
     } update_sample_set_acls_params;
 
     typedef structure {

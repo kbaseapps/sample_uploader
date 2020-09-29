@@ -17,6 +17,7 @@ from sample_uploader.utils.sample_utils import (
 from sample_uploader.utils.verifiers import verifiers
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
+from sample_uploader.utils.misc_utils import get_workspace_user_perms
 
 # These columns should all be in lower case.
 REGULATED_COLS = ['name', 'id', 'parent_id']
@@ -79,25 +80,6 @@ def load_file(
                          f"are '.xls' '.csv' '.tsv' or '.xlsx'")
     return df
 
-
-def _get_workspace_user_perms(workspace_url, workspace_id, token, username, acls):
-    """
-    """
-    ws_client = Workspace(workspace_url, token=token)
-    results = ws_client.get_permissions_mass({'workspaces': [{'id': workspace_id}]}) 
-    for user in results['perms'][0]:
-        # skip owner of the samples.
-        if user == username:
-            continue
-        if results['perms'][0][user] == 'a':
-            acls['admin'].append(user)
-        if results['perms'][0][user] == 'r':
-            acls['read'].append(user)
-        if results['perms'][0][user] == 'w':
-            acls['write'].append(user)
-        if results['perms'][0][user] == 'n':
-            continue
-    return acls
 
 def produce_samples(
     df,
@@ -268,7 +250,7 @@ def import_samples_from_file(
     }
     if params.get('share_within_workspace'):
         # query workspace for user permissions.
-        acls = _get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
+        acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
     groups = SAMP_SERV_CONFIG['validators']
 
     # process and save samples
