@@ -530,11 +530,15 @@ class sample_uploaderTest(unittest.TestCase):
             "params": [{"id": sample_id}],
             "version": "1.1"
         }
-        resp = requests.post(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
+        resp = requests.get(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
         resp_json = resp.json()
-        print('+'*80)
-        print('+'*80)
-        print(resp_json)
-        print(perms)
-        print('+'*80)
-        print('+'*80)
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertEqual(resp_data, perms, msg=f"{resp_data} and {perms} are not the same.")

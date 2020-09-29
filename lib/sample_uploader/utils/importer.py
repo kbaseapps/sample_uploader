@@ -92,9 +92,9 @@ def _get_workspace_user_perms(workspace_url, workspace_id, token, username, acls
         if results['perms'][0][user] == 'a':
             acls['admin'].append(user)
         if results['perms'][0][user] == 'r':
-            acls['reader'].append(user)
+            acls['read'].append(user)
         if results['perms'][0][user] == 'w':
-            acls['writer'].append(user)
+            acls['write'].append(user)
         if results['perms'][0][user] == 'n':
             continue
     return acls
@@ -190,16 +190,16 @@ def produce_samples(
                 "version": sample_ver
             })
             # check input for any reason to update access control list
-            # should have a "writer", "reader", "admin" entry
-            writer = row.get('writer')
-            reader = row.get('reader')
+            # should have a "write", "read", "admin" entry
+            writer = row.get('write')
+            reader = row.get('read')
             admin  = row.get('admin')
             if writer or reader or admin:
-                acls["reader"] +=  [r for r in reader]
-                acls["writer"] += [w for w in writer]
+                acls["read"] +=  [r for r in reader]
+                acls["write"] += [w for w in writer]
                 acls["admin"] += [a for a in admin]
-            if len(acls["reader"]) > 0 or len(acls['writer']) > 0 or len(acls['admin']) > 0:
-                update_acls(sample_url, sample_id, acls, token)
+            if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+                resp = update_acls(sample_url, sample_id, acls, token)
         else:
             raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
     # add the missing samples from existing_sample_names
@@ -262,8 +262,8 @@ def import_samples_from_file(
             df.rename({"material": "SESAR:material"}, inplace=True)
 
     acls = {
-        "reader": [],
-        "writer": [],
+        "read": [],
+        "write": [],
         "admin": []
     }
     if params.get('share_within_workspace'):
