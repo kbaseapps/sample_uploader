@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 import os
+from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
     get_sample_service_url,
     get_sample,
@@ -16,6 +17,7 @@ from sample_uploader.utils.sample_utils import (
 from sample_uploader.utils.verifiers import verifiers
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
+from sample_uploader.utils.misc_utils import get_workspace_user_perms
 
 # These columns should all be in lower case.
 REGULATED_COLS = ['name', 'id', 'parent_id']
@@ -87,7 +89,8 @@ def produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names
+    columns_to_input_names,
+    acls
 ):
     """"""
     samples = []
@@ -169,17 +172,16 @@ def produce_samples(
                 "version": sample_ver
             })
             # check input for any reason to update access control list
-            # should have a "writer", "reader", "admin" entry
-            writer = row.get('writer')
-            reader = row.get('reader')
+            # should have a "write", "read", "admin" entry
+            writer = row.get('write')
+            reader = row.get('read')
             admin  = row.get('admin')
             if writer or reader or admin:
-                acls = {
-                    "reader": [r for r in reader],
-                    "writer": [w for w in writer],
-                    "admin": [a for a in admin]
-                }
-                update_acls(sample_url, sample_id, acls, token)
+                acls["read"] +=  [r for r in reader]
+                acls["write"] += [w for w in writer]
+                acls["admin"] += [a for a in admin]
+            if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+                resp = update_acls(sample_url, sample_id, acls, token)
         else:
             raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
     # add the missing samples from existing_sample_names
@@ -190,6 +192,8 @@ def produce_samples(
 def import_samples_from_file(
     params,
     sw_url,
+    workspace_url,
+    username,
     token,
     column_mapping,
     column_groups,
@@ -239,7 +243,14 @@ def import_samples_from_file(
         if 'material' in df.columns:
             df.rename({"material": "SESAR:material"}, inplace=True)
 
-
+    acls = {
+        "read": [],
+        "write": [],
+        "admin": []
+    }
+    if params.get('share_within_workspace'):
+        # query workspace for user permissions.
+        acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
     groups = SAMP_SERV_CONFIG['validators']
 
     # process and save samples
@@ -253,7 +264,8 @@ def import_samples_from_file(
         sample_url,
         token,
         input_sample_set['samples'],
-        columns_to_input_names
+        columns_to_input_names,
+        acls
     )
     return {
         "samples": samples,

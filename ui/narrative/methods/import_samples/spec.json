@@ -182,6 +182,18 @@
                 "unchecked_value" : 0,
                 "checked_value" : 1
             }
+        },
+        {
+            "id": "share_within_workspace",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "1" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
         }
     ],
     "behavior": {
@@ -235,6 +247,9 @@
                 },{
                     "input_parameter": "incl_input_in_output",
                     "target_property": "incl_input_in_output"
+                },{
+                    "input_parameter": "share_within_workspace",
+                    "target_property": "share_within_workspace"
                 }
             ],
             "output_mapping": [

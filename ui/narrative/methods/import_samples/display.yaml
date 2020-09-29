@@ -126,5 +126,13 @@ parameters :
         long-hint  : |
             whether to include the input file as an output, default=True. This is an option so that collaborators can access raw data.
 
+    share_within_workspace:
+        ui-name: |
+            Share with Users in Workspace
+        short-hint: |
+            Shares access controls with users who have access to this workspace.
+        long-hint: |
+            Shares access controls with users who have access to this workspace. They are given the same level of control. default=True
+
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>

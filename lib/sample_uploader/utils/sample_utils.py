@@ -101,6 +101,7 @@ def update_acls(sample_url, sample_id, acls, token):
         "params": [ReplaceSampleACLsParams],
         "version": "1.1"
     }
+
     resp = requests.post(url=sample_url, data=json.dumps(payload), headers=headers)
     _ = _handle_response(resp)
     return resp.status_code

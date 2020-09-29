@@ -43,7 +43,7 @@ class sample_uploaderTest(unittest.TestCase):
                              }],
                         'authenticated': 1})
         cls.wsURL = cls.cfg['workspace-url']
-        cls.wsClient = Workspace(cls.wsURL)
+        cls.wsClient = Workspace(cls.wsURL, token=token)
         cls.serviceImpl = sample_uploader(cls.cfg)
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
@@ -68,7 +68,6 @@ class sample_uploaderTest(unittest.TestCase):
         ]
         sample_file = os.path.join(cls.curr_dir, "data", "ANLPW_JulySamples_IGSN_v2.xls")
         cls.sample_set_name = "test2"
-        return
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
@@ -82,8 +81,15 @@ class sample_uploaderTest(unittest.TestCase):
         }
         ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
         cls.sample_set = ret['sample_set']
+        cls.a_sample_id = ret['sample_set']['samples'][0]['id']
         cls.sample_set_ref = ret['sample_set_ref']
         cls.update_test_files = False
+        # add new user to test permissions
+        cls.wsClient.set_permissions({
+            "id": cls.wsID,
+            "new_permission": "w",
+            "users": ["jrbolton"]
+        })
 
     @classmethod
     def tearDownClass(cls):
@@ -403,6 +409,7 @@ class sample_uploaderTest(unittest.TestCase):
     def test_change_acls(self):
         self.maxDiff = None
         params = {
+            'workspace_id': self.wsID,
             'new_users': [
                 "eapearson"
             ],
@@ -412,7 +419,61 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_set_ref': self.sample_set_ref,
         }
         ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
-        print(ret)
+        self.assertEqual(ret['status'], 200)
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": self.a_sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertEqual(resp_data, {'slebras': 'a', 'eapearson': 'a'})
+
+    # @unittest.skip('x')
+    def test_change_acls_within_workspace(self):
+        self.maxDiff = None
+        params = {
+            'workspace_id': self.wsID,
+            'new_users': [
+                "eapearson"
+            ],
+            'is_admin': 1,
+            'is_reader': 0,
+            'is_writer': 0,
+            'sample_set_ref': self.sample_set_ref,
+            'share_within_workspace': 1
+        }
+        ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
+        # check to see if permissions are what we expect
+        self.assertEqual(ret['status'], 200)
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": self.a_sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertEqual(resp_data, {'jrbolton': 'w', 'slebras': 'a', 'eapearson': 'a'})
 
     # @unittest.skip('x')
     def test_import_with_existing(self):
@@ -496,3 +557,44 @@ class sample_uploaderTest(unittest.TestCase):
         }
         with self.assertRaises(RuntimeError):
             ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+
+    # @unittest.skip('x')
+    def test_workspace_acls_on_import(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, 'data', 'kbase_style_samples.tsv')
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "KBASE",
+            'header_row_index': 1,
+            'set_name': 'kbase_test_1',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 0,
+            "share_within_workspace": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        # get WS perms
+        perms = self.wsClient.get_permissions_mass({
+            'workspaces': [{'id': self.wsID}]
+        })['perms'][0]
+        sample_id = ret['sample_set']['samples'][0]['id']
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(url=self.sample_url, data=json.dumps(payload), headers={"Authorization": self.ctx['token']})
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertEqual(resp_data, perms, msg=f"{resp_data} and {perms} are not the same.")

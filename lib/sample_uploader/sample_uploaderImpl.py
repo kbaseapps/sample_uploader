@@ -18,6 +18,7 @@ from sample_uploader.utils.sample_utils import (
     get_sample,
     format_sample_as_row
 )
+from sample_uploader.utils.misc_utils import get_workspace_user_perms
 import pandas as pd
 #END_HEADER
 
@@ -49,6 +50,7 @@ class sample_uploader:
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.workspace_url = config['workspace-url']
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
@@ -102,6 +104,8 @@ class sample_uploader:
             if params.get('file_format') == "SESAR":
                 header_row_index = 1
 
+        username = ctx['user_id']
+
         if params.get('file_format') == 'ENIGMA':
             # ENIGMA_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
@@ -109,6 +113,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 ENIGMA_mappings['column_mapping'],
                 ENIGMA_mappings.get('groups', []),
@@ -124,6 +130,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 SESAR_mappings['column_mapping'],
                 SESAR_mappings.get('groups', []),
@@ -136,6 +144,8 @@ class sample_uploader:
             sample_set = import_samples_from_file(
                 params,
                 self.sw_url,
+                self.workspace_url,
+                username,
                 ctx['token'],
                 {},
                 [],
@@ -160,6 +170,7 @@ class sample_uploader:
         sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
         sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
 
+        # -- Format outputs below --
         # if output file format specified, add one to output
         if params.get('output_format') in ['csv', 'xls']:
             otu_path = sample_set_to_OTU_sheet(
@@ -298,17 +309,21 @@ class sample_uploader:
         sample_url = get_sample_service_url(self.sw_url)
 
         acls = {
-            'reader': [],
-            'writer': [],
+            'read': [],
+            'write': [],
             'admin': []
         }
+
+        if params.get('share_within_workspace'):
+            acls = get_workspace_user_perms(self.workspace_url, params.get('workspace_id'), ctx['token'], ctx['user_id'], acls)
+
         for new_user in params.get('new_users'):
             if params.get('is_admin'):
                 acls['admin'].append(new_user)
             elif params.get('is_writer'):
-                acls['writer'].append(new_user)
+                acls['write'].append(new_user)
             elif params.get('is_reader'):
-                acls['reader'].append(new_user)
+                acls['read'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
