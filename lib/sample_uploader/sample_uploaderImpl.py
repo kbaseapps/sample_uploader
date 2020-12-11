@@ -19,6 +19,7 @@ from sample_uploader.utils.sample_utils import (
     format_sample_as_row
 )
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
+from sample_uploader.utils.misc_utils import error_ui as _error_ui
 import pandas as pd
 #END_HEADER
 
@@ -38,9 +39,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.10"
+    VERSION = "0.0.11"
     GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "3a8a3855e1b66612ef538c3375b1d92bc0e785f2"
+    GIT_COMMIT_HASH = "4f3d652d6e67602b08900877c124e9b6d33b061a"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -71,7 +72,9 @@ class sample_uploader:
            parameter "header_row_index" of Long, parameter "id_field" of
            String, parameter "output_format" of String, parameter
            "taxonomy_source" of String, parameter "num_otus" of Long,
-           parameter "incl_seq" of Long, parameter "otu_prefix" of String
+           parameter "incl_seq" of Long, parameter "otu_prefix" of String,
+           parameter "share_within_workspace" of Long, parameter
+           "prevalidate" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -110,7 +113,7 @@ class sample_uploader:
             # ENIGMA_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
             # )
-            sample_set = import_samples_from_file(
+            sample_set, errors = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -127,7 +130,7 @@ class sample_uploader:
             # SESAR_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
             # )
-            sample_set = import_samples_from_file(
+            sample_set, errors = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -141,7 +144,7 @@ class sample_uploader:
                 header_row_index
             );
         elif params.get('file_format') == 'KBASE':
-            sample_set = import_samples_from_file(
+            sample_set, errors = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -158,36 +161,42 @@ class sample_uploader:
             raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples. "
                              "File of format {params.get('file_format')} not supported.")
 
-        obj_info = self.dfu.save_objects({
-            'id': save_ws_id,
-            'objects': [{
-                "name": set_name,
-                "type": "KBaseSets.SampleSet",
-                "data": sample_set
-            }]
-        })[0]
+        file_links = []
 
-        sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
-        sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
-
-        # -- Format outputs below --
-        # if output file format specified, add one to output
-        if params.get('output_format') in ['csv', 'xls']:
-            otu_path = sample_set_to_OTU_sheet(
-                sample_set,
-                sample_file_name,
-                self.scratch,
-                params
-            )
-            file_links = [{
-                'path': otu_path,
-                'name': os.path.basename(otu_path),
-                'label': "OTU template file",
-                'description': "file with each column containing the assigned sample_id and sample "
-                               "name of each saved sample. Intended for uploading OTU data."
-            }]
+        if errors:
+            # create UI to display the errors clearly
+            html_link = _error_ui(errors, self.scratch)
         else:
-            file_links = []
+            html_link = None
+            # only save object if there are no errors
+            obj_info = self.dfu.save_objects({
+                'id': save_ws_id,
+                'objects': [{
+                    "name": set_name,
+                    "type": "KBaseSets.SampleSet",
+                    "data": sample_set
+                }]
+            })[0]
+
+            sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
+            sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
+
+            # -- Format outputs below --
+            # if output file format specified, add one to output
+            if params.get('output_format') in ['csv', 'xls']:
+                otu_path = sample_set_to_OTU_sheet(
+                    sample_set,
+                    sample_file_name,
+                    self.scratch,
+                    params
+                )
+                file_links.append({
+                    'path': otu_path,
+                    'name': os.path.basename(otu_path),
+                    'label': "OTU template file",
+                    'description': "file with each column containing the assigned sample_id and sample "
+                                   "name of each saved sample. Intended for uploading OTU data."
+                })
 
         if params.get('incl_input_in_output'):
             sample_file = params.get('sample_file')
@@ -208,14 +217,16 @@ class sample_uploader:
 
         # create report
         report_client = KBaseReport(self.callback_url)
-        report_name = "SampleSet_import_report_" + str(uuid.uuid4())
-        report_info = report_client.create_extended_report({
+        report_data = {
             'message': f"SampleSet object named \"{set_name}\" imported.",
             'objects_created': [{'ref': sample_set_ref}],
             'file_links': file_links,
-            'report_object_name': report_name,
+            'report_object_name': "SampleSet_import_report_" + str(uuid.uuid4()),
             'workspace_name': params['workspace_name']
-        })
+        }
+        if html_link:
+            report_data['html_links'] = [html_link]
+        report_info = report_client.create_extended_report(report_data)
         output = {
             'report_ref': report_info['ref'],
             'report_name': report_info['name'],
@@ -292,9 +303,11 @@ class sample_uploader:
     def update_sample_set_acls(self, ctx, params):
         """
         :param params: instance of type "update_sample_set_acls_params" ->
-           structure: parameter "sample_set_ref" of String, parameter
-           "new_users" of list of String, parameter "is_reader" of Long,
-           parameter "is_writer" of Long, parameter "is_admin" of Long
+           structure: parameter "workspace_name" of String, parameter
+           "workspace_id" of Long, parameter "sample_set_ref" of String,
+           parameter "new_users" of list of String, parameter "is_reader" of
+           Long, parameter "is_writer" of Long, parameter "is_admin" of Long,
+           parameter "share_within_workspace" of Long
         :returns: instance of type "update_sample_set_acls_output" ->
            structure: parameter "status" of String
         """

@@ -295,6 +295,29 @@ def save_sample(sample, sample_url, token, previous_version=None):
     return sample_id, sample_ver
 
 
+def validate_samples(samples, sample_url, token):
+    """
+    samples    - list of Sample
+    sample_url - url to sample service
+    token      - workspace token for Authorization
+    """
+    headers = {"Authorization": token}
+    params = {
+        "samples": samples
+    }
+    payload = {
+        "method": "SampleService.validate_samples",
+        "id": str(uuid.uuid4()),
+        "params": [params],
+        "version": "1.1"
+    }
+    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
+    resp_json = _handle_response(resp)
+    errors = resp_json['result'][0]['errors']
+    sample_ver = resp_json['result'][0]['version']
+    return errors
+
+
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
     """"""
     if sample_headers:

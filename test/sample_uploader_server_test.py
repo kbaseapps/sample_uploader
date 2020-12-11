@@ -121,7 +121,6 @@ class sample_uploaderTest(unittest.TestCase):
             sample2 = get_sample(sample_set_2[samp['name']], self.sample_url, self.ctx['token'])
             # print('gen sample', sample)
             # print('jsn sample', sample2)
-
             self.compare_sample(sample, sample2, check_id=True, check_version=True)
 
     def verify_samples(self, sample_set, compare_path):
@@ -172,7 +171,6 @@ class sample_uploaderTest(unittest.TestCase):
             sample_set,
             os.path.join(self.curr_dir, 'data', 'floc_mini_metadata_copy_cmp.json')
         )
-
 
     @unittest.skip('Only for local tests. Not part of official test suite.')
     def test_local(self):
@@ -403,6 +401,27 @@ class sample_uploaderTest(unittest.TestCase):
         self.verify_samples(
             ret['sample_set'],
             os.path.join(self.curr_dir, 'data', 'compare_to_ENIGMA_2.json')
+        )
+
+    # @unittest.skip('x')
+    def test_upload_Marcins_NMDC_FICUS_samples(self):
+        self.maxDiff = None
+        sample_file = os.path.join(self.curr_dir, "data", "NMDC_FICUS_db_v7_db___KBase_copy.tsv")
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sample_file,
+            'file_format': "SESAR",
+            'header_row_index': 1,
+            'set_name': 'marcins_nmdc_ficus_data',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        self.verify_samples(
+            ret['sample_set'],
+            os.path.join(self.curr_dir, 'data', 'compare_to_NMDC_FICUS_copy.json')
         )
 
     # @unittest.skip('x')

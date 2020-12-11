@@ -12,7 +12,8 @@ from sample_uploader.utils.sample_utils import (
     generate_user_metadata,
     generate_controlled_metadata,
     generate_source_meta,
-    update_acls
+    update_acls,
+    validate_samples
 )
 from sample_uploader.utils.verifiers import verifiers
 from sample_uploader.utils.parsing_utils import upload_key_format
@@ -81,7 +82,7 @@ def load_file(
     return df
 
 
-def produce_samples(
+def _produce_samples(
     df,
     cols,
     column_groups,
@@ -89,12 +90,27 @@ def produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names,
-    acls
+    columns_to_input_names
 ):
     """"""
     samples = []
     existing_sample_names = {sample['name']: sample for sample in existing_samples}
+
+    def _get_existing_sample(name, kbase_sample_id):
+        prev_sample = None
+        if kbase_sample_id:
+            prev_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
+            if name in existing_sample_names and prev_sample['name'] == name:
+                # now we check if the sample 'id' and 'name' are the same
+                if existing_sample_names[name]['id'] != prev_sample['id']:
+                    raise ValueError(f"'kbase_sample_id' and input sample set have different ID's for sample with name \"{name}\"")
+            elif name in existing_sample_names and name != prev_sample['name']:
+                # not sure if this is an error case
+                raise ValueError(f"Cannot rename existing sample from {prev_sample['name']} to {name}")
+        elif name in existing_sample_names:
+            prev_sample = get_sample(existing_sample_names[name], sample_url, token)
+
+        return prev_sample
 
     for idx, row in df.iterrows():
         if row.get('id'):
@@ -145,18 +161,9 @@ def produce_samples(
                 }],
                 'name': name,
             }
-            prev_sample = None
-            if kbase_sample_id:
-                prev_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
-                if name in existing_sample_names and prev_sample['name'] == name:
-                    # now we check if the sample 'id' and 'name' are the same
-                    if existing_sample_names[name]['id'] != prev_sample['id']:
-                        raise ValueError(f"'kbase_sample_id' and input sample set have different ID's for sample: {name}")
-                elif name in existing_sample_names and name != prev_sample['name']:
-                    # not sure if this is an error case
-                    raise ValueError(f"Cannot rename existing sample from {prev_sample['name']} to {name}")
-            elif name in existing_sample_names:
-                prev_sample = get_sample(existing_sample_names[name], sample_url, token)
+            # get existing sample (if exists)
+            prev_sample = _get_existing_sample(name, kbase_sample_id)
+
             if compare_samples(sample, prev_sample):
                 if sample.get('name') not in existing_sample_names:
                     existing_sample_names[sample['name']] = prev_sample
@@ -164,29 +171,67 @@ def produce_samples(
             elif name in existing_sample_names:
                 existing_sample_names.pop(name)
 
-            sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
-
+            # "save_sample_for_later"
             samples.append({
-                "id": sample_id,
-                "name": name,
-                "version": sample_ver
+                'sample': sample,
+                'prev_sample': prev_sample,
+                'name': name,
+                'write': row.get('write'),
+                'read': row.get('read'),
+                'admin': row.get('admin')
             })
-            # check input for any reason to update access control list
-            # should have a "write", "read", "admin" entry
-            writer = row.get('write')
-            reader = row.get('read')
-            admin  = row.get('admin')
-            if writer or reader or admin:
-                acls["read"] +=  [r for r in reader]
-                acls["write"] += [w for w in writer]
-                acls["admin"] += [a for a in admin]
-            if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-                resp = update_acls(sample_url, sample_id, acls, token)
+
+            # sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
+
+            # samples.append({
+            #     "id": sample_id,
+            #     "name": name,
+            #     "version": sample_ver
+            # })
+            # # check input for any reason to update access control list
+            # # should have a "write", "read", "admin" entry
+            # writer = row.get('write')
+            # reader = row.get('read')
+            # admin  = row.get('admin')
+            # if writer or reader or admin:
+            #     acls["read"] +=  [r for r in reader]
+            #     acls["write"] += [w for w in writer]
+            #     acls["admin"] += [a for a in admin]
+            # if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+            #     resp = update_acls(sample_url, sample_id, acls, token)
         else:
             raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
     # add the missing samples from existing_sample_names
-    samples += [existing_sample_names[key] for key in existing_sample_names]
-    return samples
+    return samples, [existing_sample_names[key] for key in existing_sample_names]
+
+
+def _save_samples(samples, acls, sample_url, token):
+    """"""
+    saved_samples = []
+    for data in samples:
+        sample = data['sample']
+        prev_sample = data['prev_sample']
+        name = data['name']
+
+        sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
+
+        saved_samples.append({
+            "id": sample_id,
+            "name": name,
+            "version": sample_ver
+        })
+        # check input for any reason to update access control list
+        # should have a "write", "read", "admin" entry
+        writer = data.get('write')
+        reader = data.get('read')
+        admin  = data.get('admin')
+        if writer or reader or admin:
+            acls["read"] +=  [r for r in reader]
+            acls["write"] += [w for w in writer]
+            acls["admin"] += [a for a in admin]
+        if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+            resp = update_acls(sample_url, sample_id, acls, token)
+    return saved_samples
 
 
 def import_samples_from_file(
@@ -253,10 +298,9 @@ def import_samples_from_file(
         acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
     groups = SAMP_SERV_CONFIG['validators']
 
-    # process and save samples
     cols = list(set(df.columns) - set(REGULATED_COLS))
     sample_url = get_sample_service_url(sw_url)
-    samples = produce_samples(
+    samples, existing_samples = _produce_samples(
         df,
         cols,
         column_groups,
@@ -264,10 +308,17 @@ def import_samples_from_file(
         sample_url,
         token,
         input_sample_set['samples'],
-        columns_to_input_names,
-        acls
+        columns_to_input_names
     )
+    errors = {}
+    if params.get('prevalidate'):
+        errors = validate_samples(samples, sample_url, token)
+    if errors:
+        saved_samples = []
+    else:
+        saved_samples = _save_samples(samples, acls, sample_url, token)
+        saved_samples += existing_samples
     return {
-        "samples": samples,
+        "samples": saved_samples,
         "description": params.get('description')
-    }
+    }, errors
