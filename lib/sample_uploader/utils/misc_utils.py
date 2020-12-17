@@ -4,7 +4,7 @@ def get_workspace_user_perms(workspace_url, workspace_id, token, owner, acls):
     """
     """
     ws_client = Workspace(workspace_url, token=token)
-    results = ws_client.get_permissions_mass({'workspaces': [{'id': workspace_id}]}) 
+    results = ws_client.get_permissions_mass({'workspaces': [{'id': workspace_id}]})
     for user in results['perms'][0]:
         # skip owner of the samples.
         if user == owner:
