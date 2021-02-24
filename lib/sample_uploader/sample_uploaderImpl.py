@@ -405,18 +405,19 @@ class sample_uploader:
         sample_set = SampleSet(self.dfu, sample_set_ref)
         links = [(d['sample_name'], d['reads_ref']) for d in params['links']]
         
+        new_data_links = []
         for sample_name, reads_ref in links:
             node_id, version, sample_id = sample_set.get_sample_info(sample_name)
-            p = dict(
-                upa=reads_ref,
-                id=sample_id,
-                version=version,
-                node=node_id,
-                update=1,
-            )
             ret = ss.create_data_link(
-                p
+                dict(
+                    upa=reads_ref,
+                    id=sample_id,
+                    version=version,
+                    node=node_id,
+                    update=1,
+                )
             )
+            new_data_links.append(ret)
 
         report_client = KBaseReport(self.callback_url)
         report_info = report_client.create_extended_report({
@@ -425,6 +426,7 @@ class sample_uploader:
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],
+            'links': new_data_links,
         }
         #END link_reads
 
