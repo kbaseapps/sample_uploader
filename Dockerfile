@@ -8,6 +8,11 @@ MAINTAINER KBase Developer
 
 # RUN apt-get update
 
+COPY ./requirements.txt /tmp
+RUN pip install --upgrade pip && \
+	pip install -r /tmp/requirements.txt
+
+
 # -----------------------------------------
 
 COPY ./ /kb/module
@@ -15,10 +20,6 @@ RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
 
 WORKDIR /kb/module
-
-RUN pip install --upgrade pip && \
-	pip install -r requirements.txt
-
 RUN make all
 
 ENTRYPOINT [ "./scripts/entrypoint.sh" ]

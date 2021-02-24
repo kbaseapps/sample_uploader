@@ -105,4 +105,27 @@ module sample_uploader {
 
     funcdef export_samples(ExportParams params) returns (ExportOutput output) authentication required;
 
+    /*                                                                                              
+        Create links between samples and reads objects
+    */   
+
+    typedef structure {
+        string sample_name;
+        string reads_ref;
+    } ReadsLink;
+
+    typedef structure {
+        string workspace_name;
+        string workspace_id;
+        string sample_set_ref;
+        list<ReadsLink> links;
+    } LinkReadsParams;
+ 
+    typedef structure {                                                                             
+        string report_name;                                                                         
+        string report_ref;                                                                          
+    } ReportResults;                                                                                
+                                                                                                   
+    funcdef link_reads(LinkReadsParams params) returns (ReportResults output) authentication required;
+
 };

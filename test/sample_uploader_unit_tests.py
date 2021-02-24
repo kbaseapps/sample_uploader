@@ -2,14 +2,17 @@
 import os
 import time
 import unittest
+from unittest.mock import create_autospec
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
 from installed_clients.WorkspaceClient import Workspace
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
+from sample_uploader.utils.sample_utils import SampleSet
 
 
 class sample_uploader_unit_tests(unittest.TestCase):
@@ -77,4 +80,40 @@ class sample_uploader_unit_tests(unittest.TestCase):
         })
         ret = get_workspace_user_perms(self.wsURL, self.wsID, self.token, self.user_id, acls)
         self.assertTrue(ret['public_read'] == 1)
+
+    
+    def test_SampleSet_class(self):
+        dfu = create_autospec(DataFileUtil, spec_set=True, instance=True)
+        ret = {
+            'data': [
+                {
+                    'data': {
+                        'description': 'mock',
+                        'samples': [
+                            {
+                                'id': 'id0',
+                                'name': 'name0',
+                                'version': 'version0',
+                            }, {
+                                'id': 'id1',
+                                'name': 'name1',
+                                'version': 'version1',
+                            }, {
+                                'id': 'id2',
+                                'name': 'name2',
+                                'version': 'version2',
+                            },
+                        ],
+                    },
+                    'info': [
+                        -1,
+                        'ss_name',
+                    ]
+                }
+            ]
+            
+        }
+        dfu.get_objects = lambda p: ret
+        sample_set = SampleSet(dfu, '-1/-2/-3')
+        assert sample_set.get_sample_info('name1') == ('name1', 'version1', 'id1')
 
