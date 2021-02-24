@@ -354,6 +354,10 @@ class Application(object):
                              name='sample_uploader.export_samples',
                              types=[dict])
         self.method_authentication['sample_uploader.export_samples'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.link_reads,
+                             name='sample_uploader.link_reads',
+                             types=[dict])
+        self.method_authentication['sample_uploader.link_reads'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])
