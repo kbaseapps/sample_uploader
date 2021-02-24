@@ -119,13 +119,13 @@ module sample_uploader {
         string workspace_id;
         string sample_set_ref;
         list<ReadsLink> links;
-    } LinkSamplesParams;
+    } LinkReadsParams;
  
     typedef structure {                                                                             
         string report_name;                                                                         
         string report_ref;                                                                          
     } ReportResults;                                                                                
                                                                                                    
-    funcdef link_reads(LinkSamplesParams params) returns (ReportResults output) authentication required;
+    funcdef link_reads(LinkReadsParams params) returns (ReportResults output) authentication required;
 
 };

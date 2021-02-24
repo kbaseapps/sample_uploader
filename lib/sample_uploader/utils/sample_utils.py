@@ -348,7 +348,7 @@ class SampleSet:
         for i, d in enumerate(self.obj['samples']):
             if d['name'] == sample_name:
                 return i
-        raise Exception(name)
+        raise Exception(sample_name)
     
     def get_sample_info(self, sample_name):
         ind = self._get_index(sample_name)
