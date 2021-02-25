@@ -331,3 +331,30 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
         return header_str.strip() + '\n', row_str.strip() + '\n'
     else:
         return None, None
+
+
+class SampleSet:
+    def __init__(self, dfu, upa):
+        self.upa = upa
+
+        obj = dfu.get_objects({
+            'object_refs': [self.upa]
+        })
+
+        self.name = obj['data'][0]['info'][1]
+        self.obj = obj['data'][0]['data']
+
+    def _get_index(self, sample_name):
+        for i, d in enumerate(self.obj['samples']):
+            if d['name'] == sample_name:
+                return i
+        raise Exception(sample_name)
+    
+    def get_sample_info(self, sample_name):
+        ind = self._get_index(sample_name)
+
+        node_id = self.obj['samples'][ind]['name']
+        ver = self.obj['samples'][ind]['version']
+        sample_id = self.obj['samples'][ind]['id']
+
+        return node_id, ver, sample_id   

@@ -8,6 +8,7 @@ import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.SampleServiceClient import SampleService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
@@ -16,7 +17,8 @@ from sample_uploader.utils.sample_utils import (
     update_acls,
     get_sample_service_url,
     get_sample,
-    format_sample_as_row
+    format_sample_as_row,
+    SampleSet
 )
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 import pandas as pd
@@ -38,9 +40,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.10"
-    GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "3a8a3855e1b66612ef538c3375b1d92bc0e785f2"
+    VERSION = "0.0.12"
+    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
+    GIT_COMMIT_HASH = "5134b679279c84128b0ca5b684fa75dacf7dba59"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -71,7 +73,8 @@ class sample_uploader:
            parameter "header_row_index" of Long, parameter "id_field" of
            String, parameter "output_format" of String, parameter
            "taxonomy_source" of String, parameter "num_otus" of Long,
-           parameter "incl_seq" of Long, parameter "otu_prefix" of String
+           parameter "incl_seq" of Long, parameter "otu_prefix" of String,
+           parameter "share_within_workspace" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -292,9 +295,11 @@ class sample_uploader:
     def update_sample_set_acls(self, ctx, params):
         """
         :param params: instance of type "update_sample_set_acls_params" ->
-           structure: parameter "sample_set_ref" of String, parameter
-           "new_users" of list of String, parameter "is_reader" of Long,
-           parameter "is_writer" of Long, parameter "is_admin" of Long
+           structure: parameter "workspace_name" of String, parameter
+           "workspace_id" of Long, parameter "sample_set_ref" of String,
+           parameter "new_users" of list of String, parameter "is_reader" of
+           Long, parameter "is_writer" of Long, parameter "is_admin" of Long,
+           parameter "share_within_workspace" of Long
         :returns: instance of type "update_sample_set_acls_output" ->
            structure: parameter "status" of String
         """
@@ -381,6 +386,51 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method export_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def link_reads(self, ctx, params):
+        """
+        Create links between samples and reads objects
+        :param params: instance of mapping from String to unspecified object
+        :returns: instance of type "ReportResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN link_reads
+        ss = SampleService(self.sw_url, token=ctx['token'], service_ver='beta')
+        sample_set_ref = params['sample_set_ref']
+        sample_set = SampleSet(self.dfu, sample_set_ref)
+        links = [(d['sample_name'], d['reads_ref']) for d in params['links']]
+        
+        for sample_name, reads_ref in links:
+            node_id, version, sample_id = sample_set.get_sample_info(sample_name)
+            p = dict(
+                upa=reads_ref,
+                id=sample_id,
+                version=version,
+                node=node_id,
+                update=1,
+            )
+            ret = ss.create_data_link(
+                p
+            )
+
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report({
+            'workspace_name': params['workspace_name'],
+        })
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref'],
+        }
+        #END link_reads
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method link_reads return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]
