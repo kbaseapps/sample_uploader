@@ -400,10 +400,14 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN link_reads
+        logging.info(params)
+
         ss = SampleService(self.sw_url, token=ctx['token'], service_ver='beta')
+        
         sample_set_ref = params['sample_set_ref']
         sample_set = SampleSet(self.dfu, sample_set_ref)
-        links = [(d['sample_name'], d['reads_ref']) for d in params['links']]
+        
+        links = [(d['sample_name'][0], d['reads_ref']) for d in params['links']]
         
         new_data_links = []
         for sample_name, reads_ref in links:

@@ -11,6 +11,7 @@ from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
 from installed_clients.WorkspaceClient import Workspace
+from installed_clients.SampleServiceClient import SampleService
 
 class Test(unittest.TestCase):
 
@@ -50,6 +51,7 @@ class Test(unittest.TestCase):
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
+        cls.ss = SampleService(cls.wiz_url, token=token, service_ver='beta')
 
     @classmethod
     def tearDownClass(cls):
@@ -59,9 +61,9 @@ class Test(unittest.TestCase):
 
     def test_link_reads(self):
         links_in = [
-            {'sample_name': '0408-FW021.46.11.27.12.10', 'reads_ref': rhodo_art_jgi_reads},
-            {'sample_name': '0408-FW021.7.26.12.02', 'reads_ref': rhodobacter_art_q50_SE_reads},
-            {'sample_name': '0408-FW021.46.11.27.12.02', 'reads_ref': Example_Reads_Libraries},
+            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'reads_ref': rhodo_art_jgi_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'reads_ref': rhodobacter_art_q50_SE_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'reads_ref': Example_Reads_Libraries},
         ]
 
         ret = self.serviceImpl.link_reads(
@@ -78,6 +80,7 @@ class Test(unittest.TestCase):
             assert lout['linkid'] and lout['id'] and lout['version']
             assert lout['upa'] == lin['reads_ref']
             assert lout['node'] == lin['sample_name']
+
             
 
 
