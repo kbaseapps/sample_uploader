@@ -36,9 +36,9 @@ parameters :
             Sample
     reads_ref :
         ui-name : |
-            ReadsSet, PairedEndLibrary, or SingleEndLibrary
+            PairedEndLibrary, or SingleEndLibrary
         short-hint : |
-            ReadsSet, PairedEndLibrary, or SingleEndLibrary
+            PairedEndLibrary, or SingleEndLibrary
 
 parameter-groups :
     links:

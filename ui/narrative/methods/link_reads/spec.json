@@ -72,7 +72,6 @@
             "field_type": "text",
             "text_options": {
                 "valid_ws_types": [ 
-                    "KBaseSets.ReadsSet", 
                     "KBaseFile.SingleEndLibrary", 
                     "KBaseFile.PairedEndLibrary" 
                 ]
