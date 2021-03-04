@@ -343,18 +343,12 @@ class SampleSet:
 
         self.name = obj['data'][0]['info'][1]
         self.obj = obj['data'][0]['data']
+        self.name_2_sample = {d['name']: d for d in self.obj['samples']}
 
-    def _get_index(self, sample_name):
-        for i, d in enumerate(self.obj['samples']):
-            if d['name'] == sample_name:
-                return i
-        raise Exception(sample_name)
-    
     def get_sample_info(self, sample_name):
-        ind = self._get_index(sample_name)
-
-        node_id = self.obj['samples'][ind]['name']
-        ver = self.obj['samples'][ind]['version']
-        sample_id = self.obj['samples'][ind]['id']
+        sample = self.name_2_sample[sample_name]
+        node_id = sample['name']
+        ver = sample['version']
+        sample_id = sample['id']
 
         return node_id, ver, sample_id   

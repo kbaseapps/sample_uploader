@@ -15,7 +15,6 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
 from installed_clients.WorkspaceClient import Workspace
 
-
 class sample_uploaderTest(unittest.TestCase):
 
     @classmethod
@@ -599,23 +598,3 @@ class sample_uploaderTest(unittest.TestCase):
                     resp_data[name] = category[0]
         self.assertEqual(resp_data, perms, msg=f"{resp_data} and {perms} are not the same.")
 
-    def test_link_reads(self):
-        ret = self.serviceImpl.link_reads(
-            self.ctx, {
-                'workspace_name': self.wsName,
-                'sample_set_ref': ReadLinkingTestSampleSet,
-                'links': [
-                    {'sample_name': '0408-FW021.46.11.27.12.10', 'reads_ref': rhodo_art_jgi_reads},
-                    {'sample_name': '0408-FW021.7.26.12.02', 'reads_ref': rhodobacter_art_q50_SE_reads},
-                    {'sample_name': '0408-FW021.46.11.27.12.02', 'reads_ref': Example_Reads_Libraries},
-                ]
-            })
-
-# CI
-SampleMetaData_tsv_sample_set = '59862/2/1' # SampleSet
-ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
-Example_Reads_Libraries = '59862/9/1' # ReadsSet
-rhodo_art_jgi_reads = '59862/8/4' # paired
-rhodobacter_art_q10_PE_reads = '59862/7/1' # paired
-rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
-rhodobacter_art_q50_SE_reads = '59862/5/1' # single

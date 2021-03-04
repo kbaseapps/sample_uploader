@@ -48,7 +48,7 @@ module sample_uploader {
 
 
     /*
-    Generate a customized OTU worksheet using a SampleSet 
+    Generate a customized OTU worksheet using a SampleSet
     input to generate the appropriate columns.
     */
 
@@ -105,9 +105,9 @@ module sample_uploader {
 
     funcdef export_samples(ExportParams params) returns (ExportOutput output) authentication required;
 
-    /*                                                                                              
-        Create links between samples and reads objects
-    */   
+    /*
+        Create links between samples and reads objects.
+    */
 
     typedef structure {
         string sample_name;
@@ -120,12 +120,13 @@ module sample_uploader {
         string sample_set_ref;
         list<ReadsLink> links;
     } LinkReadsParams;
- 
-    typedef structure {                                                                             
-        string report_name;                                                                         
-        string report_ref;                                                                          
-    } ReportResults;                                                                                
-                                                                                                   
-    funcdef link_reads(LinkReadsParams params) returns (ReportResults output) authentication required;
+
+    typedef structure {
+        string report_name;
+        string report_ref;
+        list<UnspecifiedObject> links;
+    } LinkReadsOutput;
+
+    funcdef link_reads(LinkReadsParams params) returns (LinkReadsOutput output) authentication required;
 
 };

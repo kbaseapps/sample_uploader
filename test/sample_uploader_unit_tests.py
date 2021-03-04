@@ -115,5 +115,8 @@ class sample_uploader_unit_tests(unittest.TestCase):
         }
         dfu.get_objects = lambda p: ret
         sample_set = SampleSet(dfu, '-1/-2/-3')
+        assert sample_set.get_sample_info('name0') == ('name0', 'version0', 'id0')
         assert sample_set.get_sample_info('name1') == ('name1', 'version1', 'id1')
+        assert sample_set.get_sample_info('name2') == ('name2', 'version2', 'id2')
+        with self.assertRaises(KeyError): sample_set.get_sample_info('blah')
 
