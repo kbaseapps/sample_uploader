@@ -8,6 +8,7 @@ import shutil
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.SampleServiceClient import SampleService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
@@ -16,7 +17,8 @@ from sample_uploader.utils.sample_utils import (
     update_acls,
     get_sample_service_url,
     get_sample,
-    format_sample_as_row
+    format_sample_as_row,
+    SampleSet
 )
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
@@ -39,9 +41,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.11"
-    GIT_URL = "https://github.com/slebras/sample_uploader"
-    GIT_COMMIT_HASH = "4f3d652d6e67602b08900877c124e9b6d33b061a"
+    VERSION = "0.0.12"
+    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
+    GIT_COMMIT_HASH = "5134b679279c84128b0ca5b684fa75dacf7dba59"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -75,6 +77,7 @@ class sample_uploader:
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
            parameter "share_within_workspace" of Long, parameter
            "prevalidate" of Long
+           parameter "share_within_workspace" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -395,6 +398,57 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method export_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def link_reads(self, ctx, params):
+        """
+        Create links between samples and reads objects
+        :param params: instance of mapping from String to unspecified object
+        :returns: instance of type "ReportResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN link_reads
+        logging.info(params)
+
+        ss = SampleService(self.sw_url, token=ctx['token'], service_ver='beta')
+        
+        sample_set_ref = params['sample_set_ref']
+        sample_set = SampleSet(self.dfu, sample_set_ref)
+        
+        links = [(d['sample_name'][0], d['reads_ref']) for d in params['links']]
+        
+        new_data_links = []
+        for sample_name, reads_ref in links:
+            node_id, version, sample_id = sample_set.get_sample_info(sample_name)
+            ret = ss.create_data_link(
+                dict(
+                    upa=reads_ref,
+                    id=sample_id,
+                    version=version,
+                    node=node_id,
+                    update=1,
+                )
+            )
+            new_data_links.append(ret)
+
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report({
+            'workspace_name': params['workspace_name'],
+        })
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref'],
+            'links': new_data_links,
+        }
+        #END link_reads
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method link_reads return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

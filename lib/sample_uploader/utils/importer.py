@@ -292,7 +292,8 @@ def import_samples_from_file(
     acls = {
         "read": [],
         "write": [],
-        "admin": []
+        "admin": [],
+        "public_read": -1  # set to false (<0)
     }
     if params.get('share_within_workspace'):
         # query workspace for user permissions.

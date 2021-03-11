@@ -1,6 +1,15 @@
 # sample_uploader release notes
 =========================================
 
+0.0.13
+------
+* Adding link_samples application to link samples to workspace objects (ex. reads)
+
+0.0.12
+------
+* Adding handling for Public narratives
+* Saving sample in public narrative makes sample publicly readable
+
 0.0.11
 ------
 * Completing spec

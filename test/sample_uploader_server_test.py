@@ -15,7 +15,6 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
 from installed_clients.WorkspaceClient import Workspace
 
-
 class sample_uploaderTest(unittest.TestCase):
 
     @classmethod
@@ -617,3 +616,4 @@ class sample_uploaderTest(unittest.TestCase):
                 for name in resp_json['result'][0][category]:
                     resp_data[name] = category[0]
         self.assertEqual(resp_data, perms, msg=f"{resp_data} and {perms} are not the same.")
+

@@ -1,0 +1,121 @@
+{
+    "ver": "0.0.1",
+    "authors": [
+        "swwang"
+    ],
+    "contact": "",
+    "categories": ["active"],
+    "widgets": {
+        "input": null,
+        "output": "no-display" 
+    },
+    "parameter-groups": [
+        {
+            "id": "links",
+            "parameters": [
+                "sample_name",
+                "reads_ref"
+            ],
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": true,
+            "with_border": true
+        }
+    ],
+    "parameters": [ 
+        {
+            "id": "sample_set_ref",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "" ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": [ "KBaseSets.SampleSet" ]
+            }
+        }, {
+            "id": "sample_name",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "" ],
+            "field_type": "textsubdata",
+            "textsubdata_options": {
+                "multiselection": false,
+                "show_src_obj": false,
+                "allow_custom": false,
+                "subdata_selection": {
+                    "parameter_id": "sample_set_ref",
+                    "path_to_subdata": [
+                        "samples"
+                    ],
+                    "subdata_included": [
+                        "samples/[*]/name",
+                        "samples/[*]/version",
+                        "samples/[*]/id"
+                    ],
+                    "selection_id": "name",
+                    "selection_description": [
+                        "name",
+                        "version",
+                        "id"
+                    ],
+                    "description_template": "ver: {{version}}, id: {{id}}"
+                }
+            }
+        }, {
+            "id": "reads_ref",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "" ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": [ 
+                    "KBaseFile.SingleEndLibrary", 
+                    "KBaseFile.PairedEndLibrary" 
+                ]
+            }
+        }
+    ],
+    "behavior": {
+        "service-mapping": {
+            "url": "",
+            "name": "sample_uploader",
+            "method": "link_reads",
+            "input_mapping": [
+                {
+                    "narrative_system_variable": "workspace",
+                    "target_property": "workspace_name"
+                },{
+                    "narrative_system_variable": "workspace_id",
+                    "target_property": "workspace_id"
+                },{
+                    "input_parameter": "sample_set_ref",
+                    "target_property": "sample_set_ref",
+                    "target_type_transform": "resolved-ref"
+                },{
+                    "input_parameter": "sample_name",
+                    "target_property": "sample_name"
+                },{
+                    "input_parameter": "reads_ref",
+                    "target_property": "reads_ref",
+                    "target_type_transform": "resolved-ref"
+                },{
+                    "input_parameter": "links",
+                    "target_property": "links"
+                }
+            ],
+            "output_mapping": [
+                {
+                    "service_method_output_path": [0,"report_name"],
+                    "target_property": "report_name"
+                },{
+                    "service_method_output_path": [0,"report_ref"],
+                    "target_property": "report_ref"
+                }
+            ]
+        }
+    },
+    "job_id_output_field": "docker"
+}
