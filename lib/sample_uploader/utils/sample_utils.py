@@ -112,7 +112,7 @@ def get_sample_service_url(sw_url):
     payload = {
         "method": "ServiceWizard.get_service_status",
         "id": '',
-        "params": [{"module_name":"SampleService", "version":"dev"}],  # TODO: change to beta/release
+        "params": [{"module_name":"SampleService", "version": "dev"}],  # TODO: change to beta/release
         "version": "1.1"
     }
 
@@ -234,6 +234,7 @@ def compare_samples(s1, s2):
         s1_nt = [remove_field(n, 'source_meta') for n in s1['node_tree']]
         s2_nt = [remove_field(n, 'source_meta') for n in s2['node_tree']]
 
+        # TODO: worth scrutiny
         return s1['name'] == s2['name'] and s1_nt == s2_nt
 
 def get_sample(sample_info, sample_url, token):

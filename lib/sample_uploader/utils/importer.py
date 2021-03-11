@@ -22,7 +22,7 @@ from sample_uploader.utils.misc_utils import get_workspace_user_perms
 
 # These columns should all be in lower case.
 REGULATED_COLS = ['name', 'id', 'parent_id']
-NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a']
+NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a', '-']
 
 
 VALIDATORS = SAMP_SERV_CONFIG['validators']
@@ -113,94 +113,93 @@ def _produce_samples(
         return prev_sample
 
     for idx, row in df.iterrows():
-        if row.get('id'):
-            # first we check if a 'kbase_sample_id' column is specified
-            kbase_sample_id = None
-            if row.get('kbase_sample_id'):
-                kbase_sample_id = str(row.pop('kbase_sample_id'))
-                if 'kbase_sample_id' in cols:
-                    cols.pop(cols.index('kbase_sample_id'))
-            # use name field as name, if there is non-reuse id.
-            if row.get('name'):
-                name = str(row['name'])
-            else:
-                name = str(row['id'])
-            if row.get('parent_id'):
-                parent = str(row.pop('parent_id'))
-                if 'parent_id' in cols:
-                    cols.pop(cols.index('parent_id'))
-            if 'id' in cols:
-                cols.pop(cols.index('id'))
-            if 'name' in cols:
-                cols.pop(cols.index('name'))
-
-            controlled_metadata = generate_controlled_metadata(
-                row,
-                column_groups
-            )
-            user_metadata = generate_user_metadata(
-                row,
-                cols,
-                column_groups,
-                column_unit_regex
-            )
-            source_meta = generate_source_meta(
-                row,
-                controlled_metadata.keys(),
-                columns_to_input_names
-            )
-
-            sample = {
-                'node_tree': [{
-                    "id": str(row['id']),
-                    "parent": None,
-                    "type": "BioReplicate",
-                    "meta_controlled": controlled_metadata,
-                    "meta_user": user_metadata,
-                    'source_meta': source_meta
-                }],
-                'name': name,
-            }
-            # get existing sample (if exists)
-            prev_sample = _get_existing_sample(name, kbase_sample_id)
-
-            if compare_samples(sample, prev_sample):
-                if sample.get('name') not in existing_sample_names:
-                    existing_sample_names[sample['name']] = prev_sample
-                continue
-            elif name in existing_sample_names:
-                existing_sample_names.pop(name)
-
-            # "save_sample_for_later"
-            samples.append({
-                'sample': sample,
-                'prev_sample': prev_sample,
-                'name': name,
-                'write': row.get('write'),
-                'read': row.get('read'),
-                'admin': row.get('admin')
-            })
-
-            # sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
-
-            # samples.append({
-            #     "id": sample_id,
-            #     "name": name,
-            #     "version": sample_ver
-            # })
-            # # check input for any reason to update access control list
-            # # should have a "write", "read", "admin" entry
-            # writer = row.get('write')
-            # reader = row.get('read')
-            # admin  = row.get('admin')
-            # if writer or reader or admin:
-            #     acls["read"] +=  [r for r in reader]
-            #     acls["write"] += [w for w in writer]
-            #     acls["admin"] += [a for a in admin]
-            # if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-            #     resp = update_acls(sample_url, sample_id, acls, token)
-        else:
+        if not row.get('id'):
             raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
+        # first we check if a 'kbase_sample_id' column is specified
+        kbase_sample_id = None
+        if row.get('kbase_sample_id'):
+            kbase_sample_id = str(row.pop('kbase_sample_id'))
+            if 'kbase_sample_id' in cols:
+                cols.pop(cols.index('kbase_sample_id'))
+        # use name field as name, if there is non-reuse id.
+        if row.get('name'):
+            name = str(row['name'])
+        else:
+            name = str(row['id'])
+        if row.get('parent_id'):
+            parent = str(row.pop('parent_id'))
+            if 'parent_id' in cols:
+                cols.pop(cols.index('parent_id'))
+        if 'id' in cols:
+            cols.pop(cols.index('id'))
+        if 'name' in cols:
+            cols.pop(cols.index('name'))
+
+        controlled_metadata = generate_controlled_metadata(
+            row,
+            column_groups
+        )
+        user_metadata = generate_user_metadata(
+            row,
+            cols,
+            column_groups,
+            column_unit_regex
+        )
+        source_meta = generate_source_meta(
+            row,
+            controlled_metadata.keys(),
+            columns_to_input_names
+        )
+
+        sample = {
+            'node_tree': [{
+                "id": str(row['id']),
+                "parent": None,
+                "type": "BioReplicate",
+                "meta_controlled": controlled_metadata,
+                "meta_user": user_metadata,
+                'source_meta': source_meta
+            }],
+            'name': name,
+        }
+        # get existing sample (if exists)
+        prev_sample = _get_existing_sample(name, kbase_sample_id)
+
+        if compare_samples(sample, prev_sample):
+            if sample.get('name') not in existing_sample_names:
+                existing_sample_names[sample['name']] = prev_sample
+            continue
+        elif name in existing_sample_names:
+            existing_sample_names.pop(name)
+
+        # "save_sample_for_later"
+        samples.append({
+            'sample': sample,
+            'prev_sample': prev_sample,
+            'name': name,
+            'write': row.get('write'),
+            'read': row.get('read'),
+            'admin': row.get('admin')
+        })
+
+        # sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
+
+        # samples.append({
+        #     "id": sample_id,
+        #     "name": name,
+        #     "version": sample_ver
+        # })
+        # # check input for any reason to update access control list
+        # # should have a "write", "read", "admin" entry
+        # writer = row.get('write')
+        # reader = row.get('read')
+        # admin  = row.get('admin')
+        # if writer or reader or admin:
+        #     acls["read"] +=  [r for r in reader]
+        #     acls["write"] += [w for w in writer]
+        #     acls["admin"] += [a for a in admin]
+        # if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+        #     resp = update_acls(sample_url, sample_id, acls, token)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names]
 
@@ -255,6 +254,7 @@ def import_samples_from_file(
     ws_name = params.get('workspace_name')
     df = load_file(sample_file, header_row_index, date_columns)
     # change columns to upload format
+    # TODO: make sure separate columns are not being renamed to the same thing
     columns_to_input_names = {upload_key_format(c): c for c in df.columns}
     df = df.rename(columns={c: upload_key_format(c) for c in df.columns})
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
@@ -275,6 +275,7 @@ def import_samples_from_file(
 
     if column_mapping:
         df = df.rename(columns=column_mapping)
+    # redundant, even harmful if things get out of sync
     verify_columns(df)
     for key in column_mapping:
         if key in columns_to_input_names:
@@ -283,10 +284,10 @@ def import_samples_from_file(
 
     if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
         if 'material' in df.columns:
-            df.rename({"material": params['file_format'].upper() + ":material"}, inplace=True)
+            df.rename(columns={"material": params['file_format'].upper() + ":material"}, inplace=True)
     if params['file_format'].upper() == "KBASE":
         if 'material' in df.columns:
-            df.rename({"material": "SESAR:material"}, inplace=True)
+            df.rename(columns={"material": "SESAR:material"}, inplace=True)
 
     acls = {
         "read": [],

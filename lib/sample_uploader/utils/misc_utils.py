@@ -29,6 +29,7 @@ def get_workspace_user_perms(workspace_url, workspace_id, token, username, acls)
 
 def error_ui(errors, scratch):
     """
+    TODO: make this better/change it all
     errors: list of errors
     scratch: kbase scratch space
     """
@@ -36,7 +37,7 @@ def error_ui(errors, scratch):
     html_path = os.path.join(scratch, 'index.html')
     results = []
     for sample_name in errors:
-        for error in errorrs[sample_name]:
+        for error in errors[sample_name]:
             results.append({
                 'sample_name': sample_name,
                 'error': error

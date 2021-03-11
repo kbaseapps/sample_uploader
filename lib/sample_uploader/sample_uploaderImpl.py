@@ -89,7 +89,8 @@ class sample_uploader:
         print(f"Beginning sample import with following parameters:")
         print(f"params -- {params}")
         sample_set = {"samples": []}
-        # We subtract by 1 for zero indexing.
+        # Check if we have an existing Sample Set as input
+        # if so, download
         if params.get('sample_set_ref'):
             ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
             sample_set = ret['data']
