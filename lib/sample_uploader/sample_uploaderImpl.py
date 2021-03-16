@@ -18,7 +18,6 @@ from sample_uploader.utils.sample_utils import (
     get_sample_service_url,
     get_sample,
     format_sample_as_row,
-    SampleSet
 )
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 import pandas as pd
@@ -402,22 +401,28 @@ class sample_uploader:
         #BEGIN link_reads
         logging.info(params)
 
-        ss = SampleService(self.sw_url, token=ctx['token'], service_ver='beta')
+        ss = SampleService(self.sw_url, service_ver='dev')
         
         sample_set_ref = params['sample_set_ref']
-        sample_set = SampleSet(self.dfu, sample_set_ref)
-        
+        sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']
+        sample_name_2_info = {d['name']: d for d in sample_set_obj['samples']}
+
         links = [(d['sample_name'][0], d['reads_ref']) for d in params['links']]
         
         new_data_links = []
         for sample_name, reads_ref in links:
-            node_id, version, sample_id = sample_set.get_sample_info(sample_name)
+            sample_id = sample_name_2_info[sample_name]['id']
+            version = sample_name_2_info[sample_name]['version']
+            sample = ss.get_sample({
+                'id': sample_id,
+                'version': version,
+            })
             ret = ss.create_data_link(
                 dict(
                     upa=reads_ref,
                     id=sample_id,
                     version=version,
-                    node=node_id,
+                    node=sample['node_tree'][0]['id'],
                     update=1,
                 )
             )
