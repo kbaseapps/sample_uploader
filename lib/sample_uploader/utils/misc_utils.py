@@ -1,3 +1,5 @@
+import os
+
 from installed_clients.WorkspaceClient import Workspace
 from jinja2 import Environment, PackageLoader, select_autoescape
 

@@ -166,12 +166,13 @@ class sample_uploader:
                              "File of format {params.get('file_format')} not supported.")
 
         file_links = []
+        sample_set_ref = None
+        html_link = None
 
         if errors:
             # create UI to display the errors clearly
             html_link = _error_ui(errors, self.scratch)
         else:
-            html_link = None
             # only save object if there are no errors
             obj_info = self.dfu.save_objects({
                 'id': save_ws_id,
@@ -222,14 +223,17 @@ class sample_uploader:
         # create report
         report_client = KBaseReport(self.callback_url)
         report_data = {
-            'message': f"SampleSet object named \"{set_name}\" imported.",
-            'objects_created': [{'ref': sample_set_ref}],
-            'file_links': file_links,
             'report_object_name': "SampleSet_import_report_" + str(uuid.uuid4()),
             'workspace_name': params['workspace_name']
         }
+        if file_links:
+            report_data['file_links'] = file_links
+        if sample_set_ref:
+            report_data['message'] = f"SampleSet object named \"{set_name}\" imported."
+            report_data['objects_created'] = [{'ref': sample_set_ref}]
+
         if html_link:
-            report_data['html_links'] = [html_link]
+            report_data['direct_html'] =  html_link
         report_info = report_client.create_extended_report(report_data)
         output = {
             'report_ref': report_info['ref'],

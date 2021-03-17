@@ -9,8 +9,7 @@ from sample_uploader.utils.mappings import shared_fields, SAMP_SERV_CONFIG
 from sample_uploader.utils.parsing_utils import (
     parse_grouped_data,
     check_value_in_list,
-    handle_groups_metadata,
-    upload_key_format
+    handle_groups_metadata
 )
 
 
@@ -171,9 +170,9 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                 val = float(row[col])
             except (ValueError, TypeError):
                 val = row[col]
-            metadata[upload_key_format(col)] = {"value": val}
+            metadata[col] = {"value": val}
             if units:
-                metadata[upload_key_format(col)]["units"] = units
+                metadata[col]["units"] = units
 
     return metadata
 
@@ -186,11 +185,10 @@ def generate_controlled_metadata(row, groups):
     metadata = {}
     # use the shared fields
     for col, val in row.iteritems():
-        col = upload_key_format(col)
         ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
         if ss_validator:
             if not pd.isnull(row[col]):
-                idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
+                idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
                 try:
                     val = float(row[col])
                 except (ValueError, TypeError):
@@ -315,7 +313,6 @@ def validate_samples(samples, sample_url, token):
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     resp_json = _handle_response(resp)
     errors = resp_json['result'][0]['errors']
-    sample_ver = resp_json['result'][0]['version']
     return errors
 
 

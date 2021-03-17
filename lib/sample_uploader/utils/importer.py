@@ -181,25 +181,6 @@ def _produce_samples(
             'read': row.get('read'),
             'admin': row.get('admin')
         })
-
-        # sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
-
-        # samples.append({
-        #     "id": sample_id,
-        #     "name": name,
-        #     "version": sample_ver
-        # })
-        # # check input for any reason to update access control list
-        # # should have a "write", "read", "admin" entry
-        # writer = row.get('write')
-        # reader = row.get('read')
-        # admin  = row.get('admin')
-        # if writer or reader or admin:
-        #     acls["read"] +=  [r for r in reader]
-        #     acls["write"] += [w for w in writer]
-        #     acls["admin"] += [a for a in admin]
-        # if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-        #     resp = update_acls(sample_url, sample_id, acls, token)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names]
 
@@ -271,12 +252,12 @@ def import_samples_from_file(
         else:
             raise ValueError(f"'{params['id_field']}' is not a column field in the input file.")
     else:
-        print(f"{params.get('id_field')} evaluates as false. No id_field argument present in params")
+        print(f"No id_field argument present in params, proceeding with defaults.")
 
     if column_mapping:
         df = df.rename(columns=column_mapping)
     # redundant, even harmful if things get out of sync
-    verify_columns(df)
+    # verify_columns(df)
     for key in column_mapping:
         if key in columns_to_input_names:
             val = columns_to_input_names.pop(key)
@@ -285,9 +266,13 @@ def import_samples_from_file(
     if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
         if 'material' in df.columns:
             df.rename(columns={"material": params['file_format'].upper() + ":material"}, inplace=True)
+            val = columns_to_input_names.pop("material")
+            columns_to_input_names[params['file_format'].upper() + ":material"] = val
     if params['file_format'].upper() == "KBASE":
         if 'material' in df.columns:
             df.rename(columns={"material": "SESAR:material"}, inplace=True)
+            val = columns_to_input_names.pop("material")
+            columns_to_input_names["SESAR:material"] = val
 
     acls = {
         "read": [],
@@ -314,7 +299,7 @@ def import_samples_from_file(
     )
     errors = {}
     if params.get('prevalidate'):
-        errors = validate_samples(samples, sample_url, token)
+        errors = validate_samples([s['sample'] for s in samples], sample_url, token)
     if errors:
         saved_samples = []
     else:
