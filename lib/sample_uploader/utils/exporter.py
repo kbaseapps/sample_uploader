@@ -31,13 +31,18 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
         output['Sample name'].append(sample['name'])
         used_headers = set(['kbase_sample_id', 'name'])
         for node in sample['node_tree']:
+            # get 'source_meta' information
+            source_meta = node.get('source_meta', [])
+            source_meta_key = {m['key']: m['skey'] for m in soure_meta}
 
             for key_metadata in node['meta_controlled']:
-                if key_metadata not in used_headers:
+                # get original input key
+                upload_key = source_meta_key.get(key_metadata, key_metadata)
+                if upload_key not in used_headers:
                     for key, val in node['meta_controlled'][key_metadata].items():
                         if key == 'value':
-                            output = add_to_output(output, key_metadata, val)
-                            used_headers.add(key_metadata)
+                            output = add_to_output(output, upload_key, val)
+                            used_headers.add(upload_key)
                         if key == 'units':
                             idx = check_value_in_list(key_metadata, [upload_key_format(g['value']) for g in groups], return_idx=True)
                             if idx is not None and not groups[idx]['units'].startswith('str:'):
@@ -45,11 +50,13 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
                                 used_headers.add(groups[idx]['units'])
 
             for key_metadata in node['meta_user']:
-                if key_metadata not in used_headers:
+                # get original input key
+                upload_key = source_meta_key.get(key_metadata, key_metadata)
+                if upload_key not in used_headers:
                     for key, val in node['meta_user'][key_metadata].items():
                         if key == 'value':
-                            output = add_to_output(output, key_metadata, val)
-                            used_headers.add(key_metadata)
+                            output = add_to_output(output, upload_key, val)
+                            used_headers.add(upload_key)
                         if key == 'units':
                             idx = check_value_in_list(key_metadata, [upload_key_format(g['value']) for g in groups], return_idx=True)
                             if idx is not None and not groups[idx]['units'].startswith('str:'):

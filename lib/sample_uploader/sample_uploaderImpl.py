@@ -239,7 +239,8 @@ class sample_uploader:
             'report_ref': report_info['ref'],
             'report_name': report_info['name'],
             'sample_set': sample_set,
-            'sample_set_ref': sample_set_ref
+            'sample_set_ref': sample_set_ref,
+            'errors': errors
         }
         #END import_samples
 

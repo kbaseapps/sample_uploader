@@ -125,11 +125,77 @@ class sample_uploaderTest(unittest.TestCase):
             'prevalidate': 1,
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
-        print('-'*80)
-        print('-'*80)
-        print('ret error', ret)
-        print('-'*80)
-        print('-'*80)
+        # check errors
+        self.assertTrue(ret.get('errors'))
+        with open(os.path.join(self.curr_dir, 'data', 'error_match.json')) as f:
+            expected_errors = json.load(f)
+        for sample_name, errors in ret['errors'].items():
+            self.assertEqual(expected_errors.get(sample_name), errors)
+
+    # @unittest.skip('x')
+    def test_export(self):
+        '''Make sure the samples are the same after download, then reupload'''
+        params = {
+            "input_ref": self.sample_set_ref,
+            "file_format": "SESAR"
+        }
+        ret = self.serviceImpl.export_samples(self.ctx, params)[0]
+        shock_id = ret['shock_id']
+        result_dir = ret['result_dir']
+        result_file_name = '_'.join(self.sample_set_name.split()) + ".csv"
+        self.assertTrue(result_file_name in os.listdir(result_dir))
+        result_file_path = os.path.join(result_dir, result_file_name)
+        # now run with output as input to import samples.
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': result_file_path,
+            'file_format': "SESAR",
+            'header_row_index': 2,
+            'set_name': 'reupload_test',
+            'description': "this is a test sample set.",
+            "incl_input_in_output": 1
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        self._compare_sample_sets(self.sample_set, ret['sample_set'])
+
+    def test_change_acls(self):
+        ''''''
+        self.maxDiff = None
+        params = {
+            'workspace_id': self.wsID,
+            'new_users': [
+                "eapearson"
+            ],
+            'is_admin': 1,
+            'is_reader': 0,
+            'is_writer': 0,
+            'sample_set_ref': self.sample_set_ref,
+        }
+        ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
+        self.assertEqual(ret['status'], 200)
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": self.a_sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(
+            url=self.sample_url,
+            data=json.dumps(payload),
+            headers={"Authorization": self.ctx['token']}
+        )
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertEqual(resp_data, {'slebras': 'a', 'eapearson': 'a'})
 
     def _compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
