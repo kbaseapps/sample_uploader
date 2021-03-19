@@ -152,6 +152,7 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': result_file_path,
             'file_format': "SESAR",
             'header_row_index': 2,
+            'id_field': 'test id field',
             'set_name': 'reupload_test',
             'description': "this is a test sample set.",
             "incl_input_in_output": 1
@@ -159,6 +160,7 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         self._compare_sample_sets(self.sample_set, ret['sample_set'])
 
+    # @unittest.skip('x')
     def test_change_acls(self):
         ''''''
         self.maxDiff = None
