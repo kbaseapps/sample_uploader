@@ -210,7 +210,7 @@ def _save_samples(samples, acls, sample_url, token):
             acls["write"] += [w for w in writer]
             acls["admin"] += [a for a in admin]
         if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-            resp = update_acls(sample_url, sample_id, acls, token)
+            _ = update_acls(sample_url, sample_id, acls, token)
     return saved_samples
 
 
