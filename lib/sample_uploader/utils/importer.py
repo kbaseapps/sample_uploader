@@ -25,26 +25,6 @@ REGULATED_COLS = ['name', 'id', 'parent_id']
 NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a', '-']
 
 
-VALIDATORS = SAMP_SERV_CONFIG['validators']
-
-def verify_columns(df):
-    """"""
-    cols = df.columns
-    for col in cols:
-        if VALIDATORS.get(col):
-            args = VALIDATORS.get(col)
-            for val in args.get('validators'):
-                func_str = val.get('callable_builder', '')
-                params = val.get('parameters')
-                func = verifiers.get(func_str)
-                # only verify if local function exists
-                if func:
-                    try:
-                        func(df[col], params)
-                    except Exception as err:
-                        raise ValueError(f"error parsing column \"{col}\" ")
-
-
 def validate_params(params):
     if not params.get('sample_file'):
         raise ValueError(f"sample_file argument required in params: {params}")
