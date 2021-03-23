@@ -12,7 +12,6 @@ from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
 
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
-from sample_uploader.utils.sample_utils import SampleSet
 
 
 class sample_uploader_unit_tests(unittest.TestCase):
