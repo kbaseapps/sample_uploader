@@ -138,6 +138,7 @@ def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
         })
     return source_meta
 
+
 def generate_user_metadata(row, cols, groups, unit_rules):
     """
     row        - row from input pandas.DataFrame object to convert to metadata
@@ -236,6 +237,7 @@ def compare_samples(s1, s2):
 
         # TODO: worth scrutiny
         return s1['name'] == s2['name'] and s1_nt == s2_nt
+
 
 def get_sample(sample_info, sample_url, token):
     """ Get sample from SampleService
