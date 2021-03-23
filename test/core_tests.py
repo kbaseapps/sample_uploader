@@ -53,12 +53,12 @@ class sample_uploaderTest(unittest.TestCase):
         cls.wsName = "test_sample_uploader_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
-        sample_file = os.path.join(cls.curr_dir, "data", "fake_samples.tsv")
+        cls.sesar_sample_file = os.path.join(cls.curr_dir, "data", "fake_samples.tsv")
         cls.sample_set_name = "test_sample_set_1"
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
-            'sample_file': sample_file,
+            'sample_file':  cls.sesar_sample_file,
             'file_format': "SESAR",
             'header_row_index': 2,
             'set_name': cls.sample_set_name,
@@ -106,9 +106,58 @@ class sample_uploaderTest(unittest.TestCase):
             'output_format': "csv",
             'prevalidate': 1,
         }
-        sample_set = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        sample_set_ref = ret ['sample_set_ref']
         compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA.json')
         self._verify_samples(sample_set, compare_path)
+        # next we test if the update functionality is working
+        # make copy of file in scratch
+        os.mkdir(os.path.join(self.scratch, 'temporary_data'))
+        enigma_copy = os.path.join(self.scratch, 'temporary_data', os.path.basename(sample_file))
+        # now alter the file in a couple places
+        alter = {
+            0: ("Jamboree", 'user data'),
+            2: ("latitude", 30)
+        }
+        df = pd.read_excel(sample_file, header=1)
+        for idx in alter:
+            df.at[idx, alter[idx][0]] = alter[idx][1]
+        # now write dataframe to new file location
+        df.to_excel(enigma_copy, index=False)
+        params = {
+            'sample_set_ref': sample_set_ref,
+            'sample_file': enigma_copy,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'file_format': "ENIGMA",
+            'header_row_index': 1,
+            'description': "this is a copy of a test sample set.",
+            'incl_input_in_output': 1,
+            'share_within_workspace': 1,
+        }
+        sample_set_2 = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+        ss2 = {s['name']: s for s in sample_set_2['samples']}
+        # check that s1 and s3 were updated and s2 was not.
+        for it, samp1 in enumerate(sample_set['samples']):
+            # get sample by name
+            name = samp1['name']
+            sample1 = get_sample(samp1, self.sample_url, self.ctx['token'])
+            sample2 = get_sample(ss2.get(samp1['name']), self.sample_url, self.ctx['token'])
+            if name == 'Sample 2':
+                self._compare_sample(sample1, sample2)
+            else:
+                try:
+                    assert sample2['version'] > sample1['version']
+                    assert sample2['id'] == sample1['id']
+                    node2 = sample2['node_tree'][0]
+                    node1 = sample1['node_tree'][0]
+                    if name == 'Sample 1':
+                        assert node2['meta_user']['jamboree']['value'] == 'user data'
+                    elif name == 'Sample 3':
+                        assert node2['meta_controlled']['latitude']['value'] == 30
+                except:
+                    raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
     # @unittest.skip('x')
     def test_error_file(self):

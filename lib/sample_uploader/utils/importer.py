@@ -171,7 +171,6 @@ def _produce_samples(
             continue
         elif name in existing_sample_names:
             existing_sample_names.pop(name)
-
         # "save_sample_for_later"
         samples.append({
             'sample': sample,

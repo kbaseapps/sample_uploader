@@ -218,6 +218,8 @@ def _find_missing_fields(mtd, ss_validator):
 
 def compare_samples(s1, s2):
     """
+    return True if samples are the same,
+        does not compare source_meta field
     s1, s2 - samples with the following fields:
         'node_tree', 'name'
     """
