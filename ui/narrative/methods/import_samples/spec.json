@@ -240,7 +240,8 @@
                     "target_property": "description"
                 },{
                     "input_parameter": "sample_set_ref",
-                    "target_property": "sample_set_ref"
+                    "target_property": "sample_set_ref",
+                    "target_type_transform": "ref"
                 },{
                     "input_parameter": "output_format",
                     "target_property": "output_format"
