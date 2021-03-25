@@ -246,7 +246,7 @@ class sample_uploaderTest(unittest.TestCase):
             else:
                 for name in resp_json['result'][0][category]:
                     resp_data[name] = category[0]
-        self.assertEqual(resp_data, {'slebras': 'a', 'eapearson': 'a'})
+        self.assertTrue('eapearson' in resp_data and resp_data['eapearson'] == 'a')
 
     def _compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")
