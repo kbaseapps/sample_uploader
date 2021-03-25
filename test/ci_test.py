@@ -81,14 +81,18 @@ class Test(unittest.TestCase):
             assert lout['upa'] == lin['reads_ref']
             assert lout['node'] == lin['sample_name'][0]
 
-            
 
+# Appdev
+ReadLinkingTestSampleSet = '44442/4/1'
+rhodo_art_jgi_reads = '44442/8/1'
+rhodobacter_art_q20_int_PE_reads = '44442/6/1'
+rhodobacter_art_q50_SE_reads = '44442/7/2'
 
 # CI (not publicly available TODO)
-SampleMetaData_tsv_sample_set = '59862/2/1' # SampleSet
-ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
-Example_Reads_Libraries = '59862/9/1' # ReadsSet
-rhodo_art_jgi_reads = '59862/8/4' # paired
-rhodobacter_art_q10_PE_reads = '59862/7/1' # paired
-rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
-rhodobacter_art_q50_SE_reads = '59862/5/1' # single
+# SampleMetaData_tsv_sample_set = '59862/2/1' # SampleSet
+# ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
+# Example_Reads_Libraries = '59862/9/1' # ReadsSet
+# rhodo_art_jgi_reads = '59862/8/4' # paired
+# rhodobacter_art_q10_PE_reads = '59862/7/1' # paired
+# rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
+# rhodobacter_art_q50_SE_reads = '59862/5/1' # single
