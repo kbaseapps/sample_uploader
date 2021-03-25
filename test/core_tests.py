@@ -76,7 +76,7 @@ class sample_uploaderTest(unittest.TestCase):
         cls.wsClient.set_permissions({
             "id": cls.wsID,
             "new_permission": "w",
-            "users": ["jrbolton"]
+            "users": ["psdehal"]
         })
 
     @classmethod

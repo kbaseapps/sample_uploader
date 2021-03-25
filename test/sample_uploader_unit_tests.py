@@ -69,10 +69,10 @@ class sample_uploader_unit_tests(unittest.TestCase):
         self.wsClient.set_permissions({
             "id": self.wsID,
             "new_permission": "w",
-            "users": ["jrbolton"]
+            "users": ["psdehal"]
         })
         ret = get_workspace_user_perms(self.wsURL, self.wsID, self.token, self.user_id, acls)
-        self.assertTrue('jrbolton' in ret['write'])
+        self.assertTrue('psdehal' in ret['write'])
         self.wsClient.set_global_permission({
             "id": self.wsID,
             "new_permission": "r",
