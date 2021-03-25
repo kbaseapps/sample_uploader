@@ -13,11 +13,6 @@ def start_test():
     print('\n*** starting test: ' + testname + ' **')
 
 
-def assert_exception_correct(got: Exception, expected: Exception):
-    assert got.args == expected.args
-    assert type(got) == type(expected)
-
-
 def fail_retrieve_sample(igsn, error_msg, error_type, contains=True):
 
     with raises(Exception) as context:
