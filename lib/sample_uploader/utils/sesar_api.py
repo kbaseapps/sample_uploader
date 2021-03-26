@@ -36,7 +36,10 @@ def retrieve_sample(igsn):
 
     url = '{}/{}'.format(_get_igsn_endpoint(), igsn)
 
-    resp = requests.get(url=url, headers=headers)
+    try:
+        resp = requests.get(url=url, headers=headers)
+    except Exception as err:
+        raise RuntimeError(f'Failed to connect to server\n{err}')
 
     if not resp.ok:
         error = None
@@ -51,7 +54,10 @@ def retrieve_sample(igsn):
 
         raise RuntimeError(f'Error from SESAR service:\n{resp.status_code}:{error}')
 
-    resp_json = resp.json()
+    try:
+        resp_json = resp.json()
+    except Exception as err:
+        raise RuntimeError(f'Failed to convert response to JSON\n{err}\n{resp.text}')
 
     sample = resp_json.get('sample')
 

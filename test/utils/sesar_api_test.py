@@ -1,6 +1,7 @@
 
 import inspect
 from pytest import raises
+from mock import patch
 
 from sample_uploader.utils.sesar_api import (
     _get_igsn_endpoint,
@@ -47,6 +48,16 @@ def test_retrieve_sample_fail():
     fail_retrieve_sample(igsn, f'404:{igsn} is not registered in SESAR',
                          RuntimeError)
 
+    with patch("sample_uploader.utils.sesar_api._get_igsn_endpoint",
+               return_value='http://fake_url'):
+        fail_retrieve_sample('IEAWH0001', 'Failed to connect to server',
+                             RuntimeError)
+
+    with patch("sample_uploader.utils.sesar_api._get_igsn_endpoint",
+               return_value='http://www.google.com'):
+        fail_retrieve_sample('', 'Failed to convert response to JSON',
+                             RuntimeError)
+
 
 def test_retrieve_sample():
 
@@ -63,25 +74,28 @@ def test_retrieve_sample():
                                 'cruise_field_prgrm', 'collector', 'collection_start_date',
                                 'collection_date_precision', 'current_archive',
                                 'current_archive_contact']
-    assert set(sample.keys()) == set(expected_sample_metadata)
+    assert set(sample.keys()) >= set(expected_sample_metadata)
 
-    assert sample['igsn'] == igsn
-    assert sample['name'] == 'PB-Low-5'
-    assert sample['sample_type'] == 'Individual Sample'
-    assert sample['publish_date'] == '2019-06-18'
-    assert sample['material'] == 'Soil'
-    assert sample['collection_method'] == 'Coring > Syringe'
-    assert sample['purpose'] == 'Microbial Characterization 1'
-    assert sample['latitude'] == '33.3375'
-    assert sample['longitude'] == '81.71861111'
-    assert sample['navigation_type'] == 'GPS'
-    assert sample['primary_location_type'] == 'Hollow'
-    assert sample['primary_location_name'] == 'Tims Branch watershed'
-    assert sample['location_description'] == 'Savannah River Site'
-    assert sample['locality_description'] == 'Pine Backwater'
-    assert sample['cruise_field_prgrm'] == 'Argonne Wetlands Hydrobiogeochemistry SFA'
-    assert sample['collector'] == 'Pamela Weisenhorn'
-    assert sample['collection_start_date'] == '2019-06-26'
-    assert sample['collection_date_precision'] == 'day'
-    assert sample['current_archive'] == 'Argonne National Lab'
-    assert sample['current_archive_contact'] == 'pweisenhorn@anl.gov'
+    expected_sample = {'igsn': igsn,
+                       'user_code': 'IEAWH',
+                       'name': 'PB-Low-5',
+                       'sample_type': 'Individual Sample',
+                       'publish_date': '2019-06-18',
+                       'material': 'Soil',
+                       'collection_method': 'Coring > Syringe',
+                       'purpose': 'Microbial Characterization 1',
+                       'latitude': '33.3375',
+                       'longitude': '81.71861111',
+                       'elevation_unit': [],
+                       'navigation_type': 'GPS',
+                       'primary_location_type': 'Hollow',
+                       'primary_location_name': 'Tims Branch watershed',
+                       'location_description': 'Savannah River Site',
+                       'locality_description': 'Pine Backwater',
+                       'cruise_field_prgrm': 'Argonne Wetlands Hydrobiogeochemistry SFA',
+                       'collector': 'Pamela Weisenhorn',
+                       'collection_start_date': '2019-06-26',
+                       'collection_date_precision': 'day',
+                       'current_archive': 'Argonne National Lab',
+                       'current_archive_contact': 'pweisenhorn@anl.gov'}
+    assert expected_sample == {key: sample[key] for key in expected_sample.keys()}
