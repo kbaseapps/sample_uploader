@@ -9,8 +9,7 @@ from sample_uploader.utils.mappings import shared_fields, SAMP_SERV_CONFIG
 from sample_uploader.utils.parsing_utils import (
     parse_grouped_data,
     check_value_in_list,
-    handle_groups_metadata,
-    upload_key_format
+    handle_groups_metadata
 )
 
 
@@ -112,7 +111,7 @@ def get_sample_service_url(sw_url):
     payload = {
         "method": "ServiceWizard.get_service_status",
         "id": '',
-        "params": [{"module_name":"SampleService", "version":"dev"}],  # TODO: change to beta/release
+        "params": [{"module_name":"SampleService", "version": "dev"}],  # TODO: change to beta/release
         "version": "1.1"
     }
 
@@ -138,6 +137,7 @@ def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
             }
         })
     return source_meta
+
 
 def generate_user_metadata(row, cols, groups, unit_rules):
     """
@@ -171,9 +171,9 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                 val = float(row[col])
             except (ValueError, TypeError):
                 val = row[col]
-            metadata[upload_key_format(col)] = {"value": val}
+            metadata[col] = {"value": val}
             if units:
-                metadata[upload_key_format(col)]["units"] = units
+                metadata[col]["units"] = units
 
     return metadata
 
@@ -186,11 +186,10 @@ def generate_controlled_metadata(row, groups):
     metadata = {}
     # use the shared fields
     for col, val in row.iteritems():
-        col = upload_key_format(col)
         ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
         if ss_validator:
             if not pd.isnull(row[col]):
-                idx = check_value_in_list(col, [upload_key_format(g['value']) for g in groups], return_idx=True)
+                idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
                 try:
                     val = float(row[col])
                 except (ValueError, TypeError):
@@ -220,6 +219,8 @@ def _find_missing_fields(mtd, ss_validator):
 
 def compare_samples(s1, s2):
     """
+    return True if samples are the same,
+        does not compare source_meta field
     s1, s2 - samples with the following fields:
         'node_tree', 'name'
     """
@@ -234,7 +235,9 @@ def compare_samples(s1, s2):
         s1_nt = [remove_field(n, 'source_meta') for n in s1['node_tree']]
         s2_nt = [remove_field(n, 'source_meta') for n in s2['node_tree']]
 
+        # TODO: worth scrutiny
         return s1['name'] == s2['name'] and s1_nt == s2_nt
+
 
 def get_sample(sample_info, sample_url, token):
     """ Get sample from SampleService
@@ -293,6 +296,28 @@ def save_sample(sample, sample_url, token, previous_version=None):
     sample_id = resp_json['result'][0]['id']
     sample_ver = resp_json['result'][0]['version']
     return sample_id, sample_ver
+
+
+def validate_samples(samples, sample_url, token):
+    """
+    samples    - list of Sample
+    sample_url - url to sample service
+    token      - workspace token for Authorization
+    """
+    headers = {"Authorization": token}
+    params = {
+        "samples": samples
+    }
+    payload = {
+        "method": "SampleService.validate_samples",
+        "id": str(uuid.uuid4()),
+        "params": [params],
+        "version": "1.1"
+    }
+    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
+    resp_json = _handle_response(resp)
+    errors = resp_json['result'][0]['errors']
+    return errors
 
 
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):

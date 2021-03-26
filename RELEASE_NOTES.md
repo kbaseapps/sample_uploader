@@ -1,6 +1,12 @@
 # sample_uploader release notes
 =========================================
 
+0.0.14
+------
+* Adding prevalidtion to import_samples
+* Adding Github Actions
+* Updating Test framework to run quicker.
+
 0.0.13
 ------
 * Adding link_samples application to link samples to workspace objects (ex. reads)

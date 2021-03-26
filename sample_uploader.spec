@@ -25,6 +25,7 @@ module sample_uploader {
         string otu_prefix;
 
         int share_within_workspace;
+        int prevalidate;
     } ImportSampleInputs;
 
     typedef structure {
