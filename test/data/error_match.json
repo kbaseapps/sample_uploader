@@ -10,5 +10,9 @@
   ],
   "outta_range": [
     "Key latitude: Metadata value at key value is not within the range [-90.0, 90.0]"
+  ],
+  "multi_err": [
+    "Key biome: Metadata value at key value does not have envo_ontology ancestor term ENVO:00000428",
+    "Key latitude: Metadata value at key value is not within the range [-90.0, 90.0]"
   ]
 }
