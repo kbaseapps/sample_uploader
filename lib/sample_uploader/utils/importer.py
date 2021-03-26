@@ -15,7 +15,6 @@ from sample_uploader.utils.sample_utils import (
     update_acls,
     validate_samples
 )
-from sample_uploader.utils.verifiers import verifiers
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
