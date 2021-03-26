@@ -12,7 +12,6 @@ from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
 
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
-from sample_uploader.utils.sample_utils import SampleSet
 
 
 class sample_uploader_unit_tests(unittest.TestCase):
@@ -70,10 +69,10 @@ class sample_uploader_unit_tests(unittest.TestCase):
         self.wsClient.set_permissions({
             "id": self.wsID,
             "new_permission": "w",
-            "users": ["jrbolton"]
+            "users": ["psdehal"]
         })
         ret = get_workspace_user_perms(self.wsURL, self.wsID, self.token, self.user_id, acls)
-        self.assertTrue('jrbolton' in ret['write'])
+        self.assertTrue('psdehal' in ret['write'])
         self.wsClient.set_global_permission({
             "id": self.wsID,
             "new_permission": "r",

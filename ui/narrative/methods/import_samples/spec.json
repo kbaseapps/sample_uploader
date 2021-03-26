@@ -194,6 +194,18 @@
                 "unchecked_value" : 0,
                 "checked_value" : 1
             }
+        },
+        {
+            "id": "prevalidate",
+            "optional" : false,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "1" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
         }
     ],
     "behavior": {

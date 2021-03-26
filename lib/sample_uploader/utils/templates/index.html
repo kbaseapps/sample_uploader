@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+	<head>
+		<link>
+		<title>  </title>
+	</head>
+	<body>
+		<h1> Upload errors </h1>
+		Sample name,error
+		<table>
+			<tbody>
+				{% for item in results %}
+				<tr>
+				    <td>Sample name</td>
+				    <td>{{item.sample_name}}</td>
+				</tr>
+				<tr>
+				    <td>Error string</td>
+					<td>{{item.error}}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</body>
+</html>

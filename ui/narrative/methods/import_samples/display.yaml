@@ -134,5 +134,13 @@ parameters :
         long-hint: |
             Shares access controls with users who have access to this workspace. They are given the same level of control. default=True
 
+    prevalidate:
+        ui-name: |
+            Validate all samples before upload
+        short-hint: |
+            Validate all samples before upload and display any errors
+        long-hint: |
+            Validate all samples before upload and display any errors
+
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>

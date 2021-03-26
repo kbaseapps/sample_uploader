@@ -1,4 +1,13 @@
+import os
+
 from installed_clients.WorkspaceClient import Workspace
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+
+env = Environment(
+    loader=PackageLoader('sample_uploader','utils/templates'),
+    autoescape=select_autoescape(['html'])
+)
 
 def get_workspace_user_perms(workspace_url, workspace_id, token, owner, acls):
     """
@@ -22,3 +31,27 @@ def get_workspace_user_perms(workspace_url, workspace_id, token, owner, acls):
         if results['perms'][0][user] == 'n':
             continue
     return acls
+
+
+def error_ui(errors, scratch):
+    """
+    TODO: make this better/change it all
+    errors: list of errors
+    scratch: kbase scratch space
+    """
+    template = env.get_template('index.html')
+    html_path = os.path.join(scratch, 'index.html')
+    results = []
+    for sample_name in errors:
+        for error in errors[sample_name]:
+            results.append({
+                'sample_name': sample_name,
+                'error': error
+            })
+    rendered_html = template.render(
+        results=results
+    )
+    with open(html_path, 'w') as f:
+        f.write(rendered_html)
+    return html_path
+
