@@ -232,7 +232,12 @@ class sample_uploader:
             report_data['objects_created'] = [{'ref': sample_set_ref}]
 
         if html_link:
-            report_data['direct_html'] =  html_link
+            report_data['html_links'] =  [{
+                'path': html_link,
+                'name': 'index.html',
+                'description': 'Sample Set Import Error ui'
+            }]
+            report_data['direct_html_link_index'] = 0
         report_info = report_client.create_extended_report(report_data)
         output = {
             'report_ref': report_info['ref'],
