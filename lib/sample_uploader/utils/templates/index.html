@@ -1,22 +1,24 @@
 <!doctype html>
 <html>
 	<head>
-		<link>
-		<title>  </title>
+		<style>
+		table, th, td {border: 1px solid black;}
+		</style>
 	</head>
 	<body>
 		<h1> Upload errors </h1>
-		Sample name,error
-		<table>
+		<table style="width:100%">
+			<thead>
+				<tr>
+					<th>Sample name</th>
+					<th>Error</th>
+				</tr>
+			</thead>
 			<tbody>
 				{% for item in results %}
 				<tr>
-				    <td>Sample name</td>
 				    <td>{{item.sample_name}}</td>
-				</tr>
-				<tr>
-				    <td>Error string</td>
-					<td>{{item.error}}</td>
+				    <td>{{item.error}}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
