@@ -2,7 +2,6 @@
 import inspect
 from pytest import raises
 from mock import patch
-import pandas as pd
 import os
 import uuid
 
