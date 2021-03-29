@@ -1,4 +1,6 @@
 import requests
+import pandas as pd
+import csv
 
 """
 SESAR REST web service API
@@ -23,7 +25,7 @@ def _get_igsn_endpoint():
     return 'https://app.geosamples.org/sample/igsn'
 
 
-def retrieve_sample(igsn):
+def retrieve_sample_from_igsn(igsn):
     """
     Retrieve sample profile for given IGSN
 
@@ -65,3 +67,25 @@ def retrieve_sample(igsn):
         raise ValueError(f'Retrieved an empty sample from service\n{resp_json}')
 
     return sample
+
+
+def igsns_to_csv(igsns, sample_csv):
+
+    samples = [retrieve_sample_from_igsn(igsn) for igsn in igsns]
+    df = pd.DataFrame.from_dict(samples)
+
+    # write SESAR header
+    try:
+        object_type = ', '.join(df.sample_type.unique())
+    except Exception:
+        object_type = ''
+    try:
+        user_code = ', '.join(df.user_code.unique())
+    except Exception:
+        user_code = ''
+    with open(sample_csv, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Object Type:', object_type, 'User Code:', user_code])
+
+    with open(sample_csv, 'a') as f:
+        df.to_csv(f)

@@ -2,10 +2,14 @@
 import inspect
 from pytest import raises
 from mock import patch
+import pandas as pd
+import os
+import uuid
 
 from sample_uploader.utils.sesar_api import (
     _get_igsn_endpoint,
-    retrieve_sample,
+    retrieve_sample_from_igsn,
+    igsns_to_csv,
 )
 
 
@@ -17,7 +21,7 @@ def start_test():
 def fail_retrieve_sample(igsn, error_msg, error_type, contains=True):
 
     with raises(Exception) as context:
-        retrieve_sample(igsn)
+        retrieve_sample_from_igsn(igsn)
 
     assert type(context.value) == error_type
 
@@ -59,12 +63,12 @@ def test_retrieve_sample_fail():
                              RuntimeError)
 
 
-def test_retrieve_sample():
+def test_retrieve_sample_from_igsn():
 
     start_test()
 
     igsn = 'IEAWH0001'
-    sample = retrieve_sample(igsn)
+    sample = retrieve_sample_from_igsn(igsn)
 
     expected_sample_metadata = ['qrcode_img_src', 'user_code', 'igsn', 'name', 'sample_type',
                                 'publish_date', 'material', 'collection_method', 'purpose',
@@ -99,3 +103,23 @@ def test_retrieve_sample():
                        'current_archive': 'Argonne National Lab',
                        'current_archive_contact': 'pweisenhorn@anl.gov'}
     assert expected_sample == {key: sample[key] for key in expected_sample.keys()}
+
+
+def test_igsns_to_csv():
+
+    start_test()
+
+    test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
+    sample_csv = 'isgn_sample_{}.csv'.format(str(uuid.uuid4()))
+    sample_csv = os.path.join(test_dir, 'data', sample_csv)
+    igsns_to_csv(igsns, sample_csv)
+
+    cmp_sample_csv = os.path.join(test_dir, 'example_data', 'isgn_sample_example.csv')
+
+    with open(sample_csv, 'r') as f1, open(cmp_sample_csv, 'r') as f2:
+        sample_content = f1.readlines()
+        cmp_content = f2.readlines()
+
+    assert set(sample_content) == set(cmp_content)
