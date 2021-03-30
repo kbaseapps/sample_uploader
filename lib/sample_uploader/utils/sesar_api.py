@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import csv
+import logging
 
 """
 SESAR REST web service API
@@ -32,6 +33,8 @@ def retrieve_sample_from_igsn(igsn):
     The official SESAR documentation about this endpoint:
     https://www.geosamples.org/interop#Sample-profile-IGSN
     """
+
+    logging.info('Start retrieving sample info for {}'.format(igsn))
 
     return_format = 'application/json'
     headers = {"accept": return_format}
@@ -70,11 +73,15 @@ def retrieve_sample_from_igsn(igsn):
 
 
 def igsns_to_csv(igsns, sample_csv):
+    """
+    Merge retrived samples and write samples info to a CSV for the samples uploader
+    """
 
     samples = [retrieve_sample_from_igsn(igsn) for igsn in igsns]
     df = pd.DataFrame.from_dict(samples)
 
     # write SESAR header
+    logging.info('Start writting SESAR header to csv: {}'.format(sample_csv))
     try:
         object_type = ', '.join(df.sample_type.unique())
     except Exception:
@@ -87,5 +94,6 @@ def igsns_to_csv(igsns, sample_csv):
         writer = csv.writer(file)
         writer.writerow(['Object Type:', object_type, 'User Code:', user_code])
 
+    logging.info('Start writting samples info to csv: {}'.format(sample_csv))
     with open(sample_csv, 'a') as f:
         df.to_csv(f)
