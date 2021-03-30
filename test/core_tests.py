@@ -159,6 +159,30 @@ class sample_uploaderTest(unittest.TestCase):
                 except:
                     raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
+    def test_IGSN_sample_importer(self):
+        igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
+        params = {
+            'igsns': igsns,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_IGSN(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == len(igsns)
+
+        samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
+                   for sample_info in samples_info]
+
+        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
+        assert set(sample_ids) == set(igsns)
+
+        expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
+        sample_names = [sample['name'] for sample in samples]
+        assert set(expected_sample_names) == set(sample_names)
+
     # @unittest.skip('x')
     def test_error_file(self):
         ''''''

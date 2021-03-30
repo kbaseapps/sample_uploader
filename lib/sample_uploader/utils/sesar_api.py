@@ -77,6 +77,9 @@ def igsns_to_csv(igsns, sample_csv):
     Merge retrived samples and write samples info to a CSV for the samples uploader
     """
 
+    if type(igsns) != list:
+        raise ValueError('Please provide a LIST of IGSNs. Provided: {}'.format(type(igsns)))
+
     samples = [retrieve_sample_from_igsn(igsn) for igsn in igsns]
     df = pd.DataFrame.from_dict(samples)
 
