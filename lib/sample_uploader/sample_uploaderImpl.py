@@ -5,6 +5,7 @@ import os
 import json
 import uuid
 import shutil
+import csv
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -281,6 +282,16 @@ class sample_uploader:
         igsns = params.get('igsns')
         if not igsns:
             raise ValueError('Please provide IGSNs')
+
+        if isinstance(igsns, str):
+            if igsns.isalnum():
+                # single igsn given e.g. 'IEAWH0001'
+                igsns = [igsns]
+            else:
+                # multiple igsn given e.g. 'IEAWH0001, GEE0000O4' or 'IEAWH0001; GEE0000O4'
+                delimiter = csv.Sniffer().sniff(igsns).delimiter
+                igsns = [x.strip() for x in igsns.split(delimiter)]
+
         logging.info('Start importing samples from IGSNs: {}'.format(igsns))
 
         sample_file_name = 'isgn_sample_{}.csv'.format(str(uuid.uuid4()))
