@@ -26,6 +26,7 @@ module sample_uploader {
 
         int share_within_workspace;
         int prevalidate;
+        int incl_input_in_output;
     } ImportSampleInputs;
 
     typedef structure {
@@ -64,6 +65,7 @@ module sample_uploader {
 
         int share_within_workspace;
         int prevalidate;
+        int incl_input_in_output;
     } ImportSampleIGSNInputs;
 
     funcdef import_samples_from_IGSN(ImportSampleIGSNInputs params) returns (ImportSampleOutputs output) authentication required;
