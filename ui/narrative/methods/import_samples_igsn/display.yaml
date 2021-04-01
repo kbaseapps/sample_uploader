@@ -1,10 +1,10 @@
 #
 # define display information
 #
-name: Import Samples
+name: Import Samples From IGSN
 
 tooltip: |
-    import some samples
+    import some samples for specific IGSNs
 
 screenshots: []
 
@@ -22,21 +22,13 @@ icon: sample_uploader.png
 # Configure the display and description of parameters
 #
 parameters :
-    sample_file:
+    igsns:
         ui-name : |
-            Samples file
+            IGSN
         short-hint : |
-            Samples file, in '.xls' or '.csv' formats
+            IGSNs (comma separated) e.g. 'IEAWH0001, GEE0000O4'
         long-hint  : |
-            Samples file, in '.xls' or '.csv' formats
-
-    file_format:
-        ui-name : |
-            File format
-        short-hint : |
-            Format source of the input file, files downloaded from KBase are in SESAR format.
-        long-hint  : |
-            Format source of the input file, files downloaded from KBase are in SESAR format.
+            IGSNs (comma separated) e.g. 'IEAWH0001, GEE0000O4'
 
     set_name:
         ui-name : |
@@ -45,22 +37,6 @@ parameters :
             Name of output SampleSet object
         long-hint  : |
             Name of output SampleSet object
-
-    header_row_index:
-        ui-name : |
-            Headers Row
-        short-hint : |
-            Row that the column headers are on (default=1)
-        long-hint  : |
-            Row that the column headers are on (default=1)
-
-    id_field:
-        ui-name: |
-            ID field
-        short-hint: |
-            Main identifier field in input file. Unique per row.
-        long-hint: |
-            Main identifier field in input file. Unique per row.
 
     description:
         ui-name : |

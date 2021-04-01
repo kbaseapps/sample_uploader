@@ -5,6 +5,7 @@ import os
 import json
 import uuid
 import shutil
+import csv
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -19,6 +20,7 @@ from sample_uploader.utils.sample_utils import (
     get_sample,
     format_sample_as_row,
 )
+from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
 import pandas as pd
@@ -40,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.12"
-    GIT_URL = "https://github.com/kbaseapps/sample_uploader"
-    GIT_COMMIT_HASH = "5134b679279c84128b0ca5b684fa75dacf7dba59"
+    VERSION = "0.0.14"
+    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
+    GIT_COMMIT_HASH = "fddb10ca67368def8437569f8157b71b59f41e1c"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -75,8 +77,7 @@ class sample_uploader:
            "taxonomy_source" of String, parameter "num_otus" of Long,
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
            parameter "share_within_workspace" of Long, parameter
-           "prevalidate" of Long
-           parameter "share_within_workspace" of Long
+           "prevalidate" of Long, parameter "incl_input_in_output" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -255,6 +256,65 @@ class sample_uploader:
         # return the results
         return [output]
 
+    def import_samples_from_IGSN(self, ctx, params):
+        """
+        :param params: instance of type "ImportSampleIGSNInputs" ->
+           structure: parameter "sample_set_ref" of String, parameter "igsns"
+           of list of String, parameter "workspace_name" of String, parameter
+           "workspace_id" of Long, parameter "description" of String,
+           parameter "set_name" of String, parameter "output_format" of
+           String, parameter "taxonomy_source" of String, parameter
+           "num_otus" of Long, parameter "incl_seq" of Long, parameter
+           "otu_prefix" of String, parameter "share_within_workspace" of
+           Long, parameter "prevalidate" of Long, parameter
+           "incl_input_in_output" of Long
+        :returns: instance of type "ImportSampleOutputs" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String, parameter "sample_set_ref" of
+           String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN import_samples_from_IGSN
+
+        igsns = params.get('igsns')
+        if not igsns:
+            raise ValueError('Please provide IGSNs')
+
+        if isinstance(igsns, str):
+            if igsns.isalnum():
+                # single igsn given e.g. 'IEAWH0001'
+                igsns = [igsns]
+            else:
+                # multiple igsn given e.g. 'IEAWH0001, GEE0000O4' or 'IEAWH0001; GEE0000O4'
+                delimiter = csv.Sniffer().sniff(igsns).delimiter
+                igsns = [x.strip() for x in igsns.split(delimiter)]
+
+        logging.info('Start importing samples from IGSNs: {}'.format(igsns))
+
+        sample_file_name = 'isgn_sample_{}.csv'.format(str(uuid.uuid4()))
+        sample_file_dir = os.path.join(self.scratch, str(uuid.uuid4()))
+        os.makedirs(sample_file_dir)
+        sample_file = os.path.join(sample_file_dir, sample_file_name)
+
+        igsns_to_csv(igsns, sample_file)
+
+        params['sample_file'] = sample_file
+        params['file_format'] = 'SESAR'
+
+        output = self.import_samples(ctx, params)[0]
+        #END import_samples_from_IGSN
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method import_samples_from_IGSN return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
     def generate_OTU_sheet(self, ctx, params):
         """
         :param params: instance of type "GenerateOTUSheetParams" (Generate a
@@ -413,10 +473,15 @@ class sample_uploader:
 
     def link_reads(self, ctx, params):
         """
-        Create links between samples and reads objects
-        :param params: instance of mapping from String to unspecified object
-        :returns: instance of type "ReportResults" -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String
+        :param params: instance of type "LinkReadsParams" -> structure:
+           parameter "workspace_name" of String, parameter "workspace_id" of
+           String, parameter "sample_set_ref" of String, parameter "links" of
+           list of type "ReadsLink" (Create links between samples and reads
+           objects.) -> structure: parameter "sample_name" of String,
+           parameter "reads_ref" of String
+        :returns: instance of type "LinkReadsOutput" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String,
+           parameter "links" of list of unspecified object
         """
         # ctx is the context object
         # return variables are: output
@@ -424,13 +489,13 @@ class sample_uploader:
         logging.info(params)
 
         ss = SampleService(self.sw_url, service_ver='dev')
-        
+
         sample_set_ref = params['sample_set_ref']
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']
         sample_name_2_info = {d['name']: d for d in sample_set_obj['samples']}
 
         links = [(d['sample_name'][0], d['reads_ref']) for d in params['links']]
-        
+
         new_data_links = []
         for sample_name, reads_ref in links:
             sample_id = sample_name_2_info[sample_name]['id']

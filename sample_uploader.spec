@@ -26,6 +26,7 @@ module sample_uploader {
 
         int share_within_workspace;
         int prevalidate;
+        int incl_input_in_output;
     } ImportSampleInputs;
 
     typedef structure {
@@ -46,6 +47,28 @@ module sample_uploader {
     } ImportSampleOutputs;
 
     funcdef import_samples(ImportSampleInputs params) returns (ImportSampleOutputs output) authentication required;
+
+    typedef structure {
+        string sample_set_ref;
+
+        list<string> igsns;
+        string workspace_name;
+        int workspace_id;
+        string description;
+        string set_name;
+
+        string output_format;
+        string taxonomy_source;
+        int num_otus;
+        int incl_seq;
+        string otu_prefix;
+
+        int share_within_workspace;
+        int prevalidate;
+        int incl_input_in_output;
+    } ImportSampleIGSNInputs;
+
+    funcdef import_samples_from_IGSN(ImportSampleIGSNInputs params) returns (ImportSampleOutputs output) authentication required;
 
 
     /*
