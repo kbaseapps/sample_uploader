@@ -77,6 +77,12 @@ The sample uploader SDK interface allows users to upload sample profiles for spe
 
 Since this interface ultimately calls the User Documentation Uploader process mentioned above, all other arguments are exactly the same as the User Documentation Uploader process. 
 
+## Future developments
+
+- [ ] Sample collision - Resolve repetitious user imports with the same IGSN into the Kbase Sample Service.
+- [ ] Sample access control - Sample access control is implemented via SampleSet as a group. SampleSet structure needs to be revised to implement access control for an individual sample.
+- [ ] IGSN owner update - The IGSN sample owners might update sample metadata on the SESAR system. Implementing Synchronization between Kbase Sample Service and SESAR system might be needed.
+
 # SampleSet specification
 SampleSet specification used in this module:
 ```
