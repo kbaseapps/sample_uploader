@@ -1,6 +1,10 @@
 # sample_uploader release notes
 =========================================
 
+0.0.15
+------
+* Adding functionality to import IGSN from the SESAR web service
+
 0.0.14
 ------
 * Adding prevalidtion to import_samples
