@@ -1,5 +1,8 @@
 # sample_uploader release notes
 =========================================
+0.0.15
+------
+* Adding functionality to import specific IGSN from the SESAR web service
 
 0.0.14
 ------
