@@ -62,7 +62,26 @@ There are some fields that have/will have different kinds of validation based on
 
 For more complete information on the SampleService, not related to uploading, take a look at he [SampleService documentation](https://github.com/kbase/sample_service/blob/master/README.md).
 
+# Upload Sample Profiles For Specific IGSNs
 
+The sample uploader SDK interface allows users to upload sample profiles for specific IGSNs from the [SESAR web service](https://www.geosamples.org/interop). 
+
+## IGSN uploader interface workflow:
+1. The interface uses an [endpoint](https://www.geosamples.org/interop#Sample-profile-IGSN) provided by the SESAR web service to retrieve metadata of the sample. 
+2. Retrieved sample profiles are then converted to a ‘.csv’ file in the SESAR format.
+3. Prepared SESAR file is uploaded into the KBase Sample Service using the above-mentioned User Documentation Uploader process. 
+
+## Input arguments
+`igsns` - IGSNs of samples separated by a comma, e.g., `'IEAWH0001, GEE0000O4’`. 
+	  The interface also accepts a `LIST` of IGSNs, e.g., `['IEAWH0001, GEE0000O4’]`.
+
+Since this interface ultimately calls the User Documentation Uploader process mentioned above, all other arguments are exactly the same as the User Documentation Uploader process. 
+
+## Future developments
+
+- [ ] Sample collision - Resolve repetitious user imports with the same IGSN into the Kbase Sample Service.
+- [ ] Sample access control - Sample access control is implemented via SampleSet as a group. SampleSet structure needs to be revised to implement access control for an individual sample.
+- [ ] IGSN owner update - The IGSN sample owners might update sample metadata on the SESAR system. Implementing Synchronization between Kbase Sample Service and SESAR system might be needed.
 
 # SampleSet specification
 SampleSet specification used in this module:
