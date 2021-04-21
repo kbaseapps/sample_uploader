@@ -89,14 +89,14 @@ def _produce_samples(
                 # now we check if the sample 'id' and 'name' are the same
                 if existing_sample_names[name]['id'] != prev_sample['id']:
                     raise SampleContentError(
-                        f"'kbase_sample_id' and input sample set have different ID's for sample with name \"{name}\""
+                        f"'kbase_sample_id' and input sample set have different ID's for sample with name \"{name}\"",
                         key="id",
                         sample_name=name
                     )
             elif name in existing_sample_names and name != prev_sample['name']:
                 # not sure if this is an error case
                 raise SampleContentError(
-                    f"Cannot rename existing sample from {prev_sample['name']} to {name}"
+                    f"Cannot rename existing sample from {prev_sample['name']} to {name}",
                     key="id",
                     sample_name=name
                 )
@@ -322,6 +322,7 @@ def import_samples_from_file(
     
     if params.get('prevalidate') and not errors:
         error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
+        print("!!!", error_detail)
         errors += [ SampleContentError(
                 e['message'],
                 sample_name=e['sample_name'], 
