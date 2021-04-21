@@ -51,7 +51,7 @@ class Test(unittest.TestCase):
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
-        cls.ss = SampleService(cls.wiz_url, token=token, service_ver='beta')
+        cls.ss = SampleService(cls.sample_url, token=token)
         if 'appdev' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '44442/4/1'
             cls.rhodo_art_jgi_reads = '44442/8/1'
