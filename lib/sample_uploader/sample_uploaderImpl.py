@@ -12,11 +12,10 @@ from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
-from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
+from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    get_sample_service_url,
     get_sample,
     format_sample_as_row,
 )
@@ -61,6 +60,7 @@ class sample_uploader:
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
+        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
         #END_CONSTRUCTOR
         pass
 
@@ -108,63 +108,29 @@ class sample_uploader:
             header_row_index = int(params["header_row_index"]) - 1
         else:
             header_row_index = 0
-            if params.get('file_format') == "SESAR":
+            if params.get('file_format') == "sesar":
                 header_row_index = 1
 
         username = ctx['user_id']
+        if str(params.get('file_format')).lower() not in ['enigma', 'sesar', 'kbase']:
+            raise ValueError(f"Only SESAR, ENIGMA, and KBase formats are currently supported for importing samples. "
+                             f"File of format {params.get('file_format')} not supported.")
+        mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
 
-        if params.get('file_format') == 'ENIGMA':
-            # ENIGMA_mappings['verification_mapping'].update(
-            #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
-            # )
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sw_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                ENIGMA_mappings['column_mapping'],
-                ENIGMA_mappings.get('groups', []),
-                ENIGMA_mappings['date_columns'],
-                ENIGMA_mappings.get('column_unit_regex', []),
-                sample_set,
-                header_row_index
-            )
-        elif params.get('file_format') == 'SESAR':
-            # SESAR_mappings['verification_mapping'].update(
-            #     {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
-            # )
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sw_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                SESAR_mappings['column_mapping'],
-                SESAR_mappings.get('groups', []),
-                SESAR_mappings['date_columns'],
-                SESAR_mappings.get('column_unit_regex', []),
-                sample_set,
-                header_row_index
-            );
-        elif params.get('file_format') == 'KBASE':
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sw_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                {},
-                [],
-                [],
-                [],
-                sample_set,
-                header_row_index
-            )
-        else:
-            raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples. "
-                             "File of format {params.get('file_format')} not supported.")
-
+        sample_set, errors = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            username,
+            ctx['token'],
+            mappings[str(params.get('file_format')).lower()].get('column_mapping', {}),
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases
+        )
         file_links = []
         sample_set_ref = None
         html_link = None
@@ -392,7 +358,6 @@ class sample_uploader:
         sample_set_ref = params.get('sample_set_ref')
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']
-        sample_url = get_sample_service_url(self.sw_url)
 
         acls = {
             'read': [],
@@ -413,7 +378,7 @@ class sample_uploader:
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
-            status = update_acls(sample_url, sample_id, acls, ctx['token'])
+            status = update_acls(self.sample_url, sample_id, acls, ctx['token'])
         output = {"status": status}
         #END update_sample_set_acls
 
@@ -443,14 +408,13 @@ class sample_uploader:
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']
         sample_set_name = ret['info'][1]
-        sample_url = get_sample_service_url(self.sw_url)
 
         export_package_dir = os.path.join(self.scratch, "output")
         if not os.path.isdir(export_package_dir):
             os.mkdir(export_package_dir)
         output_file = os.path.join(export_package_dir, '_'.join(sample_set_name.split()) + ".csv")
 
-        sample_set_to_output(sample_set, sample_url, ctx['token'], output_file, output_file_format)
+        sample_set_to_output(sample_set, self.sample_url, ctx['token'], output_file, output_file_format)
 
         # package it up
         package_details = self.dfu.package_for_download({
@@ -488,7 +452,7 @@ class sample_uploader:
         #BEGIN link_reads
         logging.info(params)
 
-        ss = SampleService(self.sw_url, service_ver='dev')
+        ss = SampleService(self.sample_url)  # , service_ver='dev')
 
         sample_set_ref = params['sample_set_ref']
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']

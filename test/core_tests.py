@@ -59,7 +59,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
             'sample_file':  cls.sesar_sample_file,
-            'file_format': "SESAR",
+            'file_format': "sesar",
             'header_row_index': 2,
             'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
@@ -99,7 +99,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 2,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
@@ -130,7 +130,7 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': enigma_copy,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 1,
             'description': "this is a copy of a test sample set.",
             'incl_input_in_output': 1,
@@ -239,7 +239,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 2,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
@@ -258,7 +258,7 @@ class sample_uploaderTest(unittest.TestCase):
         '''Make sure the samples are the same after download, then reupload'''
         params = {
             "input_ref": self.sample_set_ref,
-            "file_format": "SESAR"
+            "file_format": "sesar"
         }
         ret = self.serviceImpl.export_samples(self.ctx, params)[0]
         shock_id = ret['shock_id']
@@ -271,7 +271,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': result_file_path,
-            'file_format': "SESAR",
+            'file_format': "sesar",
             'header_row_index': 2,
             'id_field': 'test id field',
             'set_name': 'reupload_test',

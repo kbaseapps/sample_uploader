@@ -63,4 +63,4 @@ SAMP_SERV_CONFIG = _fetch_global_config(
 shared_fields = uploader_config["shared_fields"]
 SESAR_mappings = uploader_config["SESAR"]
 ENIGMA_mappings = uploader_config["ENIGMA"]
-
+aliases = uploader_config.get('aliases', {})

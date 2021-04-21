@@ -26,21 +26,21 @@
             "optional" : false,
             "advanced" : false,
             "allow_multiple" : false,
-            "default_values" : [ "SESAR" ],
+            "default_values" : [ "kbase" ],
             "field_type" : "dropdown",
             "dropdown_options" : {
                 "options": [
                     {
-                        "value": "SESAR",
+                        "value": "kbase",
+                        "display": "KBase format"
+                    },
+                    {
+                        "value": "sesar",
                         "display": "SESAR format"
                     },
                     {
-                        "value": "ENIGMA",
+                        "value": "enigma",
                         "display": "ENIGMA format"
-                    },
-                    {
-                        "value": "KBASE",
-                        "display": "KBase format"
                     }
                 ]
             }

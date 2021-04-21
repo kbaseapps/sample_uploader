@@ -5,7 +5,6 @@ import json
 import os
 from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
-    get_sample_service_url,
     get_sample,
     save_sample,
     compare_samples,
@@ -79,40 +78,40 @@ def _produce_samples(
         prev_sample = None
         if kbase_sample_id:
             prev_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
+
             if name in existing_sample_names and prev_sample['name'] == name:
                 # now we check if the sample 'id' and 'name' are the same
                 if existing_sample_names[name]['id'] != prev_sample['id']:
                     raise ValueError(f"'kbase_sample_id' and input sample set have different ID's for sample with name \"{name}\"")
             elif name in existing_sample_names and name != prev_sample['name']:
                 # not sure if this is an error case
-                raise ValueError(f"Cannot rename existing sample from {prev_sample['name']} to {name}")
+                raise ValueError(f"sample with kbase_sample_id {kbase_sample_id} cannot be renamed "
+                                 f"from {prev_sample['name']} to {name}")
         elif name in existing_sample_names:
+
             prev_sample = get_sample(existing_sample_names[name], sample_url, token)
 
         return prev_sample
 
     for idx, row in df.iterrows():
-        if not row.get('id'):
-            raise RuntimeError(f"{row.get('id')} evaluates as false - {row.keys()}")
+        # set name field (only required field)
+        if not row.get('name'):
+            raise RuntimeError(f"'name' field required {row.get('name')} evaluates as false - {row.keys()}")
+        name = str(row.get('name'))
+        if 'name' in cols:
+            cols.pop(cols.index('name'))
         # first we check if a 'kbase_sample_id' column is specified
         kbase_sample_id = None
         if row.get('kbase_sample_id'):
             kbase_sample_id = str(row.pop('kbase_sample_id'))
             if 'kbase_sample_id' in cols:
                 cols.pop(cols.index('kbase_sample_id'))
-        # use name field as name, if there is non-reuse id.
-        if row.get('name'):
-            name = str(row['name'])
-        else:
-            name = str(row['id'])
         if row.get('parent_id'):
             parent = str(row.pop('parent_id'))
             if 'parent_id' in cols:
                 cols.pop(cols.index('parent_id'))
-        if 'id' in cols:
-            cols.pop(cols.index('id'))
-        if 'name' in cols:
-            cols.pop(cols.index('name'))
+        else:
+            parent = None
 
         controlled_metadata = generate_controlled_metadata(
             row,
@@ -132,8 +131,8 @@ def _produce_samples(
 
         sample = {
             'node_tree': [{
-                "id": str(row['id']),
-                "parent": None,
+                "id": name,
+                "parent": parent,
                 "type": "BioReplicate",
                 "meta_controlled": controlled_metadata,
                 "meta_user": user_metadata,
@@ -192,9 +191,41 @@ def _save_samples(samples, acls, sample_url, token):
     return saved_samples
 
 
+def format_input_file(df, column_mapping, columns_to_input_names, aliases):
+    # try to see if there are any aliases for key fields
+    map_aliases = {}
+    for key, key_aliases in aliases.items():
+        key = upload_key_format(key)
+        for alias_key in key_aliases:
+            alias_key = upload_key_format(alias_key)
+            # check if alias_key in columns
+            if alias_key in df.columns:
+                # make sure that existing
+                if key in df.columns:
+                    # if key already exists, continue
+                    continue
+                map_aliases[alias_key] = key
+
+                if alias_key in columns_to_input_names:
+                    columns_to_input_names.pop(alias_key)
+
+    if map_aliases:
+        df = df.rename(columns=map_aliases)
+
+    if column_mapping:
+        df = df.rename(columns=column_mapping)
+
+    for key in column_mapping:
+        if key in columns_to_input_names:
+            val = columns_to_input_names.pop(key)
+            columns_to_input_names[column_mapping[key]] = val
+
+    return df, columns_to_input_names
+
+
 def import_samples_from_file(
     params,
-    sw_url,
+    sample_url,
     workspace_url,
     username,
     token,
@@ -203,7 +234,8 @@ def import_samples_from_file(
     date_columns,
     column_unit_regex,
     input_sample_set,
-    header_row_index
+    header_row_index,
+    aliases
 ):
     """
     import samples from '.csv' or '.xls' files in SESAR  format
@@ -218,39 +250,32 @@ def import_samples_from_file(
     df = df.rename(columns={c: upload_key_format(c) for c in df.columns})
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
 
-    if params.get('id_field'):
-        id_field = upload_key_format(params['id_field'])
-        if id_field in list(df.columns):
-            # here we rename whatever the id field was/is to "id"
-            columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
-            df.rename(columns={id_field: "id"}, inplace=True)
-            # remove "id" rename field from column mapping if exists
-            if column_mapping:
-                column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
-        else:
-            raise ValueError(f"'{params['id_field']}' is not a column field in the input file.")
-    else:
-        print(f"No id_field argument present in params, proceeding with defaults.")
+    df, columns_to_input_names = format_input_file(df, column_mapping, columns_to_input_names, aliases)
 
-    if column_mapping:
-        df = df.rename(columns=column_mapping)
-    # redundant, even harmful if things get out of sync
-    # verify_columns(df)
-    for key in column_mapping:
-        if key in columns_to_input_names:
-            val = columns_to_input_names.pop(key)
-            columns_to_input_names[column_mapping[key]] = val
+    # if params.get('id_field'):
+    #     id_field = upload_key_format(params['id_field'])
+    #     if id_field in list(df.columns):
+    #         # here we rename whatever the id field was/is to "id"
+    #         columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
+    #         df.rename(columns={id_field: "id"}, inplace=True)
+    #         # remove "id" rename field from column mapping if exists
+    #         if column_mapping:
+    #             column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
+    #     else:
+    #         raise ValueError(f"'{params['id_field']}' is not a column field in the input file.")
+    # else:
+    #     print(f"No id_field argument present in params, proceeding with defaults.")
 
-    if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
+    if params['file_format'].lower() in ['sesar', "enigma"]:
         if 'material' in df.columns:
-            df.rename(columns={"material": params['file_format'].upper() + ":material"}, inplace=True)
+            df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
             val = columns_to_input_names.pop("material")
-            columns_to_input_names[params['file_format'].upper() + ":material"] = val
-    if params['file_format'].upper() == "KBASE":
+            columns_to_input_names[params['file_format'].lower() + ":material"] = val
+    if params['file_format'].lower() == "kbase":
         if 'material' in df.columns:
-            df.rename(columns={"material": "SESAR:material"}, inplace=True)
+            df.rename(columns={"material": "sesar:material"}, inplace=True)
             val = columns_to_input_names.pop("material")
-            columns_to_input_names["SESAR:material"] = val
+            columns_to_input_names["sesar:material"] = val
 
     acls = {
         "read": [],
@@ -264,7 +289,6 @@ def import_samples_from_file(
     groups = SAMP_SERV_CONFIG['validators']
 
     cols = list(set(df.columns) - set(REGULATED_COLS))
-    sample_url = get_sample_service_url(sw_url)
     samples, existing_samples = _produce_samples(
         df,
         cols,
