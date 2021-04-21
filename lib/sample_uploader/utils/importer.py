@@ -5,7 +5,6 @@ import json
 import os
 from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
-    get_sample_service_url,
     get_sample,
     save_sample,
     compare_samples,
@@ -194,7 +193,7 @@ def _save_samples(samples, acls, sample_url, token):
 
 def import_samples_from_file(
     params,
-    sw_url,
+    sample_url,
     workspace_url,
     username,
     token,
@@ -264,7 +263,6 @@ def import_samples_from_file(
     groups = SAMP_SERV_CONFIG['validators']
 
     cols = list(set(df.columns) - set(REGULATED_COLS))
-    sample_url = get_sample_service_url(sw_url)
     samples, existing_samples = _produce_samples(
         df,
         cols,

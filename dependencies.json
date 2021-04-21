@@ -8,8 +8,7 @@
   "version_tag" : "release"
 }, {
   "module_name" : "SampleService",
-  "type" : "sdk",
-  "version_tag" : "release"
+  "type" : "core"
 }, {
   "module_name" : "Workspace",
   "type" : "core",
