@@ -41,17 +41,9 @@ def error_ui(errors, scratch):
     """
     template = env.get_template('index.html')
     html_path = os.path.join(scratch, 'index.html')
-    results = []
-    for sample_name in errors:
-        for error in errors[sample_name]:
-            results.append({
-                'sample_name': sample_name,
-                'error': error
-            })
     rendered_html = template.render(
-        results=results
+        results=errors
     )
     with open(html_path, 'w') as f:
         f.write(rendered_html)
     return html_path
-
