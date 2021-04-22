@@ -47,7 +47,8 @@ class sample_uploaderTest(unittest.TestCase):
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         cls.wiz_url = cls.cfg['srv-wiz-url']
-        cls.sample_url = get_sample_service_url(cls.wiz_url)
+        cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
+        # cls.sample_url = get_sample_service_url(cls.wiz_url)
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_sample_uploader_" + str(suffix)
@@ -308,6 +309,8 @@ class sample_uploaderTest(unittest.TestCase):
             data=json.dumps(payload),
             headers={"Authorization": self.ctx['token']}
         )
+        if not resp.ok:
+            raise RuntimeError(resp.text)
         resp_json = resp.json()
         resp_data = {}
         for category in resp_json['result'][0]:

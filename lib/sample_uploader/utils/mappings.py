@@ -60,7 +60,23 @@ SAMP_SERV_CONFIG = _fetch_global_config(
     "metadata_validation.yml"
 )
 
+default_aliases = {
+    'name': [
+        "sample name",
+        "sample id",
+        "samplename",
+        "sampleid"
+    ],
+    'latitude': [
+        "lat"
+    ],
+    'longitude': [
+        "long",
+        "lon"
+    ]
+}
+
 shared_fields = uploader_config["shared_fields"]
 SESAR_mappings = uploader_config["SESAR"]
 ENIGMA_mappings = uploader_config["ENIGMA"]
-aliases = uploader_config.get('aliases', {})
+aliases = uploader_config.get('aliases', default_aliases)

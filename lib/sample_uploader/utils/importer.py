@@ -132,7 +132,7 @@ def _produce_samples(
         sample = {
             'node_tree': [{
                 "id": name,
-                "parent": parent,
+                "parent": None,
                 "type": "BioReplicate",
                 "meta_controlled": controlled_metadata,
                 "meta_user": user_metadata,
@@ -170,6 +170,9 @@ def _save_samples(samples, acls, sample_url, token):
         prev_sample = data['prev_sample']
         name = data['name']
 
+        # print('-'*80)
+        # print('sample to be saved', json.dumps(sample))
+        # print('-'*80)
         sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
 
         saved_samples.append({
@@ -205,9 +208,9 @@ def format_input_file(df, column_mapping, columns_to_input_names, aliases):
                     # if key already exists, continue
                     continue
                 map_aliases[alias_key] = key
-
                 if alias_key in columns_to_input_names:
-                    columns_to_input_names.pop(alias_key)
+                    val = columns_to_input_names.pop(alias_key)
+                    columns_to_input_names[key] = val
 
     if map_aliases:
         df = df.rename(columns=map_aliases)

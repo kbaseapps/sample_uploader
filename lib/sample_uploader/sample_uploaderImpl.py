@@ -261,7 +261,7 @@ class sample_uploader:
 
         logging.info('Start importing samples from IGSNs: {}'.format(igsns))
 
-        sample_file_name = 'isgn_sample_{}.csv'.format(str(uuid.uuid4()))
+        sample_file_name = 'igsn_sample_{}.csv'.format(str(uuid.uuid4()))
         sample_file_dir = os.path.join(self.scratch, str(uuid.uuid4()))
         os.makedirs(sample_file_dir)
         sample_file = os.path.join(sample_file_dir, sample_file_name)
@@ -269,7 +269,7 @@ class sample_uploader:
         igsns_to_csv(igsns, sample_file)
 
         params['sample_file'] = sample_file
-        params['file_format'] = 'SESAR'
+        params['file_format'] = 'sesar'
 
         output = self.import_samples(ctx, params)[0]
         #END import_samples_from_IGSN
@@ -403,7 +403,7 @@ class sample_uploader:
         if not params.get('input_ref'):
             raise ValueError(f"variable input_ref required")
         sample_set_ref = params.get('input_ref')
-        output_file_format = params.get('file_format', 'SESAR')
+        output_file_format = params.get('file_format', 'sesar')
 
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']

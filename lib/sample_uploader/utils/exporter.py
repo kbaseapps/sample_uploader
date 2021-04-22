@@ -21,8 +21,10 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
             ] + [val]
         return o
 
-    if output_file_format == "SESAR":
+    if output_file_format.lower() == "sesar":
         groups = SESAR_mappings['groups']
+    else:
+        raise ValueError(f"SESAR only file format supported for export")
 
     output = {"kbase_sample_id": [], "sample name": []}
     for samp_id in sample_set['samples']:
@@ -74,5 +76,5 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
 
     df.to_csv(output_file, index=False)
 
-    if output_file_format == "SESAR":
+    if output_file_format.lower() == "sesar":
         line_prepender(output_file, "Object Type:,Individual Sample,User Code:,")
