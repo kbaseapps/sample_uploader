@@ -322,7 +322,6 @@ def import_samples_from_file(
     
     if params.get('prevalidate') and not errors:
         error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
-        print("!!!", error_detail)
         errors += [ SampleContentError(
                 e['message'],
                 sample_name=e['sample_name'], 
@@ -344,22 +343,23 @@ def import_samples_from_file(
         err_row_sample_names = {}
         err_sample_name_indices = {}
         for row_idx, row in df.iterrows():
-            sample_name = row.get('name')
-            err_sample_indices[name] = row_idx
-            err_sample_names[idx] = name
+            sample_name = row.get('id')
+            err_sample_name_indices[sample_name] = row_idx
+            err_row_sample_names[row_idx] = sample_name
 
         for e in errors:
-            if e.column!=None and e.key==None:
-                e.key = err_col_keys[e.key]
-            if e.column==None and e.key!=None:
-                e.column = err_key_indices[e.column]
-            if e.row!=None and e.sample_name==None:
-                e.sample_name = err_row_sample_names[e.sample_name]
-            if e.row==None and e.sample_name!=None:
-                e.row = err_sample_indices[e.row]
+            if e.column!=None and e.key==None and e.column in err_col_keys:
+                e.key = err_col_keys[e.column]
+            if e.column==None and e.key!=None and e.key in err_key_indices:
+                e.column = err_key_indices[e.key]
+            if e.row!=None and e.sample_name==None and e.row in err_row_sample_names:
+                e.sample_name = err_row_sample_names[e.row]
+            if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
+                e.row = err_sample_name_indices[e.sample_name]
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
+
     return {
         "samples": saved_samples,
         "description": params.get('description')
