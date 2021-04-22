@@ -54,16 +54,17 @@ def load_file(
     """"""
     if sample_file.endswith('.tsv'):
         # df = pd.read_csv(sample_file, sep="\t", parse_dates=date_columns, header=header_row_index)
-        df = pd.read_csv(sample_file, sep="\t", header=header_row_index)
+        df = pd.read_csv(sample_file, sep="\t", header=header_row_index, skip_blank_lines=False)
     elif sample_file.endswith('.csv'):
         # df = pd.read_csv(sample_file, parse_dates=date_columns, header=header_row_index)
-        df = pd.read_csv(sample_file, header=header_row_index)
+        df = pd.read_csv(sample_file, header=header_row_index, skip_blank_lines=False)
     elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
-        df = pd.read_excel(sample_file, header=header_row_index)
+        df = pd.read_excel(sample_file, header=header_row_index, skip_blank_lines=False)
     else:
         raise ValueError(f"File {os.path.basename(sample_file)} is not in "
                          f"an accepted file format, accepted file formats "
                          f"are '.xls' '.csv' '.tsv' or '.xlsx'")
+    df.dropna(how='all', inplace=True)
     return df
 
 
@@ -75,7 +76,8 @@ def _produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names
+    columns_to_input_names,
+    header_row_index
 ):
     """"""
     samples = []
@@ -180,7 +182,7 @@ def _produce_samples(
                 'admin': row.get('admin')
             })
         except SampleContentError as e:
-            e.row = idx
+            e.row = header_row_index + 1 + idx
             errors.append(e)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names], errors
@@ -256,17 +258,17 @@ def import_samples_from_file(
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
 
-    # Check that the default or specified ID Field is present
-    id_field = upload_key_format(params['id_field']) if params.get('id_field') else "id"
-    if id_field not in list(df.columns):
-        raise ValueError(
-            f"The expected ID field column \"{id_field}\" could not be found. "
-            "Adjust your parameters or input such that the following are correct:\n"
-            f"- File Format: {params['file_format']} (the format to which your sample data conforms)\n"
-            f"- ID Field: {params['id_field']}\n (the header of the column containing your IDs)"
-            f"- Headers Row: {params['header_row_index']} (the row # where column headers are located in your spreadsheet)"
-        )
-    elif id_field != "id":
+    #TODO: Make sure to check all possible ID fields, even when not parameterized
+    if params.get('id_field'):
+        id_field = upload_key_format(params.get('id_field'))
+        if id_field not in list(df.columns):
+            raise ValueError(
+                f"The expected ID field column \"{id_field}\" could not be found. "
+                "Adjust your parameters or input such that the following are correct:\n"
+                f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
+                f"- ID Field: {params.get('id_field','id')}\n (the header of the column containing your IDs)\n"
+                f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
+            )
         # here we rename whatever the id field was/is to "id"
         columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
         df.rename(columns={id_field: "id"}, inplace=True)
@@ -316,7 +318,8 @@ def import_samples_from_file(
             sample_url,
             token,
             input_sample_set['samples'],
-            columns_to_input_names
+            columns_to_input_names,
+            header_row_index
         )
         errors += produce_errors
     
@@ -343,9 +346,10 @@ def import_samples_from_file(
         err_row_sample_names = {}
         err_sample_name_indices = {}
         for row_idx, row in df.iterrows():
+            row_pos = header_row_index + 1 + row_idx
             sample_name = row.get('id')
-            err_sample_name_indices[sample_name] = row_idx
-            err_row_sample_names[row_idx] = sample_name
+            err_sample_name_indices[sample_name] = row_pos
+            err_row_sample_names[row_pos] = sample_name
 
         for e in errors:
             if e.column!=None and e.key==None and e.column in err_col_keys:
