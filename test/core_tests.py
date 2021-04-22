@@ -250,8 +250,8 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertTrue(ret.get('errors'))
         with open(os.path.join(self.curr_dir, 'data', 'error_match.json')) as f:
             expected_errors = json.load(f)
-        for sample_name, errors in ret['errors'].items():
-            self.assertEqual(expected_errors.get(sample_name), errors)
+        for error in ret['errors']:
+            self.assertEqual(expected_errors.get(error.sample_name), error.message)
 
     # @unittest.skip('x')
     def test_export(self):

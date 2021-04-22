@@ -262,9 +262,9 @@ def import_samples_from_file(
         raise ValueError(
             f"The expected ID field column \"{id_field}\" could not be found. "
             "Adjust your parameters or input such that the following are correct:\n"
-            "- File Format: {params['file_format']} (the format to which your sample data conforms)\n"
-            "- ID Field: {params['id_field']}\n (the header of the column containing your IDs)"
-            "- Headers Row: {params['header_row_index']} (the row # where column headers are located in your spreadsheet)"
+            f"- File Format: {params['file_format']} (the format to which your sample data conforms)\n"
+            f"- ID Field: {params['id_field']}\n (the header of the column containing your IDs)"
+            f"- Headers Row: {params['header_row_index']} (the row # where column headers are located in your spreadsheet)"
         )
     elif id_field != "id":
         # here we rename whatever the id field was/is to "id"

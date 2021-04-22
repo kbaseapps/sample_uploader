@@ -10,14 +10,21 @@
 		<table style="width:100%">
 			<thead>
 				<tr>
-					<th>Sample name</th>
+					<th>Sample Name</th>
+					<th>Key</th>
+					<th>Row</th>
+					<th>Column</th>
 					<th>Error</th>
 				</tr>
 			</thead>
 			<tbody>
-				{% for item in results %}
+				{% for err in results %}
 				<tr>
-				    <td>{{item}}</td>
+				    <td>{{err.sample_name if err.sample_name is not none else ''}}</td>
+						<td>{{err.key if err.key is not none else ''}}</td>
+						<td>{{err.row if err.row is not none else ''}}</td>
+						<td>{{err.column if err.column is not none else ''}}</td>
+						<td>{{err.message}}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
