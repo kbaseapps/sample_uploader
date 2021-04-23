@@ -77,7 +77,7 @@ def _produce_samples(
     token,
     existing_samples,
     columns_to_input_names,
-    header_row_index
+    first_sample_idx
 ):
     """"""
     samples = []
@@ -108,7 +108,7 @@ def _produce_samples(
         return prev_sample
 
     errors = []
-    for idx, row in df.iterrows():
+    for relative_row_idx, row in df.iterrows():
         try:
             if not row.get('id'):
                 raise SampleContentError(
@@ -182,7 +182,7 @@ def _produce_samples(
                 'admin': row.get('admin')
             })
         except SampleContentError as e:
-            e.row = header_row_index + 1 + idx
+            e.row = first_sample_idx + relative_row_idx
             errors.append(e)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names], errors
@@ -239,6 +239,8 @@ def import_samples_from_file(
     df = load_file(sample_file, header_row_index, date_columns)
 
     errors = []
+    first_sample_idx = header_row_index + 1
+
     # change columns to upload format
     columns_to_input_names = {}
     for col_idx, col_name in enumerate(df.columns):
@@ -319,7 +321,7 @@ def import_samples_from_file(
             token,
             input_sample_set['samples'],
             columns_to_input_names,
-            header_row_index
+            first_sample_idx
         )
         errors += produce_errors
     
@@ -345,8 +347,8 @@ def import_samples_from_file(
 
         err_row_sample_names = {}
         err_sample_name_indices = {}
-        for row_idx, row in df.iterrows():
-            row_pos = header_row_index + 1 + row_idx
+        for relative_row_idx, row in df.iterrows():
+            row_pos =  first_sample_idx + relative_row_idx
             sample_name = row.get('id')
             err_sample_name_indices[sample_name] = row_pos
             err_row_sample_names[row_pos] = sample_name
