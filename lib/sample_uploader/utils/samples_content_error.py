@@ -29,3 +29,6 @@ class SampleContentError(Exception):
         row = self.row if self.row is not None else ""
         column = self.column if self.column is not None else ""
         return f"({sample},{key})[{row},{column}]: {self.message}"
+
+    def toJSONable(self):
+        return self.locatedMessage()

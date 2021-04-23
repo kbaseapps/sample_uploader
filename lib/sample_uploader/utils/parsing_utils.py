@@ -6,7 +6,7 @@ from sample_uploader.utils.samples_content_error import SampleContentError
 def upload_key_format(key):
     try:
         return "_".join(key.strip().lower().replace("(", "").replace(")", "").replace("/", "_").split())
-    except SampleContentError as err:
+    except Exception as err:
         raise SampleContentError(f"could not change key \"{key}\" to upload format - {err}")
 
 
