@@ -1,5 +1,10 @@
 # sample_uploader release notes
 =========================================
+0.0.16
+------
+* Added positional information to sample validation errors
+* Improved error text
+
 0.0.15
 ------
 * Adding functionality to import specific IGSN from the SESAR web service

@@ -41,9 +41,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.14"
-    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "fddb10ca67368def8437569f8157b71b59f41e1c"
+    VERSION = "0.0.16"
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
+    GIT_COMMIT_HASH = "5f7cee0865c096feffdcae4c06df7be7b6ac6295"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -163,7 +163,7 @@ class sample_uploader:
             )
         else:
             raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples. "
-                             "File of format {params.get('file_format')} not supported.")
+                             "File of format {params.get('file_format')} is not supported.")
 
         file_links = []
         sample_set_ref = None
@@ -210,7 +210,7 @@ class sample_uploader:
                 if os.path.isfile(os.path.join('/staging', sample_file)):
                     sample_file = os.path.join('/staging', sample_file)
                 else:
-                    raise ValueError(f"input file {sample_file} does not exist.")
+                    raise ValueError(f"Input file {sample_file} does not exist.")
             sample_file_copy = os.path.join(self.scratch, os.path.basename(sample_file))
             shutil.copy(sample_file, sample_file_copy)
             file_links.append({
