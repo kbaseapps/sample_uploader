@@ -215,13 +215,13 @@ def format_input_file(df, column_mapping, columns_to_input_names, aliases):
     if map_aliases:
         df = df.rename(columns=map_aliases)
 
-    if column_mapping:
-        df = df.rename(columns=column_mapping)
+    # if column_mapping:
+    #     df = df.rename(columns=column_mapping)
 
-    for key in column_mapping:
-        if key in columns_to_input_names:
-            val = columns_to_input_names.pop(key)
-            columns_to_input_names[column_mapping[key]] = val
+    # for key in column_mapping:
+    #     if key in columns_to_input_names:
+    #         val = columns_to_input_names.pop(key)
+    #         columns_to_input_names[column_mapping[key]] = val
 
     return df, columns_to_input_names
 

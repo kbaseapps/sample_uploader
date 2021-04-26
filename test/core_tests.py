@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import unittest
 import requests
@@ -180,8 +181,8 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
-        assert set(sample_ids) == set(igsns)
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
         sample_names = [sample['name'] for sample in samples]
@@ -203,8 +204,8 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
-        assert set(sample_ids) == set(igsns)
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
         sample_names = [sample['name'] for sample in samples]
@@ -226,8 +227,8 @@ class sample_uploaderTest(unittest.TestCase):
 
         sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
 
-        sample_id = sample['node_tree'][0]['id']
-        assert sample_id == igsns
+        sample_igsn = sample['node_tree'][0]['meta_controlled']['igsn']['value']
+        assert sample_igsn == igsns
 
         expected_sample_names = 'PB-Low-5'
         sample_name = sample['name']
