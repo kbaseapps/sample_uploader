@@ -310,7 +310,6 @@ def import_samples_from_file(
         groups = SAMP_SERV_CONFIG['validators']
 
         cols = list(set(df.columns) - set(REGULATED_COLS))
-        sample_url = get_sample_service_url(sw_url)
         samples, existing_samples, produce_errors = _produce_samples(
             df,
             cols,
