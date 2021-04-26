@@ -145,7 +145,7 @@ class sample_uploaderTest(unittest.TestCase):
             name = samp1['name']
             sample1 = get_sample(samp1, self.sample_url, self.ctx['token'])
             sample2 = get_sample(ss2.get(samp1['name']), self.sample_url, self.ctx['token'])
-            if name == 'Sample 2':
+            if name == 's2':
                 self._compare_sample(sample1, sample2)
             else:
                 try:
@@ -153,13 +153,14 @@ class sample_uploaderTest(unittest.TestCase):
                     assert sample2['id'] == sample1['id']
                     node2 = sample2['node_tree'][0]
                     node1 = sample1['node_tree'][0]
-                    if name == 'Sample 1':
+                    if name == 's1':
                         assert node2['meta_user']['jamboree']['value'] == 'user data'
-                    elif name == 'Sample 3':
+                    elif name == 's3':
                         assert node2['meta_controlled']['latitude']['value'] == 30
                 except:
                     raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
+    # @unittest.skip('x')
     def test_IGSN_sample_importer(self):
         igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
 
