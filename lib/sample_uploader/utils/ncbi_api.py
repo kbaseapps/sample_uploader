@@ -3,6 +3,7 @@ import pandas as pd
 import xmltodict
 import datetime
 import logging as log
+import time
 
 """
 NCBI REST web service API
@@ -33,6 +34,7 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
 
     log.info('Start requesting NCBI sample from: {}'.format(url))
     try:
+        time.sleep(1)
         resp = requests.get(url=url)
         resp.raise_for_status()
     except Exception as err:

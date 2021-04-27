@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import csv
 import logging
+import time
 
 """
 SESAR REST web service API
@@ -42,6 +43,7 @@ def retrieve_sample_from_igsn(igsn):
     url = '{}/{}'.format(_get_igsn_endpoint(), igsn)
 
     try:
+        time.sleep(1)
         resp = requests.get(url=url, headers=headers)
     except Exception as err:
         raise RuntimeError(f'Failed to connect to server\n{err}')
