@@ -66,7 +66,7 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
             'output_format': "",
-            'id_field': "test id field",
+            'name_field': "test id field",
             'incl_input_in_output': 1,
             'share_within_workspace': 1,
         }
@@ -278,7 +278,7 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': result_file_path,
             'file_format': "sesar",
             'header_row_index': 2,
-            'id_field': 'test id field',
+            'name_field': 'test id field',
             'set_name': 'reupload_test',
             'description': "this is a test sample set.",
             "incl_input_in_output": 1

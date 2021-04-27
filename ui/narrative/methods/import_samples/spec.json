@@ -70,7 +70,7 @@
 
         },
         {
-            "id": "id_field",
+            "id": "name_field",
             "optional": true,
             "advanced": true,
             "allow_multiple": false,
@@ -230,8 +230,8 @@
                     "input_parameter": "set_name",
                     "target_property": "set_name"
                 },{
-                    "input_parameter": "id_field",
-                    "target_property": "id_field"
+                    "input_parameter": "name_field",
+                    "target_property": "name_field"
                 },{
                     "input_parameter": "header_row_index",
                     "target_property": "header_row_index"

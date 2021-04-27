@@ -68,11 +68,21 @@ default_aliases = {
         "sampleid"
     ],
     'latitude': [
-        "lat"
+        "lat",
+        "geographical latitude",
+        "geographical lat",
+        "geo lat",
+        "geo latitude"
     ],
     'longitude': [
         "long",
-        "lon"
+        "lon",
+        "geographical lon",
+        "geographical long",
+        "geographical longitude",
+        "geo lon",
+        "geo long",
+        "geo longitude"
     ]
 }
 
