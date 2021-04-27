@@ -242,8 +242,8 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "enigma",
-            'header_row_index': 2,
+            'file_format': "ENIGMA",
+            'header_row_index': 6,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
             'prevalidate': 1,
@@ -253,8 +253,10 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertTrue(ret.get('errors'))
         with open(os.path.join(self.curr_dir, 'data', 'error_match.json')) as f:
             expected_errors = json.load(f)
-        for sample_name, errors in ret['errors'].items():
-            self.assertEqual(expected_errors.get(sample_name), errors)
+        for error in ret['errors']:
+            expected = expected_errors.get(error.sample_name)
+            self.assertEqual(expected['message'], error.message)
+            self.assertEqual(expected['csv_row'], error.row)
 
     # @unittest.skip('x')
     def test_export(self):

@@ -1,6 +1,15 @@
-validation error file,ontology,ontology,ontology,number
-name,biome,material,feature,latitude
-biome_err,ENVO:01001110,ENVO:00002982,ENVO:00000130,0
-material_err,ENVO:01000189,ENVO:01000813,ENVO:00000130,88
-fear_err,ENVO:01000189,ENVO:00002982,ENVO:00010483,-22
-outta_range,ENVO:01000189,ENVO:00002982,ENVO:00000130,-90.1
+just some, junky pre-header nonsense
+
+empty lines were added for sample error CSV position tests
+
+validation error file,,ontology,ontology,ontology,number
+sample name,id,biome,material,feature,latitude
+biome error,biome_err,ENVO:01001110,ENVO:00002982,ENVO:00000130,0
+
+material error,material_err,ENVO:01000189,ENVO:01000813,ENVO:00000130,88
+feature error,fear_err,ENVO:01000189,ENVO:00002982,ENVO:00010483,-22
+
+
+
+
+out or range error,outta_range,ENVO:01000189,ENVO:00002982,ENVO:00000130,-90.1

@@ -1,12 +1,13 @@
 # utilities for parsing data.
 import pandas as pd
+from sample_uploader.utils.samples_content_error import SampleContentError
 
 
 def upload_key_format(key):
     try:
         return "_".join(key.strip().lower().replace("(", "").replace(")", "").replace("/", "_").split())
     except Exception as err:
-        raise Exception(f"could not change key \"{key}\" to upload format - {err}")
+        raise SampleContentError(f"could not change key \"{key}\" to upload format - {err}")
 
 
 def check_value_in_list(val, array, return_idx=False):

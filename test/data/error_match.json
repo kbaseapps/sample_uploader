@@ -1,14 +1,18 @@
 {
-  "biome_err": [
-    "Key biome: Metadata value at key value does not have envo_ontology ancestor term ENVO:00000428"
-  ],
-  "material_err": [
-    "Key ENIGMA:material: Metadata value at key value does not have envo_ontology ancestor term ENVO:00010483"
-  ],
-  "fear_err": [
-    "Key feature: Metadata value at key value does not have envo_ontology ancestor term ENVO:01000813"
-  ],
-  "outta_range": [
-    "Key latitude: Metadata value at key value is not within the range [-90.0, 90.0]"
-  ]
+  "biome_err": {
+    "message":"Validation failed: \"Metadata value at key value does not have envo_ontology ancestor term ENVO:00000428\"",
+    "csv_row":6
+  },
+  "material_err": {
+    "message":"Validation failed: \"Metadata value at key value does not have envo_ontology ancestor term ENVO:00010483\"",
+    "csv_row":8
+  },
+  "fear_err": {
+    "message":"Validation failed: \"Metadata value at key value does not have envo_ontology ancestor term ENVO:01000813\"",
+    "csv_row":9
+  },
+  "outta_range": {
+    "message":"Validation failed: \"Metadata value at key value is not within the range [-90.0, 90.0]\"",
+    "csv_row":14
+  }
 }
