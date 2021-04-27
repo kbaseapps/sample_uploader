@@ -11,7 +11,7 @@
     },
     "parameters": [
         {
-            "id": "igsns",
+            "id": "external_ids",
             "optional" : false,
             "advanced" : false,
             "allow_multiple" : false,
@@ -171,8 +171,8 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "igsns",
-                    "target_property": "igsns"
+                    "input_parameter": "external_ids",
+                    "target_property": "external_ids"
                 },{
                     "input_parameter": "set_name",
                     "target_property": "set_name"

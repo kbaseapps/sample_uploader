@@ -22,7 +22,7 @@ icon: sample_uploader.png
 # Configure the display and description of parameters
 #
 parameters :
-    igsns:
+    external_ids:
         ui-name : |
             IGSN
         short-hint : |

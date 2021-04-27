@@ -82,6 +82,7 @@ def igsns_to_csv(igsns, sample_csv):
 
     samples = [retrieve_sample_from_igsn(igsn) for igsn in igsns]
     df = pd.DataFrame.from_dict(samples)
+    df.set_index('igsn', inplace=True)
 
     # write SESAR header
     logging.info('Start writting SESAR header to csv: {}'.format(sample_csv))
