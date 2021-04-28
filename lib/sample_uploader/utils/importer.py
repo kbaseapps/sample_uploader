@@ -239,6 +239,7 @@ def import_samples_from_file(
     df = load_file(sample_file, header_row_index, date_columns)
 
     errors = []
+    error_table_html = ""
     first_sample_idx = header_row_index + 1
 
     # change columns to upload format
@@ -362,6 +363,18 @@ def import_samples_from_file(
                 e.sample_name = err_row_sample_names[e.row]
             if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
                 e.row = err_sample_name_indices[e.sample_name]
+
+        # Create a styled HTML table of error locations
+        errStyle = pd.DataFrame(data='', columns=df.columns, index=df.index)
+        print(df)
+        elocs = set()
+        for e in errors:
+            if e.column!=None and e.row!=None:
+                elocs.add(((e.row - first_sample_idx), e.column))
+        error_table_html = df.style.apply(
+                lambda r: ['background-color: red' if ((r.name, c) in elocs) else '' for (c, _) in enumerate(r)],
+                axis=1
+            ).hide_index().render()
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
@@ -369,4 +382,4 @@ def import_samples_from_file(
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors
+    }, errors, error_table_html

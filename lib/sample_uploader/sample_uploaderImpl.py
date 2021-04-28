@@ -117,7 +117,7 @@ class sample_uploader:
             # ENIGMA_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
             # )
-            sample_set, errors = import_samples_from_file(
+            sample_set, errors, error_table_html = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -134,7 +134,7 @@ class sample_uploader:
             # SESAR_mappings['verification_mapping'].update(
             #     {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
             # )
-            sample_set, errors = import_samples_from_file(
+            sample_set, errors, error_table_html = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -148,7 +148,7 @@ class sample_uploader:
                 header_row_index
             );
         elif params.get('file_format') == 'KBASE':
-            sample_set, errors = import_samples_from_file(
+            sample_set, errors, error_table_html = import_samples_from_file(
                 params,
                 self.sw_url,
                 self.workspace_url,
@@ -171,7 +171,7 @@ class sample_uploader:
 
         if errors:
             # create UI to display the errors clearly
-            html_link = _error_ui(errors, self.scratch)
+            html_link = _error_ui(errors, error_table_html, self.scratch)
         else:
             # only save object if there are no errors
             obj_info = self.dfu.save_objects({
