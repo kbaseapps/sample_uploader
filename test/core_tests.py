@@ -66,7 +66,7 @@ class sample_uploaderTest(unittest.TestCase):
             'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
             'output_format': "",
-            'name_field': "test id field",
+            'name_field': "test name field",
             'incl_input_in_output': 1,
             'share_within_workspace': 1,
         }
@@ -242,7 +242,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 6,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
@@ -278,7 +278,8 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': result_file_path,
             'file_format': "sesar",
             'header_row_index': 2,
-            'name_field': 'test id field',
+            # does not require name field specification.
+            # 'name_field': 'test name field',
             'set_name': 'reupload_test',
             'description': "this is a test sample set.",
             "incl_input_in_output": 1

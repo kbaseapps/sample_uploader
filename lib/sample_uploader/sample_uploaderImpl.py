@@ -124,7 +124,6 @@ class sample_uploader:
             self.workspace_url,
             username,
             ctx['token'],
-            mappings[str(params.get('file_format')).lower()].get('column_mapping', {}),
             mappings[str(params.get('file_format')).lower()].get('groups', []),
             mappings[str(params.get('file_format')).lower()].get('date_columns', []),
             mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),

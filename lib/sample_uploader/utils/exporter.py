@@ -26,12 +26,16 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
     else:
         raise ValueError(f"SESAR only file format supported for export")
 
-    output = {"kbase_sample_id": [], "sample name": []}
+    output = {"kbase_sample_id": [], "name": []}
     for samp_id in sample_set['samples']:
         sample = get_sample(samp_id, sample_url, token)
         output['kbase_sample_id'].append(sample['id'])
-        output['sample name'].append(sample['name'])
-        used_headers = set(['kbase_sample_id', 'name', 'sample name'])
+
+        # we need to check if there is another match in there.
+        sample_name = sample['name']
+
+        output['name'].append(sample['name'])
+        used_headers = set(['kbase_sample_id', 'name'])
         for node in sample['node_tree']:
             # get 'source_meta' information
             source_meta = node.get('source_meta', [])
@@ -63,6 +67,7 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
                             if idx is not None and not groups[idx]['units'].startswith('str:'):
                                 output = add_to_output(output, groups[idx]['units'], val)
 
+    # add any missing lines to the end.
     for key in output:
         output[key] += ["" for _ in range(len(output['kbase_sample_id']) - len(output[key]))]
 

@@ -115,6 +115,7 @@ def _produce_samples(
         return prev_sample
 
     errors = []
+    cols = list(set(df.columns) - set(REQUIRED_COLS))
     for relative_row_idx, row in df.iterrows():
         try:
             # only required field is 'name'
@@ -124,15 +125,9 @@ def _produce_samples(
                     key='name',
                     sample_name=row.get('name')
                 )
-            name = str(row.get('name'))
+            name = str(row.pop('name'))
             if 'name' in cols:
                 cols.pop(cols.index('name'))
-            # if not row.get('id'):
-            #     raise SampleContentError(
-            #         f"Bad sample ID \"{row.get('id')}\" evaluates as false",
-            #         key='id',
-            #         sample_name=row.get('name')
-            #     )
 
             # check if a 'kbase_sample_id' column is specified
             kbase_sample_id = None
@@ -140,17 +135,10 @@ def _produce_samples(
                 kbase_sample_id = str(row.pop('kbase_sample_id'))
                 if 'kbase_sample_id' in cols:
                     cols.pop(cols.index('kbase_sample_id'))
-            # use name field as name, if there is non-reuse id.
-            # if row.get('name'):
-            #     name = str(row['name'])
-            # else:
-            #     name = str(row['id'])
             if row.get('parent_id'):
                 parent = str(row.pop('parent_id'))
                 if 'parent_id' in cols:
                     cols.pop(cols.index('parent_id'))
-            # if 'id' in cols:
-            #     cols.pop(cols.index('id'))
             controlled_metadata = generate_controlled_metadata(
                 row,
                 column_groups
@@ -169,7 +157,7 @@ def _produce_samples(
 
             sample = {
                 'node_tree': [{
-                    "id": str(row['id']),
+                    "id": name,
                     "parent": None,
                     "type": "BioReplicate",
                     "meta_controlled": controlled_metadata,
@@ -211,9 +199,6 @@ def _save_samples(samples, acls, sample_url, token):
         prev_sample = data['prev_sample']
         name = data['name']
 
-        # print('-'*80)
-        # print('samples to be saved', json.dumps(sample))
-        # print('-'*80)
         sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
 
         saved_samples.append({
@@ -285,7 +270,6 @@ def import_samples_from_file(
     workspace_url,
     username,
     token,
-    column_mapping,
     column_groups,
     date_columns,
     column_unit_regex,
@@ -318,19 +302,8 @@ def import_samples_from_file(
         # here we rename whatever the id field was/is to "id"
         columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
         df.rename(columns={name_field: "name"}, inplace=True)
-        # remove "id" rename field from column mapping if exists
-        if column_mapping:
-            column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
 
     if not errors:
-        if column_mapping:
-            df = df.rename(columns=column_mapping)
-        # redundant, even harmful if things get out of sync
-        for key in column_mapping:
-            if key in columns_to_input_names:
-                val = columns_to_input_names.pop(key)
-                columns_to_input_names[column_mapping[key]] = val
-
         if params['file_format'].lower() in ['sesar', "enigma"]:
             if 'material' in df.columns:
                 df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
