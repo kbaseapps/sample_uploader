@@ -51,14 +51,14 @@ def test__process_lat_lon_str():
     bad_lat_lon_str = 'A N B W'
     latitude, longitude = _process_lat_lon_str(bad_lat_lon_str)
 
-    assert latitude == '0'
-    assert longitude == '0'
+    assert latitude is None
+    assert longitude is None
 
     bad_lat_lon_str = 'some content'
     latitude, longitude = _process_lat_lon_str(bad_lat_lon_str)
 
-    assert latitude == '0'
-    assert longitude == '0'
+    assert latitude is None
+    assert longitude is None
 
 
 def test_retrieve_sample_from_ncbi():

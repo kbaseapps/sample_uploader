@@ -93,19 +93,16 @@ def _process_lat_lon_str(lat_lon):
 
         if not _is_float(latitude):
             log.warning('Parsed latitude string {} is not a digit'.format(latitude))
-            log.warning('Setting latitude to 0')
-            latitude = '0'
+            latitude = None
 
         if not _is_float(longitude):
             log.warning('Parsed longitude string {} is not a digit'.format(latitude))
-            log.warning('Setting longitude to 0')
-            longitude = '0'
+            longitude = None
 
     except Exception as err:
         log.warning('Cannot parse lat_lon string\n{}\n{}'.format(lat_lon, err))
-        log.warning('Setting latitude and longitude to 0')
-        latitude = '0'
-        longitude = '0'
+        latitude = None
+        longitude = None
 
     return latitude, longitude
 
@@ -153,8 +150,10 @@ def _process_sample_content(sample_content):
         attribute_name = attribute.get('@attribute_name')
         if attribute_name == 'lat_lon':
             latitude, longitude = _process_lat_lon_str(attribute.get('#text'))
-            sample_dict['latitude'] = latitude
-            sample_dict['longitude'] = longitude
+            if latitude is not None:
+                sample_dict['latitude'] = latitude
+            if longitude is not None:
+                sample_dict['longitude'] = longitude
         else:
             sample_dict[attribute_name] = attribute.get('#text')
 
