@@ -34,7 +34,7 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
 
     log.info('Start requesting NCBI sample from: {}'.format(url))
     try:
-        time.sleep(1)
+        time.sleep(1)  # in case of server overload, NCBI has 3 query per second limit
         resp = requests.get(url=url)
         resp.raise_for_status()
     except Exception as err:

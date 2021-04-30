@@ -43,7 +43,7 @@ def retrieve_sample_from_igsn(igsn):
     url = '{}/{}'.format(_get_igsn_endpoint(), igsn)
 
     try:
-        time.sleep(1)
+        time.sleep(1)  # in case of server overload
         resp = requests.get(url=url, headers=headers)
     except Exception as err:
         raise RuntimeError(f'Failed to connect to server\n{err}')
