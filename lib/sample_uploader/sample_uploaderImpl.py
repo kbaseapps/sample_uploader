@@ -57,6 +57,7 @@ class sample_uploader:
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
+        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
@@ -453,7 +454,7 @@ class sample_uploader:
         #BEGIN link_reads
         logging.info(params)
 
-        ss = SampleService(self.sample_url)  # , service_ver='dev')
+        ss = SampleService(self.sample_url)
 
         sample_set_ref = params['sample_set_ref']
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']

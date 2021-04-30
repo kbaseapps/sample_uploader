@@ -110,10 +110,6 @@ def update_acls(sample_url, sample_id, acls, token):
     return resp.status_code
 
 
-def get_sample_service_url(kbase_endpoint):
-    return kbase_endpoint + '/sampleservice'
-
-
 def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
     """
     """

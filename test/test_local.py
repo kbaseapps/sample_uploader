@@ -12,7 +12,7 @@ from configparser import ConfigParser
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
+from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 
 class sample_uploaderTest(unittest.TestCase):
@@ -48,7 +48,7 @@ class sample_uploaderTest(unittest.TestCase):
         # cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         # cls.wiz_url = cls.cfg['srv-wiz-url']
-        # cls.sample_url = get_sample_service_url(cls.wiz_url)
+        cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
