@@ -106,22 +106,6 @@ def update_acls(sample_url, sample_id, acls, token):
     return resp.status_code
 
 
-def get_sample_service_url(sw_url):
-    """"""
-    payload = {
-        "method": "ServiceWizard.get_service_status",
-        "id": '',
-        "params": [{"module_name":"SampleService", "version": "dev"}],  # TODO: change to beta/release
-        "version": "1.1"
-    }
-
-    sw_resp  = requests.post(url=sw_url, data=json.dumps(payload))
-    wiz_resp = sw_resp.json()
-    if wiz_resp.get('error'):
-        raise RuntimeError(f"ServiceWizard Error - {wiz_resp['error']}")
-    return wiz_resp['result'][0]['url']
-
-
 def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
     """
     """

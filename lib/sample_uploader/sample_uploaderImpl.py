@@ -16,7 +16,6 @@ from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    get_sample_service_url,
     get_sample,
     format_sample_as_row,
 )
@@ -58,6 +57,7 @@ class sample_uploader:
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
+        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
@@ -119,7 +119,7 @@ class sample_uploader:
             # )
             sample_set, errors = import_samples_from_file(
                 params,
-                self.sw_url,
+                self.sample_url,
                 self.workspace_url,
                 username,
                 ctx['token'],
@@ -136,7 +136,7 @@ class sample_uploader:
             # )
             sample_set, errors = import_samples_from_file(
                 params,
-                self.sw_url,
+                self.sample_url,
                 self.workspace_url,
                 username,
                 ctx['token'],
@@ -150,7 +150,7 @@ class sample_uploader:
         elif params.get('file_format') == 'KBASE':
             sample_set, errors = import_samples_from_file(
                 params,
-                self.sw_url,
+                self.sample_url,
                 self.workspace_url,
                 username,
                 ctx['token'],
@@ -392,7 +392,6 @@ class sample_uploader:
         sample_set_ref = params.get('sample_set_ref')
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']
-        sample_url = get_sample_service_url(self.sw_url)
 
         acls = {
             'read': [],
@@ -413,7 +412,7 @@ class sample_uploader:
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
-            status = update_acls(sample_url, sample_id, acls, ctx['token'])
+            status = update_acls(self.sample_url, sample_id, acls, ctx['token'])
         output = {"status": status}
         #END update_sample_set_acls
 
@@ -443,14 +442,13 @@ class sample_uploader:
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']
         sample_set_name = ret['info'][1]
-        sample_url = get_sample_service_url(self.sw_url)
 
         export_package_dir = os.path.join(self.scratch, "output")
         if not os.path.isdir(export_package_dir):
             os.mkdir(export_package_dir)
         output_file = os.path.join(export_package_dir, '_'.join(sample_set_name.split()) + ".csv")
 
-        sample_set_to_output(sample_set, sample_url, ctx['token'], output_file, output_file_format)
+        sample_set_to_output(sample_set, self.sample_url, ctx['token'], output_file, output_file_format)
 
         # package it up
         package_details = self.dfu.package_for_download({
@@ -488,7 +486,7 @@ class sample_uploader:
         #BEGIN link_reads
         logging.info(params)
 
-        ss = SampleService(self.sw_url, service_ver='dev')
+        ss = SampleService(self.sample_url)
 
         sample_set_ref = params['sample_set_ref']
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']
