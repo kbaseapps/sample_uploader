@@ -9,7 +9,7 @@ from configparser import ConfigParser
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
+from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
 
@@ -45,13 +45,23 @@ class Test(unittest.TestCase):
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         cls.wiz_url = cls.cfg['srv-wiz-url']
-        cls.sample_url = get_sample_service_url(cls.wiz_url)
+        cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
-        cls.ss = SampleService(cls.wiz_url, token=token, service_ver='beta')
+        cls.ss = SampleService(cls.sample_url, token=token)
+        if 'appdev' in cls.cfg['kbase-endpoint']:
+            cls.ReadLinkingTestSampleSet = '44442/4/1'
+            cls.rhodo_art_jgi_reads = '44442/8/1'
+            cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
+            cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
+        elif 'ci' in cls.cfg['kbase-endpoint']:
+            cls.ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
+            cls.rhodo_art_jgi_reads = '59862/8/4' # paired
+            cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
+            cls.rhodobacter_art_q50_SE_reads = '59862/5/1' # single
 
     @classmethod
     def tearDownClass(cls):
@@ -61,15 +71,15 @@ class Test(unittest.TestCase):
 
     def test_link_reads(self):
         links_in = [
-            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'reads_ref': rhodo_art_jgi_reads},
-            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'reads_ref': rhodobacter_art_q20_int_PE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'reads_ref': rhodobacter_art_q50_SE_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'reads_ref': self.rhodo_art_jgi_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'reads_ref': self.rhodobacter_art_q20_int_PE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'reads_ref': self.rhodobacter_art_q50_SE_reads},
         ]
 
         ret = self.serviceImpl.link_reads(
             self.ctx, {
                 'workspace_name': self.wsName,
-                'sample_set_ref': ReadLinkingTestSampleSet,
+                'sample_set_ref': self.ReadLinkingTestSampleSet,
                 'links': links_in, 
             })
 
