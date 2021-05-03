@@ -1,5 +1,9 @@
 # sample_uploader release notes
 =========================================
+0.0.17
+------
+* Adding ability to import samples from NCBI web service
+
 0.0.16
 ------
 * Added positional information to sample validation errors
