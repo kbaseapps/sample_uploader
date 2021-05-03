@@ -41,11 +41,12 @@ def error_ui(errors, error_table_html, scratch):
     scratch: kbase scratch space
     """
     template = env.get_template('index.html')
-    html_path = os.path.join(scratch, 'index.html')
+    site_path = os.path.join(scratch, 'report_site')
+    html_path = os.path.join(site_path, 'index.html')
     asset_path = '/kb/module/data/error_ui_static'
     shutil.copytree(
         asset_path,
-        os.path.join(scratch, 'static')
+        os.path.join(site_path, 'static')
     )
     rendered_html = template.render(
         results=errors,
@@ -53,4 +54,4 @@ def error_ui(errors, error_table_html, scratch):
     )
     with open(html_path, 'w') as f:
         f.write(rendered_html)
-    return html_path
+    return site_path
