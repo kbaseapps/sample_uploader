@@ -20,6 +20,7 @@ from sample_uploader.utils.sample_utils import (
     format_sample_as_row,
 )
 from sample_uploader.utils.sesar_api import igsns_to_csv
+from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
 import pandas as pd
@@ -41,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.16"
-    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "5f7cee0865c096feffdcae4c06df7be7b6ac6295"
+    VERSION = "0.0.17"
+    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
+    GIT_COMMIT_HASH = "626ac38055547587851f7700fe9a7a4aab8f7b97"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -226,16 +227,16 @@ class sample_uploader:
 
     def import_samples_from_IGSN(self, ctx, params):
         """
-        :param params: instance of type "ImportSampleIGSNInputs" ->
-           structure: parameter "sample_set_ref" of String, parameter "igsns"
-           of list of String, parameter "workspace_name" of String, parameter
-           "workspace_id" of Long, parameter "description" of String,
-           parameter "set_name" of String, parameter "output_format" of
-           String, parameter "taxonomy_source" of String, parameter
-           "num_otus" of Long, parameter "incl_seq" of Long, parameter
-           "otu_prefix" of String, parameter "share_within_workspace" of
-           Long, parameter "prevalidate" of Long, parameter
-           "incl_input_in_output" of Long
+        :param params: instance of type "ImportExternalSampleInputs" ->
+           structure: parameter "sample_set_ref" of String, parameter
+           "external_ids" of list of String, parameter "workspace_name" of
+           String, parameter "workspace_id" of Long, parameter "description"
+           of String, parameter "set_name" of String, parameter
+           "output_format" of String, parameter "taxonomy_source" of String,
+           parameter "num_otus" of Long, parameter "incl_seq" of Long,
+           parameter "otu_prefix" of String, parameter
+           "share_within_workspace" of Long, parameter "prevalidate" of Long,
+           parameter "incl_input_in_output" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
@@ -248,7 +249,7 @@ class sample_uploader:
         # return variables are: output
         #BEGIN import_samples_from_IGSN
 
-        igsns = params.get('igsns')
+        igsns = params.get('external_ids')
         if not igsns:
             raise ValueError('Please provide IGSNs')
 
@@ -279,6 +280,64 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method import_samples_from_IGSN return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def import_samples_from_NCBI(self, ctx, params):
+        """
+        :param params: instance of type "ImportExternalSampleInputs" ->
+           structure: parameter "sample_set_ref" of String, parameter
+           "external_ids" of list of String, parameter "workspace_name" of
+           String, parameter "workspace_id" of Long, parameter "description"
+           of String, parameter "set_name" of String, parameter
+           "output_format" of String, parameter "taxonomy_source" of String,
+           parameter "num_otus" of Long, parameter "incl_seq" of Long,
+           parameter "otu_prefix" of String, parameter
+           "share_within_workspace" of Long, parameter "prevalidate" of Long,
+           parameter "incl_input_in_output" of Long
+        :returns: instance of type "ImportSampleOutputs" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String, parameter "sample_set_ref" of
+           String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN import_samples_from_NCBI
+        ncbi_sample_ids = params.get('external_ids')
+        if not ncbi_sample_ids:
+            raise ValueError('Please provide NCBI sample IDs')
+
+        if isinstance(ncbi_sample_ids, str):
+            if ncbi_sample_ids.isalnum():
+                # single igsn given e.g. 'SAMN03166112'
+                ncbi_sample_ids = [ncbi_sample_ids]
+            else:
+                # multiple igsn given e.g. 'SAMN03166112', 'SAMN04383980'
+                delimiter = csv.Sniffer().sniff(ncbi_sample_ids).delimiter
+                ncbi_sample_ids = [x.strip() for x in ncbi_sample_ids.split(delimiter)]
+
+        logging.info('Start importing samples from NCBI: {}'.format(ncbi_sample_ids))
+
+        sample_file_name = 'ncbi_sample_{}.csv'.format(str(uuid.uuid4()))
+        sample_file_dir = os.path.join(self.scratch, str(uuid.uuid4()))
+        os.makedirs(sample_file_dir)
+        sample_file = os.path.join(sample_file_dir, sample_file_name)
+
+        ncbi_samples_to_csv(ncbi_sample_ids, sample_file)
+
+        params['sample_file'] = sample_file
+        params['file_format'] = 'KBASE'
+
+        output = self.import_samples(ctx, params)[0]
+        #END import_samples_from_NCBI
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method import_samples_from_NCBI return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

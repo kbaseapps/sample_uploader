@@ -162,7 +162,7 @@
         "service-mapping": {
             "url": "",
             "name": "sample_uploader",
-            "method": "import_samples_from_IGSN",
+            "method": "import_samples_from_NCBI",
             "input_mapping": [
                 {
                     "narrative_system_variable": "workspace",

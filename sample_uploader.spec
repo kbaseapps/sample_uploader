@@ -51,7 +51,7 @@ module sample_uploader {
     typedef structure {
         string sample_set_ref;
 
-        list<string> igsns;
+        list<string> external_ids;
         string workspace_name;
         int workspace_id;
         string description;
@@ -66,9 +66,11 @@ module sample_uploader {
         int share_within_workspace;
         int prevalidate;
         int incl_input_in_output;
-    } ImportSampleIGSNInputs;
+    } ImportExternalSampleInputs;
 
-    funcdef import_samples_from_IGSN(ImportSampleIGSNInputs params) returns (ImportSampleOutputs output) authentication required;
+    funcdef import_samples_from_IGSN(ImportExternalSampleInputs params) returns (ImportSampleOutputs output) authentication required;
+
+    funcdef import_samples_from_NCBI(ImportExternalSampleInputs params) returns (ImportSampleOutputs output) authentication required;
 
 
     /*

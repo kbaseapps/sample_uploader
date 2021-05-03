@@ -166,7 +166,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         # test list igsns input
         params = {
-            'igsns': igsns,
+            'external_ids': igsns,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -189,7 +189,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         # test string igsns input with multiple IGSNs
         params = {
-            'igsns': ', '.join(igsns),
+            'external_ids': ', '.join(igsns),
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -213,7 +213,7 @@ class sample_uploaderTest(unittest.TestCase):
         # test string igsns input with single IGSN
         igsns = igsns[0]
         params = {
-            'igsns': igsns,
+            'external_ids': igsns,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -230,6 +230,78 @@ class sample_uploaderTest(unittest.TestCase):
         assert sample_igsn == igsns
 
         expected_sample_names = 'PB-Low-5'
+        sample_name = sample['name']
+        assert expected_sample_names == sample_name
+
+    def test_NCBI_sample_importer(self):
+        ncbi_sample_ids = ['SAMN03166112', 'SAMN04383980', 'SAMN04492225']
+
+        # test list sample id input
+        params = {
+            'external_ids': ncbi_sample_ids,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == len(ncbi_sample_ids)
+
+        samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
+                   for sample_info in samples_info]
+
+        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
+        assert set(sample_ids) == set(ncbi_sample_ids)
+
+        expected_sample_names = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_names = [sample['name'] for sample in samples]
+        assert set(expected_sample_names) == set(sample_names)
+
+        # test multiple sample ids input in str format
+        params = {
+            'external_ids': ', '.join(ncbi_sample_ids),
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == len(ncbi_sample_ids)
+
+        samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
+                   for sample_info in samples_info]
+
+        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
+        assert set(sample_ids) == set(ncbi_sample_ids)
+
+        expected_sample_names = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_names = [sample['name'] for sample in samples]
+        assert set(expected_sample_names) == set(sample_names)
+
+        # test single sample id input
+        ncbi_sample_ids = ncbi_sample_ids[0]
+        params = {
+            'external_ids': ncbi_sample_ids,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == 1
+
+        sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
+
+        sample_id = sample['node_tree'][0]['id']
+        assert sample_id == ncbi_sample_ids
+
+        expected_sample_names = 'Seawater-16'
         sample_name = sample['name']
         assert expected_sample_names == sample_name
 
