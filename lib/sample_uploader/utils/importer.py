@@ -362,7 +362,7 @@ def import_samples_from_file(
         err_sample_name_indices = {}
         for relative_row_idx, row in df.iterrows():
             row_pos =  first_sample_idx + relative_row_idx
-            sample_name = row.get('id')
+            sample_name = row.get('name')
             err_sample_name_indices[sample_name] = row_pos
             err_row_sample_names[row_pos] = sample_name
 
