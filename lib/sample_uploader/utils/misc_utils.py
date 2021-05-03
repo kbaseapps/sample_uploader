@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from installed_clients.WorkspaceClient import Workspace
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -41,6 +42,11 @@ def error_ui(errors, error_table_html, scratch):
     """
     template = env.get_template('index.html')
     html_path = os.path.join(scratch, 'index.html')
+    asset_path = '/kb/module/data/error_ui_static'
+    shutil.copytree(
+        asset_path,
+        os.path.join(scratch, 'static')
+    )
     rendered_html = template.render(
         results=errors,
         table=error_table_html

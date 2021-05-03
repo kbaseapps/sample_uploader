@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
 	<head>
-		<style>
-		table, th, td {border: 1px solid black;}
-		</style>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="static/datatables.min.css">
+		<script src="static/datatables.min.js"></script>
 	</head>
 	<body>
 		<h1> Upload errors </h1>
@@ -34,5 +34,16 @@
 				{% endfor %}
 			</tbody>
 		</table>
+		<script>
+			$(document).ready(()=>{
+				$('.errTableWrapper table').DataTable({
+					dom: 'Bfrtip',
+					buttons: [
+						'excelHtml5',
+						'csvHtml5',
+					]
+				});
+			});
+		</script>
 	</body>
 </html>
