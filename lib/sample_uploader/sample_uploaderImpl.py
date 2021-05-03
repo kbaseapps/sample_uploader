@@ -330,7 +330,7 @@ class sample_uploader:
         ncbi_samples_to_csv(ncbi_sample_ids, sample_file)
 
         params['sample_file'] = sample_file
-        params['file_format'] = 'KBASE'
+        params['file_format'] = 'kbase'
 
         output = self.import_samples(ctx, params)[0]
         #END import_samples_from_NCBI

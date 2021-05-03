@@ -233,6 +233,7 @@ class sample_uploaderTest(unittest.TestCase):
         sample_name = sample['name']
         assert expected_sample_names == sample_name
 
+    # @unittest.skip('x')
     def test_NCBI_sample_importer(self):
         ncbi_sample_ids = ['SAMN03166112', 'SAMN04383980', 'SAMN04492225']
 
@@ -255,9 +256,12 @@ class sample_uploaderTest(unittest.TestCase):
         sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
         assert set(sample_ids) == set(ncbi_sample_ids)
 
-        expected_sample_names = ['Seawater-16', 'SAMN04383980', 'c1-1']
         sample_names = [sample['name'] for sample in samples]
-        assert set(expected_sample_names) == set(sample_names)
+        assert set(ncbi_sample_ids) == set(sample_names)
+
+        expected_sample_descriptions = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_descriptions = [sample['node_tree'][0]['meta_controlled']['description']['value'] for sample in samples]
+        assert set(expected_sample_descriptions) == set(sample_descriptions)
 
         # test multiple sample ids input in str format
         params = {
@@ -278,9 +282,12 @@ class sample_uploaderTest(unittest.TestCase):
         sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
         assert set(sample_ids) == set(ncbi_sample_ids)
 
-        expected_sample_names = ['Seawater-16', 'SAMN04383980', 'c1-1']
         sample_names = [sample['name'] for sample in samples]
-        assert set(expected_sample_names) == set(sample_names)
+        assert set(ncbi_sample_ids) == set(sample_names)
+
+        expected_sample_descriptions = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_descriptions = [sample['node_tree'][0]['meta_controlled']['description']['value'] for sample in samples]
+        assert set(expected_sample_descriptions) == set(sample_descriptions)
 
         # test single sample id input
         ncbi_sample_ids = ncbi_sample_ids[0]
@@ -301,9 +308,12 @@ class sample_uploaderTest(unittest.TestCase):
         sample_id = sample['node_tree'][0]['id']
         assert sample_id == ncbi_sample_ids
 
-        expected_sample_names = 'Seawater-16'
+        expected_sample_description = 'Seawater-16'
         sample_name = sample['name']
-        assert expected_sample_names == sample_name
+        assert sample_name == ncbi_sample_ids
+
+        sample_description = sample['node_tree'][0]['meta_controlled']['description']['value']
+        assert expected_sample_description == sample_description
 
     # @unittest.skip('x')
     def test_error_file(self):
