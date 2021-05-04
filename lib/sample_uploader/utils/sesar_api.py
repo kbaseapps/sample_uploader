@@ -101,5 +101,6 @@ def igsns_to_csv(igsns, sample_csv):
         writer.writerow(['Object Type:', object_type, 'User Code:', user_code])
 
     logging.info('Start writting samples info to csv: {}'.format(sample_csv))
+
     with open(sample_csv, 'a') as f:
         df.to_csv(f)

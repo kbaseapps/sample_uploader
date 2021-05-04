@@ -16,7 +16,7 @@ module sample_uploader {
         string description;
         string set_name;
         int header_row_index;
-        string id_field;
+        string name_field;
 
         string output_format;
         string taxonomy_source;

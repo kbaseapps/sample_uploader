@@ -124,16 +124,16 @@ def _process_sample_content(sample_content):
         if date_obj:
             sample_dict[key] = str(date_obj.date())
 
-    sample_dict['id'] = bio_sample['@accession']
+    sample_dict['name'] = bio_sample['@accession']
 
     sample_ids = bio_sample.get('Ids', {}).get('Id', [])
 
     for sample_id in sample_ids:
         db_label = sample_id.get('@db_label')
         if db_label == 'Sample name':
-            sample_dict['name'] = sample_id.get('#text')
-    if not sample_dict.get('name'):
-        sample_dict['name'] = sample_dict['id']
+            sample_dict['description'] = sample_id.get('#text')
+    if not sample_dict.get('description'):
+        sample_dict['description'] = sample_dict['name']
 
     owner_info = bio_sample['Owner']
 
@@ -167,7 +167,11 @@ def ncbi_samples_to_csv(sample_ids, sample_csv):
 
     samples = [retrieve_sample_from_ncbi(sample_id) for sample_id in sample_ids]
     df = pd.DataFrame.from_dict(samples)
-    df.set_index('id', inplace=True)
+    df.set_index('name', inplace=True)
+
+    # print('-'*80)
+    # print(df.columns)
+    # print('-'*80)
 
     with open(sample_csv, 'w') as f:
         df.to_csv(f)
