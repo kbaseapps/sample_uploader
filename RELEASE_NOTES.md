@@ -1,5 +1,10 @@
 # sample_uploader release notes
 =========================================
+0.0.18
+------
+* Changing necessary field to 'name' from 'id'
+* adding aliases mapping
+
 0.0.17
 ------
 * Adding ability to import samples from NCBI web service
