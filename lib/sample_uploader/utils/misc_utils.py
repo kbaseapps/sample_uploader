@@ -34,7 +34,7 @@ def get_workspace_user_perms(workspace_url, workspace_id, token, owner, acls):
     return acls
 
 
-def error_ui(errors, error_table_html, scratch):
+def error_ui(errors, sample_data, scratch):
     """
     TODO: make this better/change it all
     errors: list of errors
@@ -48,9 +48,12 @@ def error_ui(errors, error_table_html, scratch):
         asset_path,
         os.path.join(site_path, 'static')
     )
+
+    error_data = [e.toJSONable() for e in errors]
+
     rendered_html = template.render(
-        results=errors,
-        table=error_table_html
+        error_data=error_data,
+        sample_data=sample_data
     )
     with open(html_path, 'w') as f:
         f.write(rendered_html)

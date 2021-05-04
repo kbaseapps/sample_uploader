@@ -64,7 +64,9 @@ def load_file(
         raise ValueError(f"File {os.path.basename(sample_file)} is not in "
                          f"an accepted file format, accepted file formats "
                          f"are '.xls' '.csv' '.tsv' or '.xlsx'")
+    # Remove empty rows and change index labels to row number
     df.dropna(how='all', inplace=True)
+    df.index += header_row_index+1
     return df
 
 
@@ -76,8 +78,7 @@ def _produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names,
-    first_sample_idx
+    columns_to_input_names
 ):
     """"""
     samples = []
@@ -108,7 +109,7 @@ def _produce_samples(
         return prev_sample
 
     errors = []
-    for relative_row_idx, row in df.iterrows():
+    for row_num, row in df.iterrows():
         try:
             if not row.get('id'):
                 raise SampleContentError(
@@ -182,7 +183,7 @@ def _produce_samples(
                 'admin': row.get('admin')
             })
         except SampleContentError as e:
-            e.row = first_sample_idx + relative_row_idx
+            e.row = row_num
             errors.append(e)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names], errors
@@ -239,8 +240,6 @@ def import_samples_from_file(
     df = load_file(sample_file, header_row_index, date_columns)
 
     errors = []
-    error_table_html = ""
-    first_sample_idx = header_row_index + 1
 
     # change columns to upload format
     columns_to_input_names = {}
@@ -321,8 +320,7 @@ def import_samples_from_file(
             sample_url,
             token,
             input_sample_set['samples'],
-            columns_to_input_names,
-            first_sample_idx
+            columns_to_input_names
         )
         errors += produce_errors
     
@@ -337,7 +335,8 @@ def import_samples_from_file(
 
     if errors:
         saved_samples = []
-        # Fill in missing location information for SamplesContentError(s)
+
+        # Calculate missing location information for SamplesContentError(s)
         err_col_keys = {}
         err_key_indices = {}
         for col_idx, col_name in enumerate(df.columns):
@@ -348,11 +347,10 @@ def import_samples_from_file(
 
         err_row_sample_names = {}
         err_sample_name_indices = {}
-        for relative_row_idx, row in df.iterrows():
-            row_pos =  first_sample_idx + relative_row_idx
+        for row_num, row in df.iterrows():
             sample_name = row.get('id')
-            err_sample_name_indices[sample_name] = row_pos
-            err_row_sample_names[row_pos] = sample_name
+            err_sample_name_indices[sample_name] = row_num
+            err_row_sample_names[row_num] = sample_name
 
         for e in errors:
             if e.column!=None and e.key==None and e.column in err_col_keys:
@@ -364,22 +362,12 @@ def import_samples_from_file(
             if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
                 e.row = err_sample_name_indices[e.sample_name]
 
-        # Create a styled HTML table of error locations
-        errStyle = pd.DataFrame(data='', columns=df.columns, index=df.index)
-        print(df)
-        elocs = set()
-        for e in errors:
-            if e.column!=None and e.row!=None:
-                elocs.add(((e.row - first_sample_idx), e.column))
-        error_table_html = df.style.apply(
-                lambda r: ['background-color: red' if ((r.name, c) in elocs) else '' for (c, _) in enumerate(r)],
-                axis=1
-            ).hide_index().render()
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
+    sample_data = df.to_dict(orient='split')
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors, error_table_html
+    }, errors, sample_data
