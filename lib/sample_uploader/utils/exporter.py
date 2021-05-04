@@ -30,13 +30,15 @@ def sample_set_to_output(sample_set, sample_url, token, output_file, output_file
     for samp_id in sample_set['samples']:
         sample = get_sample(samp_id, sample_url, token)
         output['kbase_sample_id'].append(sample['id'])
-
         # we need to check if there is another match in there.
         sample_name = sample['name']
 
-        output['name'].append(sample['name'])
+        output['name'].append(sample_name)
         used_headers = set(['kbase_sample_id', 'name'])
-        for node in sample['node_tree']:
+        for node_idx, node in enumerate(sample['node_tree']):
+            # check if node 'id' and sample 'name' are not the same
+            if node['id'] != sample_name:
+                output = add_to_output(output, f"alt_id_{node_idx}",node['id'])
             # get 'source_meta' information
             source_meta = node.get('source_meta', [])
             source_meta_key = {m['key']: m['skey'] for m in source_meta}
