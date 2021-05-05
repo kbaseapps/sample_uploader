@@ -366,8 +366,8 @@ def import_samples_from_file(
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
-    sample_data = df.to_dict(orient='split')
+    sample_data_json = df.to_json(orient='split')
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors, sample_data
+    }, errors, sample_data_json

@@ -54,7 +54,7 @@
 		</table>
 		<script>
 			const error_data = {{ error_data|tojson|safe }};
-			const sample_data = {{ sample_data|tojson|safe }};
+			const sample_data = {{ sample_data_json|safe }};
 
 			$(document).ready(()=>{
 				$('#errDetailTable').DataTable({
