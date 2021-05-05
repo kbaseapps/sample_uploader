@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import unittest
 import requests
@@ -12,7 +13,7 @@ from configparser import ConfigParser
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample_service_url, get_sample
+from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 
 class sample_uploaderTest(unittest.TestCase):
@@ -47,7 +48,7 @@ class sample_uploaderTest(unittest.TestCase):
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         cls.wiz_url = cls.cfg['srv-wiz-url']
-        cls.sample_url = get_sample_service_url(cls.wiz_url)
+        cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_sample_uploader_" + str(suffix)
@@ -59,12 +60,12 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
             'sample_file':  cls.sesar_sample_file,
-            'file_format': "SESAR",
+            'file_format': "sesar",
             'header_row_index': 2,
             'set_name': cls.sample_set_name,
             'description': "this is a test sample set.",
             'output_format': "",
-            'id_field': "test id field",
+            'name_field': "test name field",
             'incl_input_in_output': 1,
             'share_within_workspace': 1,
         }
@@ -99,7 +100,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 2,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
@@ -130,7 +131,7 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': enigma_copy,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 1,
             'description': "this is a copy of a test sample set.",
             'incl_input_in_output': 1,
@@ -144,7 +145,7 @@ class sample_uploaderTest(unittest.TestCase):
             name = samp1['name']
             sample1 = get_sample(samp1, self.sample_url, self.ctx['token'])
             sample2 = get_sample(ss2.get(samp1['name']), self.sample_url, self.ctx['token'])
-            if name == 'Sample 2':
+            if name == 's2':
                 self._compare_sample(sample1, sample2)
             else:
                 try:
@@ -152,19 +153,20 @@ class sample_uploaderTest(unittest.TestCase):
                     assert sample2['id'] == sample1['id']
                     node2 = sample2['node_tree'][0]
                     node1 = sample1['node_tree'][0]
-                    if name == 'Sample 1':
+                    if name == 's1':
                         assert node2['meta_user']['jamboree']['value'] == 'user data'
-                    elif name == 'Sample 3':
+                    elif name == 's3':
                         assert node2['meta_controlled']['latitude']['value'] == 30
                 except:
                     raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
+    # @unittest.skip('x')
     def test_IGSN_sample_importer(self):
         igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
 
         # test list igsns input
         params = {
-            'igsns': igsns,
+            'external_ids': igsns,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -178,8 +180,8 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
-        assert set(sample_ids) == set(igsns)
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
         sample_names = [sample['name'] for sample in samples]
@@ -187,7 +189,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         # test string igsns input with multiple IGSNs
         params = {
-            'igsns': ', '.join(igsns),
+            'external_ids': ', '.join(igsns),
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -201,8 +203,8 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
-        assert set(sample_ids) == set(igsns)
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
         sample_names = [sample['name'] for sample in samples]
@@ -211,7 +213,7 @@ class sample_uploaderTest(unittest.TestCase):
         # test string igsns input with single IGSN
         igsns = igsns[0]
         params = {
-            'igsns': igsns,
+            'external_ids': igsns,
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'description': "test sample set from IGSNs",
@@ -224,12 +226,94 @@ class sample_uploaderTest(unittest.TestCase):
 
         sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
 
-        sample_id = sample['node_tree'][0]['id']
-        assert sample_id == igsns
+        sample_igsn = sample['node_tree'][0]['meta_controlled']['igsn']['value']
+        assert sample_igsn == igsns
 
         expected_sample_names = 'PB-Low-5'
         sample_name = sample['name']
         assert expected_sample_names == sample_name
+
+    # @unittest.skip('x')
+    def test_NCBI_sample_importer(self):
+        ncbi_sample_ids = ['SAMN03166112', 'SAMN04383980', 'SAMN04492225']
+
+        # test list sample id input
+        params = {
+            'external_ids': ncbi_sample_ids,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == len(ncbi_sample_ids)
+
+        samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
+                   for sample_info in samples_info]
+
+        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
+        assert set(sample_ids) == set(ncbi_sample_ids)
+
+        sample_names = [sample['name'] for sample in samples]
+        assert set(ncbi_sample_ids) == set(sample_names)
+
+        expected_sample_descriptions = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_descriptions = [sample['node_tree'][0]['meta_controlled']['description']['value'] for sample in samples]
+        assert set(expected_sample_descriptions) == set(sample_descriptions)
+
+        # test multiple sample ids input in str format
+        params = {
+            'external_ids': ', '.join(ncbi_sample_ids),
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == len(ncbi_sample_ids)
+
+        samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
+                   for sample_info in samples_info]
+
+        sample_ids = [sample['node_tree'][0]['id'] for sample in samples]
+        assert set(sample_ids) == set(ncbi_sample_ids)
+
+        sample_names = [sample['name'] for sample in samples]
+        assert set(ncbi_sample_ids) == set(sample_names)
+
+        expected_sample_descriptions = ['Seawater-16', 'SAMN04383980', 'c1-1']
+        sample_descriptions = [sample['node_tree'][0]['meta_controlled']['description']['value'] for sample in samples]
+        assert set(expected_sample_descriptions) == set(sample_descriptions)
+
+        # test single sample id input
+        ncbi_sample_ids = ncbi_sample_ids[0]
+        params = {
+            'external_ids': ncbi_sample_ids,
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'description': "test sample set from IGSNs",
+            'set_name': 'test_sample_set_igsn'
+        }
+        ret = self.serviceImpl.import_samples_from_NCBI(self.ctx, params)[0]
+        samples_info = ret['sample_set']['samples']
+
+        assert len(samples_info) == 1
+
+        sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
+
+        sample_id = sample['node_tree'][0]['id']
+        assert sample_id == ncbi_sample_ids
+
+        expected_sample_description = 'Seawater-16'
+        sample_name = sample['name']
+        assert sample_name == ncbi_sample_ids
+
+        sample_description = sample['node_tree'][0]['meta_controlled']['description']['value']
+        assert expected_sample_description == sample_description
 
     # @unittest.skip('x')
     def test_error_file(self):
@@ -239,7 +323,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 6,
             'set_name': "test_sample_set_2",
             'description': "this is a test sample set.",
@@ -260,7 +344,7 @@ class sample_uploaderTest(unittest.TestCase):
         '''Make sure the samples are the same after download, then reupload'''
         params = {
             "input_ref": self.sample_set_ref,
-            "file_format": "SESAR"
+            "file_format": "sesar"
         }
         ret = self.serviceImpl.export_samples(self.ctx, params)[0]
         shock_id = ret['shock_id']
@@ -273,9 +357,10 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': result_file_path,
-            'file_format': "SESAR",
+            'file_format': "sesar",
             'header_row_index': 2,
-            'id_field': 'test id field',
+            # does not require name field specification.
+            # 'name_field': 'test name field',
             'set_name': 'reupload_test',
             'description': "this is a test sample set.",
             "incl_input_in_output": 1
@@ -310,6 +395,8 @@ class sample_uploaderTest(unittest.TestCase):
             data=json.dumps(payload),
             headers={"Authorization": self.ctx['token']}
         )
+        if not resp.ok:
+            raise RuntimeError(resp.text)
         resp_json = resp.json()
         resp_data = {}
         for category in resp_json['result'][0]:

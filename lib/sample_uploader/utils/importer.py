@@ -5,7 +5,6 @@ import json
 import os
 from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
-    get_sample_service_url,
     get_sample,
     save_sample,
     compare_samples,
@@ -21,6 +20,7 @@ from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.samples_content_error import SampleContentError
 
 # These columns should all be in lower case.
+REQUIRED_COLS = {'name'}
 REGULATED_COLS = ['name', 'id', 'parent_id']
 NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a', '-']
 
@@ -37,9 +37,9 @@ def validate_params(params):
             sample_file = os.path.join('/staging', sample_file)
         else:
             raise ValueError(f"input file {sample_file} does not exist.")
-    if params.get('id_field'):
+    if params.get('name_field'):
         try: 
-            upload_key_format(params.get('id_field'))
+            upload_key_format(params.get('name_field'))
         except SampleContentError as e:
             raise ValueError("Invalid ID field in params: {e.message}")
     ws_name = params.get('workspace_name')
@@ -72,7 +72,6 @@ def load_file(
 
 def _produce_samples(
     df,
-    cols,
     column_groups,
     column_unit_regex,
     sample_url,
@@ -84,10 +83,17 @@ def _produce_samples(
     samples = []
     existing_sample_names = {sample['name']: sample for sample in existing_samples}
 
+    if not REQUIRED_COLS.issubset(df.columns):
+        raise ValueError(
+            f'Required "name" column missing from input. Use "name" or '
+            f'an alias (sample name", "sample id", "samplename", "sampleid")'
+        )
+
     def _get_existing_sample(name, kbase_sample_id):
         prev_sample = None
         if kbase_sample_id:
             prev_sample = get_sample({"id": kbase_sample_id}, sample_url, token)
+
             if name in existing_sample_names and prev_sample['name'] == name:
                 # now we check if the sample 'id' and 'name' are the same
                 if existing_sample_names[name]['id'] != prev_sample['id']:
@@ -104,39 +110,36 @@ def _produce_samples(
                     sample_name=name
                 )
         elif name in existing_sample_names:
+
             prev_sample = get_sample(existing_sample_names[name], sample_url, token)
 
         return prev_sample
 
     errors = []
+    cols = list(set(df.columns) - set(REQUIRED_COLS))
     for row_num, row in df.iterrows():
         try:
-            if not row.get('id'):
+            # only required field is 'name'
+            if not row.get('name'):
                 raise SampleContentError(
-                    f"Bad sample ID \"{row.get('id')}\" evaluates as false",
-                    key='id',
+                    f"Bad sample name \"{row.get('name')}\". evaluates as false",
+                    key='name',
                     sample_name=row.get('name')
                 )
-            # first we check if a 'kbase_sample_id' column is specified
+            name = str(row.pop('name'))
+            if 'name' in cols:
+                cols.pop(cols.index('name'))
+
+            # check if a 'kbase_sample_id' column is specified
             kbase_sample_id = None
             if row.get('kbase_sample_id'):
                 kbase_sample_id = str(row.pop('kbase_sample_id'))
                 if 'kbase_sample_id' in cols:
                     cols.pop(cols.index('kbase_sample_id'))
-            # use name field as name, if there is non-reuse id.
-            if row.get('name'):
-                name = str(row['name'])
-            else:
-                name = str(row['id'])
             if row.get('parent_id'):
                 parent = str(row.pop('parent_id'))
                 if 'parent_id' in cols:
                     cols.pop(cols.index('parent_id'))
-            if 'id' in cols:
-                cols.pop(cols.index('id'))
-            if 'name' in cols:
-                cols.pop(cols.index('name'))
-
             controlled_metadata = generate_controlled_metadata(
                 row,
                 column_groups
@@ -155,7 +158,7 @@ def _produce_samples(
 
             sample = {
                 'node_tree': [{
-                    "id": str(row['id']),
+                    "id": name,
                     "parent": None,
                     "type": "BioReplicate",
                     "meta_controlled": controlled_metadata,
@@ -218,27 +221,7 @@ def _save_samples(samples, acls, sample_url, token):
     return saved_samples
 
 
-def import_samples_from_file(
-    params,
-    sw_url,
-    workspace_url,
-    username,
-    token,
-    column_mapping,
-    column_groups,
-    date_columns,
-    column_unit_regex,
-    input_sample_set,
-    header_row_index
-):
-    """
-    import samples from '.csv' or '.xls' files in SESAR  format
-    """
-    # verify inputs
-    sample_file = validate_params(params)
-    ws_name = params.get('workspace_name')
-    df = load_file(sample_file, header_row_index, date_columns)
-
+def format_input_file(df, columns_to_input_names, aliases, header_row_index):
     errors = []
 
     # change columns to upload format
@@ -249,7 +232,7 @@ def import_samples_from_file(
             if renamed in columns_to_input_names:
                 raise SampleContentError(
                     (f"Duplicate column \"{renamed}\". \"{col_name}\" would overwrite a different column \"{columns_to_input_names[renamed]}\". "
-                    "Rename your columns to be unique alphanumericaly, ignoring whitespace and case."), 
+                    "Rename your columns to be unique alphanumericaly, ignoring whitespace and case."),
                     key=col_name
                 )
             columns_to_input_names[renamed] = col_name
@@ -260,44 +243,78 @@ def import_samples_from_file(
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n:None for n in NOOP_VALS}, inplace=True)
 
-    #TODO: Make sure to check all possible ID fields, even when not parameterized
-    if params.get('id_field'):
-        id_field = upload_key_format(params.get('id_field'))
-        if id_field not in list(df.columns):
+    map_aliases = {}
+    for key, key_aliases in aliases.items():
+        key = upload_key_format(key)
+        for alias_key in key_aliases:
+            alias_key = upload_key_format(alias_key)
+            # check if alias_key in columns
+            if alias_key in df.columns:
+                # make sure that existing
+                if key in df.columns:
+                    # if key already exists, continue
+                    continue
+                map_aliases[alias_key] = key
+                if alias_key in columns_to_input_names:
+                    val = columns_to_input_names.pop(alias_key)
+                    columns_to_input_names[key] = val
+
+    if map_aliases:
+        df = df.rename(columns=map_aliases)
+
+    return df, columns_to_input_names, errors
+
+
+def import_samples_from_file(
+    params,
+    sample_url,
+    workspace_url,
+    username,
+    token,
+    column_groups,
+    date_columns,
+    column_unit_regex,
+    input_sample_set,
+    header_row_index,
+    aliases
+):
+    """
+    import samples from '.csv' or '.xls' files in SESAR  format
+    """
+    # verify inputs
+    sample_file = validate_params(params)
+    ws_name = params.get('workspace_name')
+    df = load_file(sample_file, header_row_index, date_columns)
+    df, columns_to_input_names, errors = format_input_file(df, {}, aliases, header_row_index)
+
+    first_sample_idx = header_row_index + 1
+
+    # TODO: Make sure to check all possible name fields, even when not parameterized
+    if params.get('name_field'):
+        name_field = upload_key_format(params.get('name_field'))
+        if name_field not in list(df.columns):
             raise ValueError(
-                f"The expected ID field column \"{id_field}\" could not be found. "
+                f"The expected name field column \"{name_field}\" could not be found. "
                 "Adjust your parameters or input such that the following are correct:\n"
                 f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
-                f"- ID Field: {params.get('id_field','id')}\n (the header of the column containing your IDs)\n"
+                f"- ID Field: {params.get('name_field','name')}\n (the header of the column containing your names)\n"
                 f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
             )
         # here we rename whatever the id field was/is to "id"
-        columns_to_input_names["id"] = columns_to_input_names.pop(id_field)
-        df.rename(columns={id_field: "id"}, inplace=True)
-        # remove "id" rename field from column mapping if exists
-        if column_mapping:
-            column_mapping = {key: val for key, val in column_mapping.items() if val != "id"}
+        columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
+        df.rename(columns={name_field: "name"}, inplace=True)
 
     if not errors:
-        if column_mapping:
-            df = df.rename(columns=column_mapping)
-        # redundant, even harmful if things get out of sync
-        # verify_columns(df)
-        for key in column_mapping:
-            if key in columns_to_input_names:
-                val = columns_to_input_names.pop(key)
-                columns_to_input_names[column_mapping[key]] = val
-
-        if params['file_format'].upper() in ['SESAR', "ENIGMA"]:
+        if params['file_format'].lower() in ['sesar', "enigma"]:
             if 'material' in df.columns:
-                df.rename(columns={"material": params['file_format'].upper() + ":material"}, inplace=True)
+                df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
                 val = columns_to_input_names.pop("material")
-                columns_to_input_names[params['file_format'].upper() + ":material"] = val
-        if params['file_format'].upper() == "KBASE":
+                columns_to_input_names[params['file_format'].lower() + ":material"] = val
+        if params['file_format'].lower() == "kbase":
             if 'material' in df.columns:
-                df.rename(columns={"material": "SESAR:material"}, inplace=True)
+                df.rename(columns={"material": "sesar:material"}, inplace=True)
                 val = columns_to_input_names.pop("material")
-                columns_to_input_names["SESAR:material"] = val
+                columns_to_input_names["sesar:material"] = val
 
         acls = {
             "read": [],
@@ -310,11 +327,8 @@ def import_samples_from_file(
             acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
         groups = SAMP_SERV_CONFIG['validators']
 
-        cols = list(set(df.columns) - set(REGULATED_COLS))
-        sample_url = get_sample_service_url(sw_url)
         samples, existing_samples, produce_errors = _produce_samples(
             df,
-            cols,
             column_groups,
             column_unit_regex,
             sample_url,
@@ -323,13 +337,13 @@ def import_samples_from_file(
             columns_to_input_names
         )
         errors += produce_errors
-    
+
     if params.get('prevalidate') and not errors:
         error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
         errors += [ SampleContentError(
                 e['message'],
-                sample_name=e['sample_name'], 
-                node=e['node'], 
+                sample_name=e['sample_name'],
+                node=e['node'],
                 key=e['key']
             ) for e in error_detail ]
 

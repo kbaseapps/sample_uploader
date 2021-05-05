@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import csv
 import logging
+import time
 
 """
 SESAR REST web service API
@@ -42,6 +43,7 @@ def retrieve_sample_from_igsn(igsn):
     url = '{}/{}'.format(_get_igsn_endpoint(), igsn)
 
     try:
+        time.sleep(1)  # in case of server overload
         resp = requests.get(url=url, headers=headers)
     except Exception as err:
         raise RuntimeError(f'Failed to connect to server\n{err}')
@@ -82,6 +84,7 @@ def igsns_to_csv(igsns, sample_csv):
 
     samples = [retrieve_sample_from_igsn(igsn) for igsn in igsns]
     df = pd.DataFrame.from_dict(samples)
+    df.set_index('igsn', inplace=True)
 
     # write SESAR header
     logging.info('Start writting SESAR header to csv: {}'.format(sample_csv))
@@ -98,5 +101,6 @@ def igsns_to_csv(igsns, sample_csv):
         writer.writerow(['Object Type:', object_type, 'User Code:', user_code])
 
     logging.info('Start writting samples info to csv: {}'.format(sample_csv))
+
     with open(sample_csv, 'a') as f:
         df.to_csv(f)

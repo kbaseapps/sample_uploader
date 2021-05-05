@@ -1,0 +1,3 @@
+name,publication_date,last_update,submission_date,description,current_archive,current_archive_contact,collector,collection_date,depth,elev,env_biome,env_feature,env_material,geo_loc_name,latitude,longitude,misc_param,source_name,cell line
+SAMN03166112,2014-11-06,2021-02-28,2014-11-06,Seawater-16,University of Hawaii,jungbluth.sean@gmail.com,Sean Jungbluth,2011-07-04,2661,0,seawater,seawater,water,Pacific Ocean,47.76,127.76,Seawater_16,,
+SAMN04383980,2016-01-30,2016-01-30,2016-01-04,SAMN04383980,"DMRI, City of Hope",jtompkins@coh.org,Joshua Tompkins,,,,,,,,,,,H7 hESCs,H7 derived

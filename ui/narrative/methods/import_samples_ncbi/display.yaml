@@ -1,10 +1,10 @@
 #
 # define display information
 #
-name: Import Samples From IGSN
+name: Import Samples From NCBI
 
 tooltip: |
-    import some samples for specific IGSNs
+    import samples from NCBI using NCBI E-utilities
 
 screenshots: []
 
@@ -24,11 +24,11 @@ icon: sample_uploader.png
 parameters :
     external_ids:
         ui-name : |
-            IGSN
+            NCBI Sample ID
         short-hint : |
-            IGSNs (comma separated) e.g. IEAWH0001, GEE0000O4
+            NCBI Sample ID (comma separated) e.g. SAMN03166112, SAMN04383980
         long-hint  : |
-            IGSNs (comma separated) e.g. IEAWH0001, GEE0000O4
+            NCBI Sample ID (comma separated) e.g. SAMN03166112, SAMN04383980
 
     set_name:
         ui-name : |

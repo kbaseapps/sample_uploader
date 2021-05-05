@@ -100,26 +100,14 @@ def update_acls(sample_url, sample_id, acls, token):
         "params": [ReplaceSampleACLsParams],
         "version": "1.1"
     }
-
+    # print('-'*80)
+    # print('update acls')
+    # print('url', sample_url)
+    # print('payload', json.dumps(payload))    
+    # print('-'*80)
     resp = requests.post(url=sample_url, data=json.dumps(payload), headers=headers)
     _ = _handle_response(resp)
     return resp.status_code
-
-
-def get_sample_service_url(sw_url):
-    """"""
-    payload = {
-        "method": "ServiceWizard.get_service_status",
-        "id": '',
-        "params": [{"module_name":"SampleService", "version": "dev"}],  # TODO: change to beta/release
-        "version": "1.1"
-    }
-
-    sw_resp  = requests.post(url=sw_url, data=json.dumps(payload))
-    wiz_resp = sw_resp.json()
-    if wiz_resp.get('error'):
-        raise RuntimeError(f"ServiceWizard Error - {wiz_resp['error']}")
-    return wiz_resp['result'][0]['url']
 
 
 def generate_source_meta(row, contr_meta_keys, columns_to_input_names):
@@ -245,7 +233,10 @@ def get_sample(sample_info, sample_url, token):
     sample_url - SampleService Url
     token      - Authorization token
     """
-    headers = {"Authorization": token}
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json"
+    }
     params = {
         "id": sample_info['id']
     }
@@ -257,6 +248,11 @@ def get_sample(sample_info, sample_url, token):
         "params": [params],
         "version": "1.1"
     }
+    # print('-'*80)
+    # print('get sample')
+    # print('url', sample_url)
+    # print('payload', json.dumps(payload))    
+    # print('-'*80)
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload))
     resp_json = _handle_response(resp)
     sample = resp_json['result'][0]
@@ -270,7 +266,10 @@ def save_sample(sample, sample_url, token, previous_version=None):
     token      - workspace token for Authorization
     previous_version - data of previous version of sample
     """
-    headers = {"Authorization": token}
+    headers = {
+        "Authorization": token,       
+        "Content-Type": "application/json"
+    }
     if previous_version:
         prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
         if compare_samples(sample, prev_sample):
@@ -291,6 +290,11 @@ def save_sample(sample, sample_url, token, previous_version=None):
         "params": [params],
         "version": "1.1"
     }
+    # print('-'*80)
+    # print('save sample')
+    # print('url', sample_url)
+    # print('payload', json.dumps(payload))    
+    # print('-'*80)
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     resp_json = _handle_response(resp)
     sample_id = resp_json['result'][0]['id']
@@ -304,7 +308,10 @@ def validate_samples(samples, sample_url, token):
     sample_url - url to sample service
     token      - workspace token for Authorization
     """
-    headers = {"Authorization": token}
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json"
+    }
     params = {
         "samples": samples
     }
@@ -314,6 +321,11 @@ def validate_samples(samples, sample_url, token):
         "params": [params],
         "version": "1.1"
     }
+    # print('-'*80)
+    # print('validate samples')
+    # print('url', sample_url)
+    # print('payload', json.dumps(payload))    
+    # print('-'*80)
     resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
     resp_json = _handle_response(resp)
     errors = resp_json['result'][0]['errors']
