@@ -287,8 +287,6 @@ def import_samples_from_file(
     df = load_file(sample_file, header_row_index, date_columns)
     df, columns_to_input_names, errors = format_input_file(df, {}, aliases, header_row_index)
 
-    first_sample_idx = header_row_index + 1
-
     # TODO: Make sure to check all possible name fields, even when not parameterized
     if params.get('name_field'):
         name_field = upload_key_format(params.get('name_field'))
@@ -362,7 +360,7 @@ def import_samples_from_file(
         err_row_sample_names = {}
         err_sample_name_indices = {}
         for row_num, row in df.iterrows():
-            sample_name = row.get('id')
+            sample_name = row.get('name')
             err_sample_name_indices[sample_name] = row_num
             err_row_sample_names[row_num] = sample_name
 
