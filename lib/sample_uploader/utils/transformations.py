@@ -70,7 +70,7 @@ class FieldTransformer:
             # assert the name is the same as query name
             ret_name = str(item.get('name', '')).lower().strip()
             if ret_name != onto_val:
-                raise RuntimeError(f'name="{ret_name}" in Ontology {query_ontology} does not match expected {onto_val}')
+                raise SampleContentError(f'name="{ret_name}" in Ontology {query_ontology} does not match provided {onto_val}')
             # get the term id.
             id_ = item.get('id')
             # make sure 'id' is in correct format.
