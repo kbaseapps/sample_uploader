@@ -1,8 +1,8 @@
 from installed_clients.OntologyAPIClient import OntologyAPI
 from sample_uploader.utils.samples_content_error import SampleContentError
 import time
-import json
 import pandas as pd
+
 
 _ENVO_ONTOLOGY = 'envo_ontology'
 _ENVO_ID_PREFIX = 'ENVO:'
@@ -64,7 +64,8 @@ class FieldTransformer:
             ret = self.onto_api.get_term_by_name(params)
             # ensure there is only 1 result
             if len(ret['results']) != 1:
-                raise RuntimeError(f"Received {len(ret['results'])} results from query with params {params} in OntologyAPI, Expected 1 result.")
+                raise SampleContentError(f"Couldn't resolve ontology term. Received {len(ret['results'])} results from query with params "
+                                         f"{params} in OntologyAPI, Expected 1 result.", key=key)
             item = ret['results'][0]
             # assert the name is the same as query name
             ret_name = str(item.get('name', '')).lower().strip()
