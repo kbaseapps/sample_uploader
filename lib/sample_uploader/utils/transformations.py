@@ -52,6 +52,8 @@ class FieldTransformer:
             id_prefix = values.get('id_prefix')
             if onto_val.startswith(id_prefix):
                 continue
+            # lower-case and remove white space.
+            onto_val = onto_val.lower().strip()
             # check if in appropriate ontology.
             params = {
                 'name': onto_val,
@@ -65,8 +67,8 @@ class FieldTransformer:
                 raise RuntimeError(f"Received {len(ret['results'])} results from query with params {params} in OntologyAPI, Expected 1 result.")
             item = ret['results'][0]
             # assert the name is the same as query name
-            if item.get('name') != onto_val:
-                ret_name = item.get('name')
+            ret_name = str(item.get('name', '')).lower().strip()
+            if ret_name != onto_val:
                 raise RuntimeError(f'name="{ret_name}" in Ontology {query_ontology} does not match expected {onto_val}')
             # get the term id.
             id_ = item.get('id')
