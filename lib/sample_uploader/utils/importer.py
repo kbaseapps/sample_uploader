@@ -65,7 +65,9 @@ def load_file(
         raise ValueError(f"File {os.path.basename(sample_file)} is not in "
                          f"an accepted file format, accepted file formats "
                          f"are '.xls' '.csv' '.tsv' or '.xlsx'")
+    # Remove empty rows and change index labels to row number
     df.dropna(how='all', inplace=True)
+    df.index += header_row_index+1
     return df
 
 
@@ -77,8 +79,7 @@ def _produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names,
-    first_sample_idx
+    columns_to_input_names
 ):
     """"""
     samples = []
@@ -120,7 +121,7 @@ def _produce_samples(
 
     errors = []
     cols = list(set(df.columns) - set(REQUIRED_COLS))
-    for relative_row_idx, row in df.iterrows():
+    for row_num, row in df.iterrows():
         try:
             # only required field is 'name'
             if not row.get('name'):
@@ -193,7 +194,7 @@ def _produce_samples(
                 'admin': row.get('admin')
             })
         except SampleContentError as e:
-            e.row = first_sample_idx + relative_row_idx
+            e.row = row_num
             errors.append(e)
     # add the missing samples from existing_sample_names
     return samples, [existing_sample_names[key] for key in existing_sample_names], errors
@@ -295,8 +296,6 @@ def import_samples_from_file(
     df = load_file(sample_file, header_row_index, date_columns)
     df, columns_to_input_names, errors = format_input_file(df, {}, aliases, header_row_index)
 
-    first_sample_idx = header_row_index + 1
-
     # TODO: Make sure to check all possible name fields, even when not parameterized
     if params.get('name_field'):
         name_field = upload_key_format(params.get('name_field'))
@@ -343,8 +342,7 @@ def import_samples_from_file(
             sample_url,
             token,
             input_sample_set['samples'],
-            columns_to_input_names,
-            first_sample_idx
+            columns_to_input_names
         )
         errors += produce_errors
 
@@ -359,7 +357,8 @@ def import_samples_from_file(
 
     if errors:
         saved_samples = []
-        # Fill in missing location information for SamplesContentError(s)
+
+        # Calculate missing location information for SamplesContentError(s)
         err_col_keys = {}
         err_key_indices = {}
         for col_idx, col_name in enumerate(df.columns):
@@ -370,11 +369,10 @@ def import_samples_from_file(
 
         err_row_sample_names = {}
         err_sample_name_indices = {}
-        for relative_row_idx, row in df.iterrows():
-            row_pos =  first_sample_idx + relative_row_idx
+        for row_num, row in df.iterrows():
             sample_name = row.get('name')
-            err_sample_name_indices[sample_name] = row_pos
-            err_row_sample_names[row_pos] = sample_name
+            err_sample_name_indices[sample_name] = row_num
+            err_row_sample_names[row_num] = sample_name
 
         for e in errors:
             if e.column!=None and e.key==None and e.column in err_col_keys:
@@ -385,11 +383,13 @@ def import_samples_from_file(
                 e.sample_name = err_row_sample_names[e.row]
             if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
                 e.row = err_sample_name_indices[e.sample_name]
+
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
+    sample_data_json = df.to_json(orient='split')
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors
+    }, errors, sample_data_json

@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.17"
-    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "626ac38055547587851f7700fe9a7a4aab8f7b97"
+    VERSION = "0.0.19"
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
+    GIT_COMMIT_HASH = "51c29484eea76a8014ccaf100a9702a95210947c"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -74,7 +74,7 @@ class sample_uploader:
            String, parameter "workspace_name" of String, parameter
            "workspace_id" of Long, parameter "file_format" of String,
            parameter "description" of String, parameter "set_name" of String,
-           parameter "header_row_index" of Long, parameter "id_field" of
+           parameter "header_row_index" of Long, parameter "name_field" of
            String, parameter "output_format" of String, parameter
            "taxonomy_source" of String, parameter "num_otus" of Long,
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
@@ -120,7 +120,7 @@ class sample_uploader:
                              f"File of format {params.get('file_format')} not supported.")
         mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
 
-        sample_set, errors = import_samples_from_file(
+        sample_set, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -141,7 +141,7 @@ class sample_uploader:
 
         if errors:
             # create UI to display the errors clearly
-            html_link = _error_ui(errors, self.scratch)
+            html_link = _error_ui(errors, sample_data_json, self.scratch)
         else:
             # only save object if there are no errors
             obj_info = self.dfu.save_objects({

@@ -23,12 +23,12 @@ class SampleContentError(Exception):
         self.row = row
         self.column = column
 
-    def locatedMessage(self):
-        sample = self.sample_name if self.sample_name is not None else ""
-        key = self.key if self.key is not None else ""
-        row = self.row if self.row is not None else ""
-        column = self.column if self.column is not None else ""
-        return f"({sample},{key})[{row},{column}]: {self.message}"
-
     def toJSONable(self):
-        return self.locatedMessage()
+        return {
+            'message': self.message,
+            'sample_name': self.sample_name,
+            'node': self.node,
+            'key': self.key,
+            'row': self.row,
+            'column': self.column,
+        }
