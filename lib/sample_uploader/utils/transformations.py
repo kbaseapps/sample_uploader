@@ -1,27 +1,13 @@
 from installed_clients.OntologyAPIClient import OntologyAPI
 from sample_uploader.utils.samples_content_error import SampleContentError
+from sample_uploader.utils.mappings import SAMP_ONTO_CONFIG
 import time
 import pandas as pd
 
 
-_ENVO_ONTOLOGY = 'envo_ontology'
-_ENVO_ID_PREFIX = 'ENVO:'
-
-_ONTOLOGY_COLS = {
-    'enigma:material': {
-        'ontology': _ENVO_ONTOLOGY,
-        'id_prefix': _ENVO_ID_PREFIX
-    },
-    'biome': {
-        'ontology': _ENVO_ONTOLOGY,
-        'id_prefix': _ENVO_ID_PREFIX
-    },
-    'feature': {
-        'ontology': _ENVO_ONTOLOGY,
-        'id_prefix': _ENVO_ID_PREFIX
-    }
+_ID_MAP = {
+    "envo_ontology": "ENVO:"
 }
-
 
 def _get_timestamp():
     return int(time.time() * 1000)
@@ -29,8 +15,6 @@ def _get_timestamp():
 
 class FieldTransformer:
     def __init__(self, callback_url):
-        '''
-        '''
         self.onto_api = OntologyAPI(callback_url)
 
     def _ontology_field_transforms(self, row, cols):
@@ -41,15 +25,15 @@ class FieldTransformer:
             cols - all metadata columns of the input DataFrame/Row
         '''
         # find which ontology_cols are in the row.
-        onto_cols = set(cols).intersection(set(_ONTOLOGY_COLS.keys()))
+        onto_cols = set(cols).intersection(set([k.lower() for k in SAMP_ONTO_CONFIG.keys()]))
         for key in onto_cols:
             # first check if already in 'id' form.
             if not row.get(key) or pd.isnull(row[key]):
                 continue
             onto_val = str(row[key])
-            values = _ONTOLOGY_COLS.get(key)
+            values = SAMP_ONTO_CONFIG.get(key)[0]
             query_ontology = values.get('ontology')
-            id_prefix = values.get('id_prefix')
+            id_prefix = _ID_MAP.get(query_ontology)
             if onto_val.startswith(id_prefix):
                 continue
             # lower-case and remove white space.
