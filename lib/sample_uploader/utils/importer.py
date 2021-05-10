@@ -152,11 +152,10 @@ def _produce_samples(
                 row,
                 column_groups
             )
-            # remove controlled columns from cols
-            cols = list(set(cols) - set(controlled_metadata.keys()))
+            # remove controlled columns from cols.
             user_metadata = generate_user_metadata(
                 row,
-                cols,
+                list(set(cols) - set(controlled_metadata.keys())),
                 column_groups,
                 column_unit_regex
             )
