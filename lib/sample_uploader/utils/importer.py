@@ -14,6 +14,7 @@ from sample_uploader.utils.sample_utils import (
     update_acls,
     validate_samples
 )
+from sample_uploader.utils.transformations import FieldTransformer
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
@@ -71,6 +72,7 @@ def load_file(
 
 
 def _produce_samples(
+    callback_url,
     df,
     column_groups,
     column_unit_regex,
@@ -115,6 +117,8 @@ def _produce_samples(
 
         return prev_sample
 
+    field_transformer = FieldTransformer(callback_url)
+
     errors = []
     cols = list(set(df.columns) - set(REQUIRED_COLS))
     for row_num, row in df.iterrows():
@@ -140,6 +144,9 @@ def _produce_samples(
                 parent = str(row.pop('parent_id'))
                 if 'parent_id' in cols:
                     cols.pop(cols.index('parent_id'))
+
+            # tranformations for data in row.
+            row = field_transformer.field_transformations(row, cols)
 
             controlled_metadata = generate_controlled_metadata(
                 row,
@@ -244,7 +251,7 @@ def format_input_file(df, columns_to_input_names, aliases, header_row_index):
             errors.append(e)
 
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
-    df.replace({n:None for n in NOOP_VALS}, inplace=True)
+    df.replace({n: None for n in NOOP_VALS}, inplace=True)
 
     map_aliases = {}
     for key, key_aliases in aliases.items():
@@ -272,6 +279,7 @@ def import_samples_from_file(
     params,
     sample_url,
     workspace_url,
+    callback_url,
     username,
     token,
     column_groups,
@@ -329,6 +337,7 @@ def import_samples_from_file(
         groups = SAMP_SERV_CONFIG['validators']
 
         samples, existing_samples, produce_errors = _produce_samples(
+            callback_url,
             df,
             column_groups,
             column_unit_regex,

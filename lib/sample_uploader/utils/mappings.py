@@ -60,6 +60,16 @@ SAMP_SERV_CONFIG = _fetch_global_config(
     "metadata_validation.yml"
 )
 
+SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
+    None,
+    os.environ.get(
+        'SAMPLE_ONTOLOGY_CONFIG_URL',
+        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
+    ),
+    None,
+    "ontology_validators.yml"
+).items()}
+
 default_aliases = {
     'name': [
         "sample name",

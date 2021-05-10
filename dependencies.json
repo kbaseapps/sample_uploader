@@ -7,6 +7,10 @@
   "type" : "sdk",
   "version_tag" : "release"
 }, {
+  "module_name" : "OntologyAPI",
+  "type" : "sdk",
+  "version_tag" : "dev"
+}, {
   "module_name" : "SampleService",
   "type" : "core"
 }, {
