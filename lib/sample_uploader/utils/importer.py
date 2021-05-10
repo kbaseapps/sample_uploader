@@ -140,10 +140,13 @@ def _produce_samples(
                 parent = str(row.pop('parent_id'))
                 if 'parent_id' in cols:
                     cols.pop(cols.index('parent_id'))
+
             controlled_metadata = generate_controlled_metadata(
                 row,
                 column_groups
             )
+            # remove controlled columns from cols
+            cols = list(set(cols) - set(controlled_metadata.keys()))
             user_metadata = generate_user_metadata(
                 row,
                 cols,

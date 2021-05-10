@@ -190,7 +190,6 @@ def generate_controlled_metadata(row, groups):
                 for field, default in missing_fields.items():
                     mtd[field] = default
                 metadata[col] = mtd
-
     return metadata
 
 
