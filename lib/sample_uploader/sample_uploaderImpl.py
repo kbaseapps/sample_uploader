@@ -124,6 +124,7 @@ class sample_uploader:
             params,
             self.sample_url,
             self.workspace_url,
+            self.callback_url,
             username,
             ctx['token'],
             mappings[str(params.get('file_format')).lower()].get('groups', []),
