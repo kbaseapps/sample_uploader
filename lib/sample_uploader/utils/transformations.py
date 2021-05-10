@@ -48,13 +48,15 @@ class FieldTransformer:
             ret = self.onto_api.get_term_by_name(params)
             # ensure there is only 1 result
             if len(ret['results']) != 1:
-                raise SampleContentError(f"Couldn't resolve ontology term. Received {len(ret['results'])} results from query with params "
-                                         f"{params} in OntologyAPI, Expected 1 result.", key=key)
+                raise SampleContentError(f"Couldn't resolve ontology term. Received {len(ret['results'])} "
+                                         f"results from query with params {params} in OntologyAPI, "
+                                         f"Expected 1 result.", key=key)
             item = ret['results'][0]
             # assert the name is the same as query name
             ret_name = str(item.get('name', '')).lower().strip()
             if ret_name != onto_val:
-                raise SampleContentError(f'name="{ret_name}" in Ontology {query_ontology} does not match provided {onto_val}')
+                raise SampleContentError(f'name="{ret_name}" in Ontology {query_ontology} '
+                                         f'does not match provided {onto_val}', key=key)
             # get the term id.
             id_ = item.get('id')
             # make sure 'id' is in correct format.
