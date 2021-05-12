@@ -46,40 +46,46 @@ class SampleContentWarningContext:
     """
     Context manager to capture `SampleContentWarning`s which are raised as
     warnings using `warnings.warn`. Use a `with as` block to capture warnings.
-    Warnings can then be accessed as an iterator or with the `getErrors` method.
+    Warnings can then be accessed using the `get` method.
     """
-    def __init__(self, severities):
-        self.severities = severities
-        self.catcher = warnings.catch_warnings(record=True)
-        self.captured = []
-        self.sample_warnings = []
+    def __init__(self, ignore_warnings):
+        self._severities = ("error",) if ignore_warnings else ("error","warning")
+        self._warning_catcher = warnings.catch_warnings(record=True)
+        self._caught = []
+        self._targeted = []
+        self._other_warnings = []
 
-    def getErrors(self, severity=None):
-        while len(self.captured):
-            warning = self.captured.pop()
-            if  isinstance(warning.message, SampleContentWarning):
-                err = warning.message
-                if err.severity in self.severities:
-                    self.sample_warnings.append(warning.message)
-            else:
-                warnings.warn_explicit(
-                    warning.message,
-                    warning.category,
-                    warning.filename,
-                    warning.lineno)
-        errs = self.sample_warnings
+    def get(self, severity=None):
+        self._processCaptured()
         if severity is not None:
-            errs = filter(lambda e: e.severity == severity, errs)
-        return errs
+            return list(filter(lambda e: e.severity == severity, self._targeted))
+        else:
+            return list(self._targeted)
 
-    def __getitem__(self, index):
-        return self.getErrors()[index]
+    def _processCaptured(self):
+        while self._caught:
+            w = self._caught.pop()
+            if  isinstance(w.message, SampleContentWarning) \
+                    and w.message.severity in self._severities:
+                self._targeted.append(w.message)
+            else:
+                self._other_warnings.append(w)
 
     def __enter__(self):
-        self.captured = self.catcher.__enter__()
+        self._caught = self._warning_catcher.__enter__()
         warnings.simplefilter("always", category=SampleContentWarning)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.catcher.__exit__(exc_type, exc_value, traceback)
-        self.getErrors()
+        self._warning_catcher.__exit__(exc_type, exc_value, traceback)
+        self._processCaptured()
+        while self._other_warnings:
+            w = self._other_warnings.pop()
+            warnings.warn_explicit(
+                    w.message,
+                    w.category,
+                    w.filename,
+                    w.lineno)
+
+    def __getitem__(self, index):
+        return self._targeted[index]

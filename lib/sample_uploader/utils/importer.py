@@ -16,7 +16,7 @@ from sample_uploader.utils.transformations import FieldTransformer
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
-from sample_uploader.utils.samples_content_error import SampleContentWarning, SampleContentWarningContext
+from sample_uploader.utils.samples_content_warning import SampleContentWarning, SampleContentWarningContext
 
 # These columns should all be in lower case.
 REQUIRED_COLS = {'name'}
@@ -203,7 +203,8 @@ def _produce_samples(
     for key in user_keys:
         warnings.warn(SampleContentWarning(
             f"User defined column {key} will be stored but not validated",
-            key=key
+            key=key,
+            severity='warning'
         ))
 
     # add the missing samples from existing_sample_names
@@ -297,9 +298,8 @@ def import_samples_from_file(
     """
     import samples from '.csv' or '.xls' files in SESAR  format
     """
-    ignore_warnings=False
-    severities = ["error","warning"] if not ignore_warnings else ["error"]
-    with SampleContentWarningContext(severities) as errors:
+    ignore_warnings = params.get('ignore_warnings', 1) # TODO: default to 0 (false)
+    with SampleContentWarningContext(ignore_warnings) as errors:
         # verify inputs
         sample_file = validate_params(params)
         ws_name = params.get('workspace_name')
@@ -321,7 +321,7 @@ def import_samples_from_file(
             columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
             df.rename(columns={name_field: "name"}, inplace=True)
 
-        if not errors.getErrors(severity='error'):
+        if not errors.get(severity='error'):
             if params['file_format'].lower() in ['sesar', "enigma"]:
                 if 'material' in df.columns:
                     df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
@@ -355,7 +355,7 @@ def import_samples_from_file(
                 columns_to_input_names
             )
 
-        if params.get('prevalidate') and not errors.getErrors(severity='error'):
+        if params.get('prevalidate') and not errors.get(severity='error'):
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
@@ -364,7 +364,7 @@ def import_samples_from_file(
                         node=e['node'],
                         key=e['key']
                     ))
-    if errors:
+    if errors.get():
         saved_samples = []
 
         # Calculate missing location information for SamplesContentError(s)
@@ -398,7 +398,8 @@ def import_samples_from_file(
         saved_samples += existing_samples
 
     sample_data_json = df.to_json(orient='split')
+
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, list(errors), sample_data_json
+    }, errors.get(), sample_data_json

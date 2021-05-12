@@ -1,6 +1,6 @@
 # utilities for parsing data.
 import pandas as pd
-from sample_uploader.utils.samples_content_error import SampleContentWarning
+from sample_uploader.utils.samples_content_warning import SampleContentWarning
 
 
 def upload_key_format(key):

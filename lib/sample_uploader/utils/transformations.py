@@ -1,5 +1,5 @@
 from installed_clients.OntologyAPIClient import OntologyAPI
-from sample_uploader.utils.samples_content_error import SampleContentWarning
+from sample_uploader.utils.samples_content_warning import SampleContentWarning
 from sample_uploader.utils.mappings import SAMP_ONTO_CONFIG
 import time
 import warnings
