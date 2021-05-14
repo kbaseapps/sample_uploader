@@ -12,7 +12,7 @@ from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file
-from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings
+from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.17"
-    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "626ac38055547587851f7700fe9a7a4aab8f7b97"
+    VERSION = "0.0.19"
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
+    GIT_COMMIT_HASH = "51c29484eea76a8014ccaf100a9702a95210947c"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -63,6 +63,7 @@ class sample_uploader:
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
+        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
         #END_CONSTRUCTOR
         pass
 
@@ -74,7 +75,7 @@ class sample_uploader:
            String, parameter "workspace_name" of String, parameter
            "workspace_id" of Long, parameter "file_format" of String,
            parameter "description" of String, parameter "set_name" of String,
-           parameter "header_row_index" of Long, parameter "id_field" of
+           parameter "header_row_index" of Long, parameter "name_field" of
            String, parameter "output_format" of String, parameter
            "taxonomy_source" of String, parameter "num_otus" of Long,
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
@@ -110,62 +111,30 @@ class sample_uploader:
             header_row_index = int(params["header_row_index"]) - 1
         else:
             header_row_index = 0
-            if params.get('file_format') == "SESAR":
+            if params.get('file_format') == "sesar":
                 header_row_index = 1
 
         username = ctx['user_id']
 
-        if params.get('file_format') == 'ENIGMA':
-            # ENIGMA_mappings['verification_mapping'].update(
-            #     {key: ("is_string", []) for key in ENIGMA_mappings['basic_columns']}
-            # )
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sample_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                ENIGMA_mappings['column_mapping'],
-                ENIGMA_mappings.get('groups', []),
-                ENIGMA_mappings['date_columns'],
-                ENIGMA_mappings.get('column_unit_regex', []),
-                sample_set,
-                header_row_index
-            )
-        elif params.get('file_format') == 'SESAR':
-            # SESAR_mappings['verification_mapping'].update(
-            #     {key: ("is_string", []) for key in SESAR_mappings['basic_columns']}
-            # )
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sample_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                SESAR_mappings['column_mapping'],
-                SESAR_mappings.get('groups', []),
-                SESAR_mappings['date_columns'],
-                SESAR_mappings.get('column_unit_regex', []),
-                sample_set,
-                header_row_index
-            );
-        elif params.get('file_format') == 'KBASE':
-            sample_set, errors = import_samples_from_file(
-                params,
-                self.sample_url,
-                self.workspace_url,
-                username,
-                ctx['token'],
-                {},
-                [],
-                [],
-                [],
-                sample_set,
-                header_row_index
-            )
-        else:
-            raise ValueError(f"Only SESAR and ENIGMA formats are currently supported for importing samples. "
-                             "File of format {params.get('file_format')} is not supported.")
+        if str(params.get('file_format')).lower() not in ['enigma', 'sesar', 'kbase']:
+            raise ValueError(f"Only SESAR, ENIGMA, and KBase formats are currently supported for importing samples. "
+                             f"File of format {params.get('file_format')} not supported.")
+        mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
+
+        sample_set, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            username,
+            ctx['token'],
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases
+        )
 
         file_links = []
         sample_set_ref = None
@@ -173,7 +142,7 @@ class sample_uploader:
 
         if errors:
             # create UI to display the errors clearly
-            html_link = _error_ui(errors, self.scratch)
+            html_link = _error_ui(errors, sample_data_json, self.scratch)
         else:
             # only save object if there are no errors
             obj_info = self.dfu.save_objects({
@@ -297,7 +266,7 @@ class sample_uploader:
 
         logging.info('Start importing samples from IGSNs: {}'.format(igsns))
 
-        sample_file_name = 'isgn_sample_{}.csv'.format(str(uuid.uuid4()))
+        sample_file_name = 'igsn_sample_{}.csv'.format(str(uuid.uuid4()))
         sample_file_dir = os.path.join(self.scratch, str(uuid.uuid4()))
         os.makedirs(sample_file_dir)
         sample_file = os.path.join(sample_file_dir, sample_file_name)
@@ -305,7 +274,7 @@ class sample_uploader:
         igsns_to_csv(igsns, sample_file)
 
         params['sample_file'] = sample_file
-        params['file_format'] = 'SESAR'
+        params['file_format'] = 'sesar'
 
         output = self.import_samples(ctx, params)[0]
         #END import_samples_from_IGSN
@@ -363,7 +332,7 @@ class sample_uploader:
         ncbi_samples_to_csv(ncbi_sample_ids, sample_file)
 
         params['sample_file'] = sample_file
-        params['file_format'] = 'KBASE'
+        params['file_format'] = 'kbase'
 
         output = self.import_samples(ctx, params)[0]
         #END import_samples_from_NCBI
@@ -497,7 +466,7 @@ class sample_uploader:
         if not params.get('input_ref'):
             raise ValueError(f"variable input_ref required")
         sample_set_ref = params.get('input_ref')
-        output_file_format = params.get('file_format', 'SESAR')
+        output_file_format = params.get('file_format', 'sesar')
 
         ret = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]
         sample_set = ret['data']

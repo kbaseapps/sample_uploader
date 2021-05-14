@@ -1,5 +1,5 @@
-k	validator types:	number	noop	onto	enum	onto	user field	number	
-sample name	test id field	Depth	Country	biome	material	feature	user field	elevation start	elevation unit
-Sample 1	s1	0	Germany	ENVO:01000221	Gas	ENVO:01000002		123	cm
-Sample 2	s2	1.04	Uzbekistan		Soil		blip	3	feet
-Sample 3	s3	299	Cambodia	ENVO:01000221		ENVO:00002226	blap blork	5.9	meters
+validator types:	number	noop	onto	enum	onto	user field	number	
+test name field	Depth	Country	biome	material	feature	user field	elevation start	elevation unit
+s1	0	Germany	ENVO:01000221	Gas	ENVO:01000002		123	cm
+s2	1.04	Uzbekistan		Soil		blip	3	feet
+s3	299	Cambodia	temperate woodland biome		ENVO:00002226	blap blork	5.9	meters

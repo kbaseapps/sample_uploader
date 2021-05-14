@@ -111,7 +111,7 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'sample_file': sample_file,
-            'file_format': "ENIGMA",
+            'file_format': "enigma",
             'header_row_index': 1,  # 1-indexed
             'set_name': 'test1',
             'description': "this is a test SampleSet.",

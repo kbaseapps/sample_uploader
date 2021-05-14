@@ -60,7 +60,43 @@ SAMP_SERV_CONFIG = _fetch_global_config(
     "metadata_validation.yml"
 )
 
+SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
+    None,
+    os.environ.get(
+        'SAMPLE_ONTOLOGY_CONFIG_URL',
+        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
+    ),
+    None,
+    "ontology_validators.yml"
+).items()}
+
+default_aliases = {
+    'name': [
+        "sample name",
+        "sample id",
+        "samplename",
+        "sampleid"
+    ],
+    'latitude': [
+        "lat",
+        "geographical latitude",
+        "geographical lat",
+        "geo lat",
+        "geo latitude"
+    ],
+    'longitude': [
+        "long",
+        "lon",
+        "geographical lon",
+        "geographical long",
+        "geographical longitude",
+        "geo lon",
+        "geo long",
+        "geo longitude"
+    ]
+}
+
 shared_fields = uploader_config["shared_fields"]
 SESAR_mappings = uploader_config["SESAR"]
 ENIGMA_mappings = uploader_config["ENIGMA"]
-
+aliases = uploader_config.get('aliases', default_aliases)

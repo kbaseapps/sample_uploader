@@ -54,7 +54,7 @@ parameters :
         long-hint  : |
             Row that the column headers are on (default=1)
 
-    id_field:
+    name_field:
         ui-name: |
             ID field
         short-hint: |

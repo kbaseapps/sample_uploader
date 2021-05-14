@@ -69,7 +69,7 @@ def test_retrieve_sample_from_ncbi():
     sample = retrieve_sample_from_ncbi(ncbi_sample_id)
 
     expected_sample_metadata = ['publication_date', 'last_update', 'submission_date',
-                                'id', 'name', 'current_archive', 'current_archive_contact',
+                                'name', 'description', 'current_archive', 'current_archive_contact',
                                 'collector', 'collection_date', 'depth', 'elev', 'env_biome',
                                 'env_feature', 'env_material', 'geo_loc_name', 'latitude',
                                 'longitude', 'misc_param']
@@ -79,8 +79,8 @@ def test_retrieve_sample_from_ncbi():
                     'publication_date': '2014-11-06',
                     'last_update': '2021-02-28',
                     'submission_date': '2014-11-06',
-                    'id': ncbi_sample_id,
-                    'name': 'Seawater-16',
+                    'name': ncbi_sample_id,
+                    'description': 'Seawater-16',
                     'current_archive': 'University of Hawaii',
                     'current_archive_contact': 'jungbluth.sean@gmail.com',
                     'collector': 'Sean Jungbluth',

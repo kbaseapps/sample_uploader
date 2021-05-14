@@ -1,33 +1,89 @@
 <!doctype html>
 <html>
 	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="static/datatables.min.css">
+		<script src="static/datatables.min.js"></script>
 		<style>
-		table, th, td {border: 1px solid black;}
+			.cell-error {
+				color:white;
+				background-color: #D2232A;
+				position: relative;
+			}
+			.cell-error:hover .error-detail {
+				display: block;
+			}
+			.cell-error .error-detail {
+				display: none;
+				position: absolute;
+				border: solid black 1px;
+				background-color: white;
+				color: black;
+				top: calc(100% - 10px);
+				left: 10px;
+				padding: 5px;
+				z-index: 100;
+			}
 		</style>
 	</head>
 	<body>
-		<h1> Upload errors </h1>
-		<table style="width:100%">
+		<h2> Upload errors </h2>
+		<table id="errTable" style="width:100%"></table>
+		<h3> Error Positions in Uploaded File </h3>
+		<table id="errDetailTable" style="width:100%">
 			<thead>
 				<tr>
-					<th>Sample Name</th>
-					<th>Key</th>
 					<th>Row</th>
 					<th>Column</th>
+					<th>Sample Name</th>
+					<th>Key</th>
 					<th>Error</th>
 				</tr>
 			</thead>
 			<tbody>
-				{% for err in results %}
+				{% for err in error_data %}
 				<tr>
-				    <td>{{err.sample_name if err.sample_name is not none else ''}}</td>
-						<td>{{err.key if err.key is not none else ''}}</td>
 						<td>{{err.row if err.row is not none else ''}}</td>
 						<td>{{err.column if err.column is not none else ''}}</td>
+						<td>{{err.sample_name if err.sample_name is not none else ''}}</td>
+						<td>{{err.key if err.key is not none else ''}}</td>
 						<td>{{err.message}}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
 		</table>
+		<script>
+			const error_data = {{ error_data|tojson|safe }};
+			const sample_data = {{ sample_data_json|safe }};
+
+			$(document).ready(()=>{
+				$('#errDetailTable').DataTable({
+					dom: 'frtip'
+				});
+				const errTable = $('#errTable').DataTable({
+					dom: 'fBrtip',
+					data: sample_data.data,
+					columns: sample_data.columns.map((c,i)=>({data:i, title:c})),
+					ordering: false,
+					buttons: [
+						'excelHtml5',
+						'csvHtml5',
+					]
+				});
+				error_data.forEach(err=>{
+					let dt_row = sample_data.index.indexOf(err.row);
+					if (dt_row === -1) dt_row = "*";
+					let dt_col = err.column!==undefined ? err.column : "*";
+					const err_cells = errTable.cells(dt_row,dt_col).nodes().to$();
+					err_cells.addClass('cell-error');
+					err_cells.each(function(){
+						const detail = $(this).children(".error-detail").length > 0 ?
+							$(this).children(".error-detail") :
+							$('<span class="error-detail"/>').appendTo(this);
+						detail.text(`${detail.text()}\n${err.message}`)
+					})
+				})
+			});
+		</script>
 	</body>
 </html>

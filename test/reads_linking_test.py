@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
         cls.sample_url = cls.cfg['kbase-endpoint'] + '/{}'.format(sample_server)
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
-        cls.wsName = "test_ContigFilter_" + str(suffix)
+        cls.wsName = "test_sample_reads_linking_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
         cls.ss = SampleService(cls.sample_url, token=token)
@@ -94,10 +94,10 @@ class Test(unittest.TestCase):
 
 
 # Appdev
-ReadLinkingTestSampleSet = '44442/4/1'
-rhodo_art_jgi_reads = '44442/8/1'
-rhodobacter_art_q20_int_PE_reads = '44442/6/1'
-rhodobacter_art_q50_SE_reads = '44442/7/2'
+# ReadLinkingTestSampleSet = '44442/4/1'
+# rhodo_art_jgi_reads = '44442/8/1'
+# rhodobacter_art_q20_int_PE_reads = '44442/6/1'
+# rhodobacter_art_q50_SE_reads = '44442/7/2'
 
 # CI (not publicly available TODO)
 # SampleMetaData_tsv_sample_set = '59862/2/1' # SampleSet
