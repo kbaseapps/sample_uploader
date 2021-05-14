@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.19"
+    VERSION = "0.0.20"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "87c60fe1e90d104c4b940205c94251e2e3851c09"
+    GIT_COMMIT_HASH = "81d57c665c925c717b2d33cdf58e43801f07cb74"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
