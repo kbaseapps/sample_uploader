@@ -27,6 +27,7 @@ module sample_uploader {
         int share_within_workspace;
         int prevalidate;
         int incl_input_in_output;
+        int ignore_warnings;
     } ImportSampleInputs;
 
     typedef structure {
