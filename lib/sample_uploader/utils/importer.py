@@ -199,7 +199,7 @@ def _produce_samples(
         for n in s['sample']['node_tree']:
             ukeys = set(n['meta_user'].keys())
             ckeys = set(n['meta_controlled'].keys())
-            user_keys |= ukeys - ckeys
+            user_keys |= (ukeys - ckeys)
     for key in user_keys:
         warnings.warn(SampleContentWarning(
             f"User defined column {key} will be stored but not validated",
