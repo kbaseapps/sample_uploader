@@ -58,7 +58,8 @@ class sample_uploader:
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
-        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
+        sample_server = config.get('sample-server')
+        self.sample_url = config.get('kbase-endpoint') + '/{}'.format(sample_server)
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)

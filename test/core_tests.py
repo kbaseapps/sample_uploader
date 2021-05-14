@@ -15,6 +15,7 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 
+
 class sample_uploaderTest(unittest.TestCase):
 
     @classmethod
@@ -47,7 +48,8 @@ class sample_uploaderTest(unittest.TestCase):
         cls.curr_dir = os.path.dirname(os.path.realpath(__file__))
         cls.scratch = cls.cfg['scratch']
         cls.wiz_url = cls.cfg['srv-wiz-url']
-        cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
+        sample_server = cls.cfg.get('sample-server')
+        cls.sample_url = cls.cfg['kbase-endpoint'] + '/{}'.format(sample_server)
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_sample_uploader_" + str(suffix)
