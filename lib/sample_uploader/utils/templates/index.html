@@ -5,15 +5,21 @@
 		<link rel="stylesheet" type="text/css" href="static/datatables.min.css">
 		<script src="static/datatables.min.js"></script>
 		<style>
-			.cell-error {
-				color:white;
-				background-color: #D2232A;
+			.cell-highlight {
 				position: relative;
 			}
-			.cell-error:hover .error-detail {
+			.cell-highlight--warning {
+				background-color: #FFDB33;
+				color:black;
+			}
+			.cell-highlight--error, .cell-highlight--error.cell-highlight--warning {
+				color:white;
+				background-color: #D2232A;
+			}
+			.cell-highlight:hover .error-detail {
 				display: block;
 			}
-			.cell-error .error-detail {
+			.cell-highlight .error-detail {
 				display: none;
 				position: absolute;
 				border: solid black 1px;
@@ -75,12 +81,15 @@
 					if (dt_row === -1) dt_row = "*";
 					let dt_col = err.column!==undefined ? err.column : "*";
 					const err_cells = errTable.cells(dt_row,dt_col).nodes().to$();
-					err_cells.addClass('cell-error');
+					err_cells.addClass('cell-highlight');
+					if(err.severity=='error') err_cells.addClass('cell-highlight--error');
+					if(err.severity=='warning') err_cells.addClass('cell-highlight--warning');
 					err_cells.each(function(){
 						const detail = $(this).children(".error-detail").length > 0 ?
 							$(this).children(".error-detail") :
 							$('<span class="error-detail"/>').appendTo(this);
-						detail.text(`${detail.text()}\n${err.message}`)
+						sym = err.severity=='error'?'\ud83d\udd34':'\ud83d\udd36';
+						detail.text(`${detail.text()}\n${sym} ${err.message}`)
 					})
 				})
 			});

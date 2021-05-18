@@ -1,7 +1,5 @@
 import pandas as pd
-import datetime
-import time
-import json
+import warnings
 import os
 from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
@@ -18,7 +16,7 @@ from sample_uploader.utils.transformations import FieldTransformer
 from sample_uploader.utils.parsing_utils import upload_key_format
 from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
-from sample_uploader.utils.samples_content_error import SampleContentError
+from sample_uploader.utils.samples_content_warning import SampleContentWarning, SampleContentWarningContext
 
 # These columns should all be in lower case.
 REQUIRED_COLS = {'name'}
@@ -41,7 +39,7 @@ def validate_params(params):
     if params.get('name_field'):
         try: 
             upload_key_format(params.get('name_field'))
-        except SampleContentError as e:
+        except SampleContentWarning as e:
             raise ValueError("Invalid ID field in params: {e.message}")
     ws_name = params.get('workspace_name')
     return sample_file
@@ -99,14 +97,14 @@ def _produce_samples(
             if name in existing_sample_names and prev_sample['name'] == name:
                 # now we check if the sample 'id' and 'name' are the same
                 if existing_sample_names[name]['id'] != prev_sample['id']:
-                    raise SampleContentError(
+                    raise SampleContentWarning(
                         f"'kbase_sample_id' and input sample set have different ID's for sample with name \"{name}\"",
                         key="id",
                         sample_name=name
                     )
             elif name in existing_sample_names and name != prev_sample['name']:
                 # not sure if this is an error case
-                raise SampleContentError(
+                raise SampleContentWarning(
                     f"Cannot rename existing sample from {prev_sample['name']} to {name}",
                     key="id",
                     sample_name=name
@@ -119,14 +117,13 @@ def _produce_samples(
 
     field_transformer = FieldTransformer(callback_url)
 
-    errors = []
     cols = list(set(df.columns) - set(REQUIRED_COLS))
     for row_num, row in df.iterrows():
         try:
             # only required field is 'name'
             if not row.get('name'):
-                raise SampleContentError(
-                    f"Bad sample name \"{row.get('name')}\". evaluates as false",
+                raise SampleContentWarning(
+                    f"Bad sample name \"{row.get('name')}\". Cell content evaluates as false",
                     key='name',
                     sample_name=row.get('name')
                 )
@@ -193,11 +190,25 @@ def _produce_samples(
                 'read': row.get('read'),
                 'admin': row.get('admin')
             })
-        except SampleContentError as e:
+        except SampleContentWarning as e:
             e.row = row_num
-            errors.append(e)
+            warnings.warn(e)
+
+    user_keys = set()
+    for s in samples:
+        for n in s['sample']['node_tree']:
+            ukeys = set(n['meta_user'].keys())
+            ckeys = set(n['meta_controlled'].keys())
+            user_keys |= (ukeys - ckeys)
+    for key in user_keys:
+        warnings.warn(SampleContentWarning(
+            f"User defined column {key} will be stored but not validated",
+            key=key,
+            severity='warning'
+        ))
+
     # add the missing samples from existing_sample_names
-    return samples, [existing_sample_names[key] for key in existing_sample_names], errors
+    return samples, [existing_sample_names[key] for key in existing_sample_names]
 
 
 def _save_samples(samples, acls, sample_url, token):
@@ -229,24 +240,21 @@ def _save_samples(samples, acls, sample_url, token):
     return saved_samples
 
 
-def format_input_file(df, columns_to_input_names, aliases, header_row_index):
-    errors = []
-
+def format_input_file(df, columns_to_input_names, aliases):
     # change columns to upload format
     columns_to_input_names = {}
     for col_idx, col_name in enumerate(df.columns):
-        try:
-            renamed = upload_key_format(col_name)
-            if renamed in columns_to_input_names:
-                raise SampleContentError(
-                    (f"Duplicate column \"{renamed}\". \"{col_name}\" would overwrite a different column \"{columns_to_input_names[renamed]}\". "
-                    "Rename your columns to be unique alphanumericaly, ignoring whitespace and case."),
-                    key=col_name
-                )
+        renamed = upload_key_format(col_name)
+        if renamed not in columns_to_input_names:
             columns_to_input_names[renamed] = col_name
-        except SampleContentError as e:
-            e.column = col_idx
-            errors.append(e)
+        else:
+            warnings.warn(SampleContentWarning(
+                (f"Duplicate column \"{renamed}\". \"{col_name}\" would overwrite a different column \"{columns_to_input_names[renamed]}\". "
+                "Rename your columns to be unique alphanumericaly, ignoring whitespace and case."),
+                key=col_name,
+                column = col_idx,
+                severity='error'
+            ))
 
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n: None for n in NOOP_VALS}, inplace=True)
@@ -270,7 +278,7 @@ def format_input_file(df, columns_to_input_names, aliases, header_row_index):
     if map_aliases:
         df = df.rename(columns=map_aliases)
 
-    return df, columns_to_input_names, errors
+    return df, columns_to_input_names
 
 
 def import_samples_from_file(
@@ -290,72 +298,73 @@ def import_samples_from_file(
     """
     import samples from '.csv' or '.xls' files in SESAR  format
     """
-    # verify inputs
-    sample_file = validate_params(params)
-    ws_name = params.get('workspace_name')
-    df = load_file(sample_file, header_row_index, date_columns)
-    df, columns_to_input_names, errors = format_input_file(df, {}, aliases, header_row_index)
+    ignore_warnings = params.get('ignore_warnings', 1) # TODO: default to 0 (false)
+    with SampleContentWarningContext(ignore_warnings) as errors:
+        # verify inputs
+        sample_file = validate_params(params)
+        ws_name = params.get('workspace_name')
+        df = load_file(sample_file, header_row_index, date_columns)
+        df, columns_to_input_names = format_input_file(df, {}, aliases)
 
-    # TODO: Make sure to check all possible name fields, even when not parameterized
-    if params.get('name_field'):
-        name_field = upload_key_format(params.get('name_field'))
-        if name_field not in list(df.columns):
-            raise ValueError(
-                f"The expected name field column \"{name_field}\" could not be found. "
-                "Adjust your parameters or input such that the following are correct:\n"
-                f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
-                f"- ID Field: {params.get('name_field','name')}\n (the header of the column containing your names)\n"
-                f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
+        # TODO: Make sure to check all possible name fields, even when not parameterized
+        if params.get('name_field'):
+            name_field = upload_key_format(params.get('name_field'))
+            if name_field not in list(df.columns):
+                raise ValueError(
+                    f"The expected name field column \"{name_field}\" could not be found. "
+                    "Adjust your parameters or input such that the following are correct:\n"
+                    f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
+                    f"- ID Field: {params.get('name_field','name')}\n (the header of the column containing your names)\n"
+                    f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
+                )
+            # here we rename whatever the id field was/is to "id"
+            columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
+            df.rename(columns={name_field: "name"}, inplace=True)
+
+        if not errors.get(severity='error'):
+            if params['file_format'].lower() in ['sesar', "enigma"]:
+                if 'material' in df.columns:
+                    df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
+                    val = columns_to_input_names.pop("material")
+                    columns_to_input_names[params['file_format'].lower() + ":material"] = val
+            if params['file_format'].lower() == "kbase":
+                if 'material' in df.columns:
+                    df.rename(columns={"material": "sesar:material"}, inplace=True)
+                    val = columns_to_input_names.pop("material")
+                    columns_to_input_names["sesar:material"] = val
+
+            acls = {
+                "read": [],
+                "write": [],
+                "admin": [],
+                "public_read": -1  # set to false (<0)
+            }
+            if params.get('share_within_workspace'):
+                # query workspace for user permissions.
+                acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
+            groups = SAMP_SERV_CONFIG['validators']
+
+            samples, existing_samples = _produce_samples(
+                callback_url,
+                df,
+                column_groups,
+                column_unit_regex,
+                sample_url,
+                token,
+                input_sample_set['samples'],
+                columns_to_input_names
             )
-        # here we rename whatever the id field was/is to "id"
-        columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
-        df.rename(columns={name_field: "name"}, inplace=True)
 
-    if not errors:
-        if params['file_format'].lower() in ['sesar', "enigma"]:
-            if 'material' in df.columns:
-                df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
-                val = columns_to_input_names.pop("material")
-                columns_to_input_names[params['file_format'].lower() + ":material"] = val
-        if params['file_format'].lower() == "kbase":
-            if 'material' in df.columns:
-                df.rename(columns={"material": "sesar:material"}, inplace=True)
-                val = columns_to_input_names.pop("material")
-                columns_to_input_names["sesar:material"] = val
-
-        acls = {
-            "read": [],
-            "write": [],
-            "admin": [],
-            "public_read": -1  # set to false (<0)
-        }
-        if params.get('share_within_workspace'):
-            # query workspace for user permissions.
-            acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
-        groups = SAMP_SERV_CONFIG['validators']
-
-        samples, existing_samples, produce_errors = _produce_samples(
-            callback_url,
-            df,
-            column_groups,
-            column_unit_regex,
-            sample_url,
-            token,
-            input_sample_set['samples'],
-            columns_to_input_names
-        )
-        errors += produce_errors
-
-    if params.get('prevalidate') and not errors:
-        error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
-        errors += [ SampleContentError(
-                e['message'],
-                sample_name=e['sample_name'],
-                node=e['node'],
-                key=e['key']
-            ) for e in error_detail ]
-
-    if errors:
+        if params.get('prevalidate') and not errors.get(severity='error'):
+            error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
+            for e in error_detail:
+                warnings.warn(SampleContentWarning(
+                        e['message'],
+                        sample_name=e['sample_name'],
+                        node=e['node'],
+                        key=e['key']
+                    ))
+    if errors.get():
         saved_samples = []
 
         # Calculate missing location information for SamplesContentError(s)
@@ -389,7 +398,8 @@ def import_samples_from_file(
         saved_samples += existing_samples
 
     sample_data_json = df.to_json(orient='split')
+
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors, sample_data_json
+    }, errors.get(), sample_data_json

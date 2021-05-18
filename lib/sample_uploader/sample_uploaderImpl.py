@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.19"
+    VERSION = "0.0.20"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "51c29484eea76a8014ccaf100a9702a95210947c"
+    GIT_COMMIT_HASH = "81d57c665c925c717b2d33cdf58e43801f07cb74"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -80,7 +80,8 @@ class sample_uploader:
            "taxonomy_source" of String, parameter "num_otus" of Long,
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
            parameter "share_within_workspace" of Long, parameter
-           "prevalidate" of Long, parameter "incl_input_in_output" of Long
+           "prevalidate" of Long, parameter "incl_input_in_output" of Long,
+           parameter "ignore_warnings" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:

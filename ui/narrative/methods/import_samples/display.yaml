@@ -142,5 +142,13 @@ parameters :
         long-hint: |
             Validate all samples before upload and display any errors
 
+    ignore_warnings:
+        ui-name : |
+            Ignore Warnings
+        short-hint : |
+            Ignore warnings and upload sample data as-is
+        long-hint  : |
+            Ignore warnings and upload sample data as-is 
+
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>

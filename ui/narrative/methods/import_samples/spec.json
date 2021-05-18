@@ -206,6 +206,18 @@
                 "unchecked_value" : 0,
                 "checked_value" : 1
             }
+        },
+        {
+            "id": "ignore_warnings",
+            "optional" : false,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "0" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
         }
     ],
     "behavior": {
@@ -266,6 +278,9 @@
                 },{
                     "input_parameter": "prevalidate",
                     "target_property": "prevalidate"
+                },{
+                    "input_parameter": "ignore_warnings",
+                    "target_property": "ignore_warnings"
                 }
             ],
             "output_mapping": [
