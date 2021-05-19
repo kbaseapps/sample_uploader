@@ -1,9 +1,9 @@
 """
 Mappings for accepted file formats
 
-FILE-FORMAT_verification_mapping: 
-FILE-FORMAT_cols_mapping: 
-FILE-FORMAT_groups: list of 
+FILE-FORMAT_verification_mapping:
+FILE-FORMAT_cols_mapping:
+FILE-FORMAT_groups: list of
 """
 import os
 import yaml
@@ -13,6 +13,7 @@ from .verifiers import *
 
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
+
 
 def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
     """
@@ -39,6 +40,7 @@ def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
                 with urllib.request.urlopen(download_url) as res:  # nosec
                     return yaml.safe_load(res)
         raise RuntimeError("Unable to load the config.yaml file from index_runner_spec")
+
 
 uploader_config = _fetch_global_config(
     None,
@@ -100,3 +102,35 @@ shared_fields = uploader_config["shared_fields"]
 SESAR_mappings = uploader_config["SESAR"]
 ENIGMA_mappings = uploader_config["ENIGMA"]
 aliases = uploader_config.get('aliases', default_aliases)
+
+
+def alias_map(col_config):
+    """
+    aliases map
+    Expand all the aliases into a map
+    This maps from the alias name to the proper column name
+    """
+    aliases = dict()
+    for col, rules in col_config.items():
+        col_aliases = rules.get('aliases', [])
+        col_aliases.append(col)
+        col_aliases = list(set(col_aliases))
+
+        transformations = rules.get('transformations')
+
+        if not transformations:
+            aliases[col] = col_aliases
+        else:
+            first_trans = transformations[0]
+            parameters = first_trans.get('parameters', [col])
+            sample_meta_name = parameters[0]
+            aliases[sample_meta_name] = col_aliases
+
+    return aliases
+
+
+download_url = "https://github.com/Tianhao-Gu/sample_service_validator_config/releases/download/0.5/sesar_template.yml"
+with urllib.request.urlopen(download_url) as res:  # nosec
+    SESAR_config = yaml.safe_load(res)
+
+SESAR_aliases = alias_map(SESAR_config['Columns'])
