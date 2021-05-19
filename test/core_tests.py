@@ -16,6 +16,7 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 
+
 class sample_uploaderTest(unittest.TestCase):
 
     @classmethod
@@ -89,7 +90,7 @@ class sample_uploaderTest(unittest.TestCase):
     # @unittest.skip('x')
     def test_SESAR_file(self):
         ''''''
-        compare_path = os.path.join(self.curr_dir, "data", "fake_samples.json")
+        compare_path = os.path.join(self.curr_dir, "data", "fake_samples_1.json")
         self._verify_samples(self.sample_set, compare_path)
 
     # @unittest.skip('x')
@@ -110,7 +111,7 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
         sample_set_ref = ret ['sample_set_ref']
-        compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA.json')
+        compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA_1.json')
         self._verify_samples(sample_set, compare_path)
         # next we test if the update functionality is working
         # make copy of file in scratch
@@ -160,7 +161,7 @@ class sample_uploaderTest(unittest.TestCase):
                 except:
                     raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_IGSN_sample_importer(self):
         igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
 
@@ -180,7 +181,7 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        sample_igsns = [sample['node_tree'][0]['meta_user']['sesar:igsn']['value'] for sample in samples]
         assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
@@ -203,7 +204,7 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_igsns = [sample['node_tree'][0]['meta_controlled']['igsn']['value'] for sample in samples]
+        sample_igsns = [sample['node_tree'][0]['meta_user']['sesar:igsn']['value'] for sample in samples]
         assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
@@ -226,7 +227,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
 
-        sample_igsn = sample['node_tree'][0]['meta_controlled']['igsn']['value']
+        sample_igsn = sample['node_tree'][0]['meta_user']['sesar:igsn']['value']
         assert sample_igsn == igsns
 
         expected_sample_names = 'PB-Low-5'
