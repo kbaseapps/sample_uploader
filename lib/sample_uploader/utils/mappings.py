@@ -76,7 +76,7 @@ SAMP_SERV_CONFIG = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.5"
+        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
     ),
     None,
     "metadata_validation.yml"
