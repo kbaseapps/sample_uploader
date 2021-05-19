@@ -149,9 +149,50 @@ def find_date_col(col_config):
     return date_cols
 
 
+def create_groups(col_config):
+    groups = dict()
+
+    for col, rules in col_config.items():
+
+        transformations = rules.get('transformations')
+
+        if transformations:
+            first_trans = transformations[0]
+
+            transform = first_trans.get('transform')
+
+            if transform == 'unit_measurement':
+                parameters = first_trans.get('parameters')
+
+                value = parameters[0]
+                unit_key = parameters[1]
+
+                unit_rules = col_config[unit_key]
+
+                unit_transformations = unit_rules.get('transformations')
+
+                if not unit_transformations:
+                    unit = unit_key
+                else:
+                    first_trans = unit_transformations[0]
+                    parameters = first_trans.get('parameters', [col])
+                    unit = parameters[0]
+            elif transform == 'unit_measurement_fixed':
+                parameters = first_trans.get('parameters')
+                value = parameters[0]
+                unit = 'str:{}'.format(parameters[1])
+
+            groups[value] = unit
+
+    groups = [{'units': groups[value], 'value': value} for value in groups]
+
+    return groups
+
+
 download_url = "https://github.com/Tianhao-Gu/sample_service_validator_config/releases/download/0.5/sesar_template.yml"
 with urllib.request.urlopen(download_url) as res:  # nosec
     SESAR_config = yaml.safe_load(res)
 
 SESAR_aliases = alias_map(SESAR_config['Columns'])
 SESAR_date_columns = find_date_col(SESAR_config['Columns'])
+SESAR_groups = create_groups(SESAR_config['Columns'])

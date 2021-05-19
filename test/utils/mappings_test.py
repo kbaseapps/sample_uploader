@@ -2,6 +2,7 @@
 from sample_uploader.utils.mappings import (
     SESAR_aliases,
     SESAR_date_columns,
+    SESAR_groups,
 )
 
 
@@ -51,3 +52,22 @@ def test_SESAR_date_columns():
                           'sesar:collection_date_end',
                           'sesar:release_date']
     assert set(SESAR_date_columns) == set(expected_data_cols)
+
+
+def test_SESAR_groups():
+    expected_groups = [
+            {'units': 'Age unit (e.g. million years (Ma))', 'value': 'sesar:age_max'},
+            {'units': 'Age unit (e.g. million years (Ma))', 'value': 'sesar:age_min'},
+            {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_max'},
+            {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_min'},
+            {'units': 'Elevation unit', 'value': 'sesar:elevation_end'},
+            {'units': 'Elevation unit', 'value': 'sesar:elevation_start'},
+            {'units': 'Geological unit', 'value': 'sesar:geological_age'},
+            {'units': 'str:degrees', 'value': 'latitude'},
+            {'units': 'str:degrees', 'value': 'latitude_end'},
+            {'units': 'str:degrees', 'value': 'longitude'},
+            {'units': 'str:degrees', 'value': 'longitude_end'},
+            {'units': 'Size unit', 'value': 'sesar:size'}]
+
+    for idx, group in enumerate(SESAR_groups):
+        assert group == expected_groups[idx]
