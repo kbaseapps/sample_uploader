@@ -37,7 +37,7 @@ def validate_params(params):
         else:
             raise ValueError(f"input file {sample_file} does not exist.")
     if params.get('name_field'):
-        try: 
+        try:
             upload_key_format(params.get('name_field'))
         except SampleContentWarning as e:
             raise ValueError("Invalid ID field in params: {e.message}")
