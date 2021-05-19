@@ -1,7 +1,11 @@
-from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, SESAR_aliases
+
+from sample_uploader.utils.mappings import (
+    SESAR_aliases,
+    SESAR_date_columns,
+)
 
 
-def test_aliases():
+def test_SESAR_aliases():
 
     # test 'unit_measurement' transformation rule
     sample_meta_name = 'name'
@@ -39,3 +43,11 @@ def test_aliases():
                         'longitude',
                         'Longitude']
     assert set(SESAR_aliases[sample_meta_name]) == set(expected_aliases)
+
+
+def test_SESAR_date_columns():
+
+    expected_data_cols = ['sesar:collection_date',
+                          'sesar:collection_date_end',
+                          'sesar:release_date']
+    assert set(SESAR_date_columns) == set(expected_data_cols)

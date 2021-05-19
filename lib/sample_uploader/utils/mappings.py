@@ -129,8 +129,29 @@ def alias_map(col_config):
     return aliases
 
 
+def find_date_col(col_config):
+    date_cols = list()
+
+    target_keys = [col for col in col_config.keys()
+                   if 'date' in col.lower() and 'precision' not in col.lower()]
+    for key in target_keys:
+        rules = col_config[key]
+
+        transformations = rules.get('transformations')
+        if not transformations:
+            date_cols.append(key)
+        else:
+            first_trans = transformations[0]
+            parameters = first_trans.get('parameters', [key])
+            sample_meta_name = parameters[0]
+            date_cols.append(sample_meta_name)
+
+    return date_cols
+
+
 download_url = "https://github.com/Tianhao-Gu/sample_service_validator_config/releases/download/0.5/sesar_template.yml"
 with urllib.request.urlopen(download_url) as res:  # nosec
     SESAR_config = yaml.safe_load(res)
 
 SESAR_aliases = alias_map(SESAR_config['Columns'])
+SESAR_date_columns = find_date_col(SESAR_config['Columns'])
