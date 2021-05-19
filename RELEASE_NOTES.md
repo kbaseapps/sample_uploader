@@ -1,5 +1,9 @@
 # sample_uploader release notes
 =========================================
+0.0.21
+------
+* use 0.5 released sample_service_validator_config SESAR and ENIGMA validator
+
 0.0.20
 ------
 * Adds severity (introduces warnings)
