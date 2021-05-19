@@ -193,6 +193,22 @@ download_url = "https://github.com/Tianhao-Gu/sample_service_validator_config/re
 with urllib.request.urlopen(download_url) as res:  # nosec
     SESAR_config = yaml.safe_load(res)
 
+download_url = "https://github.com/Tianhao-Gu/sample_service_validator_config/releases/download/0.5/enigma_template.yml"
+with urllib.request.urlopen(download_url) as res:  # nosec
+    ENIGMA_config = yaml.safe_load(res)
+
 SESAR_aliases = alias_map(SESAR_config['Columns'])
 SESAR_date_columns = find_date_col(SESAR_config['Columns'])
 SESAR_groups = create_groups(SESAR_config['Columns'])
+
+ENIGMA_aliases = alias_map(ENIGMA_config['Columns'])
+ENIGMA_date_columns = find_date_col(ENIGMA_config['Columns'])
+ENIGMA_groups = create_groups(ENIGMA_config['Columns'])
+
+SESAR_mappings['groups'] = SESAR_groups
+SESAR_mappings['date_columns'] = SESAR_date_columns
+
+ENIGMA_mappings['groups'] = ENIGMA_groups
+ENIGMA_mappings['date_columns'] = ENIGMA_date_columns
+
+aliases = {**SESAR_aliases, **ENIGMA_aliases}
