@@ -84,10 +84,6 @@ class sample_uploaderTest(unittest.TestCase):
             aliases
         )
 
-        print('import samples output - ENIGMA')
-        print(sample_set)
-        print(errors)
-
         samples = sample_set['samples']
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
@@ -97,7 +93,7 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA_1.json")
         self._verify_samples(sample_set, compare_path)
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_import_SESAR_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples.tsv')
@@ -127,10 +123,6 @@ class sample_uploaderTest(unittest.TestCase):
             aliases
         )
 
-        print('import samples output - SESAR')
-        print(sample_set)
-        print(errors)
-
         samples = sample_set['samples']
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
@@ -140,7 +132,7 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples_1.json")
         self._verify_samples(sample_set, compare_path)
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_KBASE_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'example_data', 'ncbi_sample_example.csv')
@@ -168,10 +160,6 @@ class sample_uploaderTest(unittest.TestCase):
             header_row_index,
             aliases
         )
-
-        print('import samples output - KBASE')
-        print(sample_set)
-        print(errors)
 
         samples = sample_set['samples']
         self.assertEqual(len(samples), 2)
