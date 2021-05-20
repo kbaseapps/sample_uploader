@@ -90,7 +90,7 @@ class sample_uploaderTest(unittest.TestCase):
     # @unittest.skip('x')
     def test_SESAR_file(self):
         ''''''
-        compare_path = os.path.join(self.curr_dir, "data", "fake_samples_1.json")
+        compare_path = os.path.join(self.curr_dir, "data", "fake_samples.json")
         self._verify_samples(self.sample_set, compare_path)
 
     # @unittest.skip('x')
@@ -111,7 +111,7 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
         sample_set_ref = ret ['sample_set_ref']
-        compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA_1.json')
+        compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA.json')
         self._verify_samples(sample_set, compare_path)
         # next we test if the update functionality is working
         # make copy of file in scratch

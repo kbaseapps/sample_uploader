@@ -90,7 +90,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
-        compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA_1.json")
+        compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
         self._verify_samples(sample_set, compare_path)
 
     @unittest.skip('x')
@@ -129,7 +129,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
-        compare_path = os.path.join(self.test_dir, "data", "fake_samples_1.json")
+        compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
 
     @unittest.skip('x')
