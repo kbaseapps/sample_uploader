@@ -55,19 +55,22 @@ def test_SESAR_date_columns():
 
 
 def test_SESAR_groups():
-    expected_groups = [
-            {'units': 'Age unit (e.g. million years (Ma))', 'value': 'sesar:age_max'},
-            {'units': 'Age unit (e.g. million years (Ma))', 'value': 'sesar:age_min'},
-            {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_max'},
-            {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_min'},
-            {'units': 'Elevation unit', 'value': 'sesar:elevation_end'},
-            {'units': 'Elevation unit', 'value': 'sesar:elevation_start'},
-            {'units': 'Geological unit', 'value': 'sesar:geological_age'},
-            {'units': 'str:degrees', 'value': 'latitude'},
-            {'units': 'str:degrees', 'value': 'latitude_end'},
-            {'units': 'str:degrees', 'value': 'longitude'},
-            {'units': 'str:degrees', 'value': 'longitude_end'},
-            {'units': 'Size unit', 'value': 'sesar:size'}]
 
-    for idx, group in enumerate(SESAR_groups):
-        assert group == expected_groups[idx]
+    expected_groups = [
+                {'units': 'age_unit', 'value': 'sesar:age_max'},
+                {'units': 'age_unit_e.g._million_years_ma', 'value': 'sesar:age_max'},
+                {'units': 'age_unit', 'value': 'sesar:age_min'},
+                {'units': 'age_unit_e.g._million_years_ma', 'value': 'sesar:age_min'},
+                {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_max'},
+                {'units': 'sesar:depth_scale', 'value': 'sesar:depth_in_core_min'},
+                {'units': 'elevation_unit', 'value': 'sesar:elevation_end'},
+                {'units': 'elevation_unit', 'value': 'sesar:elevation_start'},
+                {'units': 'geological_unit', 'value': 'sesar:geological_age'},
+                {'units': 'str:degrees', 'value': 'latitude'},
+                {'units': 'str:degrees', 'value': 'latitude_end'},
+                {'units': 'str:degrees', 'value': 'longitude'},
+                {'units': 'str:degrees', 'value': 'longitude_end'},
+                {'units': 'size_unit', 'value': 'sesar:size'}]
+
+    for group in SESAR_groups:
+        assert group in expected_groups

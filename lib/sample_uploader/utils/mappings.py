@@ -9,6 +9,7 @@ import os
 import yaml
 import urllib
 import requests
+from sample_uploader.utils.parsing_utils import upload_key_format
 from .verifiers import *
 
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
@@ -141,7 +142,7 @@ def find_date_col(col_config):
 
 
 def create_groups(col_config):
-    groups = dict()
+    groups = list()
 
     for col, rules in col_config.items():
 
@@ -149,7 +150,6 @@ def create_groups(col_config):
 
         if transformations:
             first_trans = transformations[0]
-
             transform = first_trans.get('transform')
 
             if transform == 'unit_measurement':
@@ -157,25 +157,30 @@ def create_groups(col_config):
 
                 value = parameters[0]
                 unit_key = parameters[1]
-
                 unit_rules = col_config[unit_key]
-
                 unit_transformations = unit_rules.get('transformations')
 
                 if not unit_transformations:
-                    unit = unit_key
+                    unit_keys = [unit_key]
+                    unit_aliases = unit_rules.get('aliases', [])
+                    if unit_aliases:
+                        unit_keys += unit_aliases
+
+                    unit_keys = list(set([upload_key_format(unit) for unit in unit_keys]))
+
                 else:
                     first_trans = unit_transformations[0]
                     parameters = first_trans.get('parameters', [col])
-                    unit = parameters[0]
+                    unit_keys = [upload_key_format(parameters[0])]
+
+                for unit in unit_keys:
+                    groups.append({'units': unit, 'value': value})
             elif transform == 'unit_measurement_fixed':
                 parameters = first_trans.get('parameters')
                 value = parameters[0]
                 unit = 'str:{}'.format(parameters[1])
 
-            groups[value] = unit
-
-    groups = [{'units': groups[value], 'value': value} for value in groups]
+                groups.append({'units': unit, 'value': value})
 
     return groups
 

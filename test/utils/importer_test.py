@@ -90,10 +90,17 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
+        ss = list()
+        for it, samp in enumerate(sample_set['samples']):
+            sample = get_sample(samp, self.sample_url, self.token)
+            ss.append(sample)
+        print('fdsafads')
+        print(ss)
+
         compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
         self._verify_samples(sample_set, compare_path)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_import_SESAR_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples.tsv')
@@ -132,7 +139,7 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_KBASE_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'example_data', 'ncbi_sample_example.csv')
