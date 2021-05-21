@@ -28,36 +28,42 @@
         indexToLetters } = window.errorUI;
 
       $(document).ready(()=>{
+        // Prepare and modify samples rows to include empty rows and row numbers
         const data = createDatatableRows(sample_data.data, sample_data.index);
         const columns = createDatatableColumns(sample_data.columns);
+        // Initialize error handling code
         const errHandler = new ErrorHandler(error_data);
+        // Mount samples datatable
         const sampleTable = $('#errSampleTable').DataTable({
           dom: 'Bfrtip',
           columns:columns,
-          columnDefs:[{
+          columnDefs:[{ // Style the row numbers
             targets:[0],
             className:'position-cell'
           }],
-          select:{
+          select:{ // Allow cell selection
             style:'os',
             items: 'cell',
             info:false
           },
-          rowCallback: errHandler.highlightCells,
+          rowCallback: errHandler.highlightCells, // Adds datatable highlights
           data: data,
           buttons: [
-            {
+            { // Excel export
               extend: 'excelHtml5',
               title: null,
               filename: 'validated',
               exportOptions: {
                 columns: columns.map((_,i)=>i).slice(1),
                 modifier: {
+                  // Resets search+order before export
+                  // this allows us to export the hidden (below)
+                  // blank rows from the original data
                   search: 'none',
                   order: 'original'
                 }
               },
-              customize: errHandler.styleXLSX
+              customize: errHandler.styleXLSX // Adds Excel highlights
             } 
           ]
         });
@@ -69,7 +75,7 @@
           dom: 'rtip',
           columns:[
             {
-              data:(err)=>{
+              data:(err)=>{ // Nice looking error positons, these are also used to filter the table
                 const r = Number.isInteger(err.row) ? err.row+1 : "";
                 const c = Number.isInteger(err.column) ? indexToLetters(err.column) : "";
                 return `${c}${r}`
@@ -92,7 +98,9 @@
           data: error_data
         });
 
+        // Add excel column headers
         addExcelHeader(sampleTable, columns);
+        // Set up selection filtering
         selectionSetup(sampleTable, detailTable);
       });
     </script>
