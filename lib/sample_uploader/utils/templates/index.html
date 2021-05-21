@@ -2,97 +2,99 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<link rel="stylesheet" type="text/css" href="static/datatables.min.css">
-		<script src="static/datatables.min.js"></script>
-		<style>
-			.cell-highlight {
-				position: relative;
-			}
-			.cell-highlight--warning {
-				background-color: #FFDB33;
-				color:black;
-			}
-			.cell-highlight--error, .cell-highlight--error.cell-highlight--warning {
-				color:white;
-				background-color: #D2232A;
-			}
-			.cell-highlight:hover .error-detail {
-				display: block;
-			}
-			.cell-highlight .error-detail {
-				display: none;
-				position: absolute;
-				border: solid black 1px;
-				background-color: white;
-				color: black;
-				top: calc(100% - 10px);
-				left: 10px;
-				padding: 5px;
-				z-index: 100;
-			}
-		</style>
+    <link rel="stylesheet" type="text/css" href="datatables.min.css"/>
+    <script type="text/javascript" src="datatables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="error_ui.css"/>
+    <script type="text/javascript" src="error_ui.js"></script>
 	</head>
 	<body>
 		<h2> Upload errors </h2>
-		<table id="errTable" style="width:100%"></table>
-		<h3> Error Positions in Uploaded File </h3>
-		<table id="errDetailTable" style="width:100%">
-			<thead>
-				<tr>
-					<th>Row</th>
-					<th>Column</th>
-					<th>Sample Name</th>
-					<th>Key</th>
-					<th>Error</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for err in error_data %}
-				<tr>
-						<td>{{err.row if err.row is not none else ''}}</td>
-						<td>{{err.column if err.column is not none else ''}}</td>
-						<td>{{err.sample_name if err.sample_name is not none else ''}}</td>
-						<td>{{err.key if err.key is not none else ''}}</td>
-						<td>{{err.message}}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-		<script>
-			const error_data = {{ error_data|tojson|safe }};
+    <p>Select cells in the samples table to filter the error list below.</p>
+    <table id="errSampleTable" class="compact cell-border spreadsheet-table"></table>
+    <hr/>
+		<table id="errDetailTable" class="compact cell-border spreadsheet-table"></table>
+    <script>
+      // Jinja-injected data
+      const error_data = {{ error_data|tojson|safe }};
 			const sample_data = {{ sample_data_json|safe }};
+    </script>
+    <script>
+      const {
+        ErrorHandler, 
+        createDatatableRows, 
+        createDatatableColumns, 
+        addExcelHeader, 
+        selectionSetup,
+        indexToLetters } = window.errorUI;
 
-			$(document).ready(()=>{
-				$('#errDetailTable').DataTable({
-					dom: 'frtip'
-				});
-				const errTable = $('#errTable').DataTable({
-					dom: 'fBrtip',
-					data: sample_data.data,
-					columns: sample_data.columns.map((c,i)=>({data:i, title:c})),
-					ordering: false,
-					buttons: [
-						'excelHtml5',
-						'csvHtml5',
-					]
-				});
-				error_data.forEach(err=>{
-					let dt_row = sample_data.index.indexOf(err.row);
-					if (dt_row === -1) dt_row = "*";
-					let dt_col = err.column!==undefined ? err.column : "*";
-					const err_cells = errTable.cells(dt_row,dt_col).nodes().to$();
-					err_cells.addClass('cell-highlight');
-					if(err.severity=='error') err_cells.addClass('cell-highlight--error');
-					if(err.severity=='warning') err_cells.addClass('cell-highlight--warning');
-					err_cells.each(function(){
-						const detail = $(this).children(".error-detail").length > 0 ?
-							$(this).children(".error-detail") :
-							$('<span class="error-detail"/>').appendTo(this);
-						sym = err.severity=='error'?'\ud83d\udd34':'\ud83d\udd36';
-						detail.text(`${detail.text()}\n${sym} ${err.message}`)
-					})
-				})
-			});
-		</script>
+      $(document).ready(()=>{
+        const data = createDatatableRows(sample_data.data, sample_data.index);
+        const columns = createDatatableColumns(sample_data.columns);
+        const errHandler = new ErrorHandler(error_data);
+        const sampleTable = $('#errSampleTable').DataTable({
+          dom: 'Bfrtip',
+          columns:columns,
+          columnDefs:[{
+            targets:[0],
+            className:'position-cell'
+          }],
+          select:{
+            style:'os',
+            items: 'cell',
+            info:false
+          },
+          rowCallback: errHandler.highlightCells,
+          data: data,
+          buttons: [
+            {
+              extend: 'excelHtml5',
+              title: null,
+              filename: 'validated',
+              exportOptions: {
+                columns: columns.map((_,i)=>i).slice(1),
+                modifier: {
+                  search: 'none',
+                  order: 'original'
+                }
+              },
+              customize: errHandler.styleXLSX
+            } 
+          ]
+        });
+
+        // Hide blank sample rows
+        sampleTable.columns(0).search("^.+$", true, false).draw();
+
+        const detailTable = $('#errDetailTable').DataTable({
+          dom: 'rtip',
+          columns:[
+            {
+              data:(err)=>{
+                const r = Number.isInteger(err.row) ? err.row+1 : "";
+                const c = Number.isInteger(err.column) ? indexToLetters(err.column) : "";
+                return `${c}${r}`
+              }, 
+              title:"Position"
+            },
+            {
+              data:(err)=> err.severity=="error"?"\u00A0\ud83d\udd34\u00A0\u00A0Error":"\u00A0\ud83d\udd36\u00A0\u00A0Warning",
+              title:"Severity", 
+              defaultContent:""
+            },
+            {data:"message", title:"Error Message", defaultContent:""},
+            {data:"sample_name", title:"Sample Name", defaultContent:""},
+            {data:"key", title:"Column/Key", defaultContent:""},
+          ],
+          columnDefs:[{
+            targets:[0],
+            className:'position-cell'
+          }],
+          data: error_data
+        });
+
+        addExcelHeader(sampleTable, columns);
+        selectionSetup(sampleTable, detailTable);
+      });
+    </script>
 	</body>
 </html>
