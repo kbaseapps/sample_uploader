@@ -1,5 +1,9 @@
 # sample_uploader release notes
 =========================================
+0.0.20
+------
+* Adds severity (introduces warnings)
+
 0.0.19
 ------
 * Adds a highlighted table view for sample upload validation errors
