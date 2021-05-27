@@ -172,6 +172,7 @@ def generate_controlled_metadata(row, groups):
     cols - columns of input pandas.DataFrame to convert to metadata
     """
     metadata = {}
+    used_cols = set([])
     # use the shared fields
     for col, val in row.iteritems():
         ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
@@ -184,14 +185,15 @@ def generate_controlled_metadata(row, groups):
                     val = row[col]
                 mtd = {"value": val}
                 if idx is not None:
-                    mtd, _ = parse_grouped_data(row, groups[idx])
+                    mtd, grouped_used_cols = parse_grouped_data(row, groups[idx])
+                    used_cols.update(grouped_used_cols)
                 # verify against validator
                 missing_fields = _find_missing_fields(mtd, ss_validator)
                 for field, default in missing_fields.items():
                     mtd[field] = default
                 metadata[col] = mtd
-
-    return metadata
+                used_cols.add(col)
+    return metadata, used_cols
 
 
 def _find_missing_fields(mtd, ss_validator):
