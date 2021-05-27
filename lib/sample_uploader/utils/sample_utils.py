@@ -5,7 +5,7 @@ import os
 import re
 import pandas as pd
 
-from sample_uploader.utils.mappings import shared_fields, SAMP_SERV_CONFIG
+from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
 from sample_uploader.utils.parsing_utils import (
     parse_grouped_data,
     check_value_in_list,
@@ -190,7 +190,6 @@ def generate_controlled_metadata(row, groups):
                 for field, default in missing_fields.items():
                     mtd[field] = default
                 metadata[col] = mtd
-
     return metadata
 
 

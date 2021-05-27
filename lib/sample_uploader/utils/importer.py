@@ -14,7 +14,7 @@ from sample_uploader.utils.sample_utils import (
 )
 from sample_uploader.utils.transformations import FieldTransformer
 from sample_uploader.utils.parsing_utils import upload_key_format
-from sample_uploader.utils.mappings import SAMP_SERV_CONFIG
+from sample_uploader.utils.mappings import SAMP_SERV_CONFIG, CORE_FIELDS, NON_PREFIX_TO_PREFIX
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.samples_content_warning import SampleContentWarning, SampleContentWarningContext
 
@@ -149,6 +149,7 @@ def _produce_samples(
                 row,
                 column_groups
             )
+            controlled_metadata.
             user_metadata = generate_user_metadata(
                 row,
                 cols,
@@ -240,9 +241,11 @@ def _save_samples(samples, acls, sample_url, token):
     return saved_samples
 
 
-def format_input_file(df, columns_to_input_names, aliases):
+def format_input_file(df, params, columns_to_input_names, aliases):
     # change columns to upload format
     columns_to_input_names = {}
+
+    # set column names into 'upload_key_format'.
     for col_idx, col_name in enumerate(df.columns):
         renamed = upload_key_format(col_name)
         if renamed not in columns_to_input_names:
@@ -258,6 +261,21 @@ def format_input_file(df, columns_to_input_names, aliases):
 
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n: None for n in NOOP_VALS}, inplace=True)
+
+    # TODO: Make sure to check all possible name fields, even when not parameterized
+    if params.get('name_field'):
+        name_field = upload_key_format(params.get('name_field'))
+        if name_field not in list(df.columns):
+            raise ValueError(
+                f"The expected name field column \"{name_field}\" could not be found. "
+                "Adjust your parameters or input such that the following are correct:\n"
+                f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
+                f"- ID Field: {params.get('name_field','name')}\n (the header of the column containing your names)\n"
+                f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
+            )
+        # here we rename whatever the id field was/is to "id"
+        columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
+        df.rename(columns={name_field: "name"}, inplace=True)
 
     map_aliases = {}
     for key, key_aliases in aliases.items():
@@ -277,6 +295,33 @@ def format_input_file(df, columns_to_input_names, aliases):
 
     if map_aliases:
         df = df.rename(columns=map_aliases)
+
+    file_format = params.get('file_format').lower()
+    # format specific changes ()
+    core_cols = list(set(CORE_FIELDS).intersection(set(df.columns)))
+    # remove prefix from fields for now for easy matching
+    format_fields = [field[len(file_format) + 1:] for field in SAMP_SERV_CONFIG['validators'] if field.startswith(file_format + ":")]
+
+    prefix_map = {}
+    for col in df.columns:
+        if ':' in col:
+            continue
+        fields = NON_PREFIX_TO_PREFIX.get(col, [])
+        target_field = None
+        for field in fields:
+            # choose the format that fits if it exists.
+            if field.split(":")[0] == file_format:
+                target_field = field
+                break
+            else:
+                target_field = field
+        if target_field:
+            prefix_map[col] = target_field
+            if col in columns_to_input_names:
+                val = columns_to_input_names.pop(col)
+                columns_to_input_names[target_field] = val
+    if prefix_map:
+        df = df.rename(columns=prefix_map)
 
     return df, columns_to_input_names
 
@@ -304,22 +349,8 @@ def import_samples_from_file(
         sample_file = validate_params(params)
         ws_name = params.get('workspace_name')
         df = load_file(sample_file, header_row_index, date_columns)
-        df, columns_to_input_names = format_input_file(df, {}, aliases)
 
-        # TODO: Make sure to check all possible name fields, even when not parameterized
-        if params.get('name_field'):
-            name_field = upload_key_format(params.get('name_field'))
-            if name_field not in list(df.columns):
-                raise ValueError(
-                    f"The expected name field column \"{name_field}\" could not be found. "
-                    "Adjust your parameters or input such that the following are correct:\n"
-                    f"- File Format: {params.get('file_format')} (the format to which your sample data conforms)\n"
-                    f"- ID Field: {params.get('name_field','name')}\n (the header of the column containing your names)\n"
-                    f"- Headers Row: {params.get('header_row_index')} (the row # where column headers are located in your spreadsheet)"
-                )
-            # here we rename whatever the id field was/is to "id"
-            columns_to_input_names["name"] = columns_to_input_names.pop(name_field)
-            df.rename(columns={name_field: "name"}, inplace=True)
+        df, columns_to_input_names = format_input_file(df, params, {}, aliases)
 
         if not errors.get(severity='error'):
             if params['file_format'].lower() in ['sesar', "enigma"]:

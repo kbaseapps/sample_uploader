@@ -161,7 +161,7 @@ class sample_uploaderTest(unittest.TestCase):
                 except:
                     raise ValueError(f"could not compare samples:\n{json.dumps(sample1)}\n{json.dumps(sample2)}")
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_IGSN_sample_importer(self):
         igsns = ['IEAWH0001', 'GEE0000O4', 'ODP000002']
 

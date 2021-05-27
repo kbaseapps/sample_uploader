@@ -15,6 +15,8 @@ from .verifiers import *
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
 
+CONFIG_TAG_VERSION = "0.5"
+
 
 def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
     """
@@ -47,7 +49,7 @@ uploader_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.5"
+        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
     None,
     "sample_uploader_mappings.yml"
@@ -57,7 +59,7 @@ SESAR_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.5"
+        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
     None,
     "sesar_template.yml"
@@ -67,7 +69,7 @@ ENIGMA_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.5"
+        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
     None,
     "enigma_template.yml"
@@ -77,7 +79,7 @@ SAMP_SERV_CONFIG = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
+        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
     None,
     "metadata_validation.yml"
@@ -93,8 +95,18 @@ SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
     "ontology_validators.yml"
 ).items()}
 
-shared_fields = uploader_config["shared_fields"]
+CORE_FIELDS = [
+    field.lower() for field in SAMP_SERV_CONFIG['validators'] if ":" not in field
+]
 
+NON_PREFIX_TO_PREFIX = {}
+for field in SAMP_SERV_CONFIG['validators']:
+    if ":" in field:
+        prefix, field_name = field.lower().split(':')
+        if field_name in NON_PREFIX_TO_PREFIX:
+            NON_PREFIX_TO_PREFIX[field_name].append(field.lower())
+        else:
+            NON_PREFIX_TO_PREFIX[field_name] = [field.lower()]
 
 def alias_map(col_config):
     """
