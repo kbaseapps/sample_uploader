@@ -145,14 +145,14 @@ def _produce_samples(
             # tranformations for data in row.
             row = field_transformer.field_transformations(row, cols)
 
-            controlled_metadata = generate_controlled_metadata(
+            controlled_metadata, controlled_cols = generate_controlled_metadata(
                 row,
                 column_groups
             )
-            controlled_metadata.
+            # remove controlled columns from cols.
             user_metadata = generate_user_metadata(
                 row,
-                cols,
+                list(set(cols) - set(controlled_cols)),
                 column_groups,
                 column_unit_regex
             )
