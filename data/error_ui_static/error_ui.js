@@ -201,7 +201,7 @@ window.errorUI = (()=>{
 
   // Formats columns for datatables and adds an index column
   const createDatatableColumns = (columns) => {
-    const data_cols = sample_data.columns.map((c,i)=>({data:i+1, title:c}));
+    const data_cols = columns.map((c,i)=>({data:i+1, title:c}));
     const index_col = {data:0, title:"•"} 
     return [index_col, ...data_cols];
   };

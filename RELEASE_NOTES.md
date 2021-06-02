@@ -1,5 +1,10 @@
 # sample_uploader release notes
 =========================================
+
+0.0.21
+------
+* Improve error UI and add filter-by-select
+
 0.0.20
 ------
 * Adds severity (introduces warnings)
