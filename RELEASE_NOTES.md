@@ -1,8 +1,10 @@
 # sample_uploader release notes
 =========================================
+
 0.0.21
 ------
-* use 0.5 released sample_service_validator_config SESAR and ENIGMA validator
+* use 0.6 released sample_service_validator_config SESAR and ENIGMA validator
+* Improve error UI and add filter-by-select
 
 0.0.20
 ------
