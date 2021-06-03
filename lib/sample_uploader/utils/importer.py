@@ -1,6 +1,7 @@
 import pandas as pd
 import warnings
 import os
+import json
 from installed_clients.WorkspaceClient import Workspace
 from sample_uploader.utils.sample_utils import (
     get_sample,
@@ -86,7 +87,8 @@ def _produce_samples(
     if not REQUIRED_COLS.issubset(df.columns):
         raise ValueError(
             f'Required "name" column missing from input. Use "name" or '
-            f'an alias (sample name", "sample id", "samplename", "sampleid")'
+            f'an alias ("sample name", "sample id", "samplename", "sampleid") '
+            f'Existing fields ({df.columns})'
         )
 
     def _get_existing_sample(name, kbase_sample_id):
@@ -262,6 +264,10 @@ def format_input_file(df, params, columns_to_input_names, aliases):
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n: None for n in NOOP_VALS}, inplace=True)
 
+    print('-'*80)
+    print('columns', df.columns)
+    print('-'*80)
+
     # TODO: Make sure to check all possible name fields, even when not parameterized
     if params.get('name_field'):
         name_field = upload_key_format(params.get('name_field'))
@@ -297,10 +303,6 @@ def format_input_file(df, params, columns_to_input_names, aliases):
         df = df.rename(columns=map_aliases)
 
     file_format = params.get('file_format').lower()
-    # format specific changes ()
-    core_cols = list(set(CORE_FIELDS).intersection(set(df.columns)))
-    # remove prefix from fields for now for easy matching
-    format_fields = [field[len(file_format) + 1:] for field in SAMP_SERV_CONFIG['validators'] if field.startswith(file_format + ":")]
 
     prefix_map = {}
     for col in df.columns:
@@ -314,7 +316,10 @@ def format_input_file(df, params, columns_to_input_names, aliases):
                 target_field = field
                 break
             else:
-                target_field = field
+                if col in CORE_FIELDS:
+                    target_field = col
+                else:
+                    target_field = field
         if target_field:
             prefix_map[col] = target_field
             if col in columns_to_input_names:

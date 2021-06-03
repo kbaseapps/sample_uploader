@@ -7,6 +7,7 @@ FILE-FORMAT_groups: list of
 """
 import os
 import yaml
+import json
 import urllib
 import requests
 from sample_uploader.utils.parsing_utils import upload_key_format
@@ -15,7 +16,7 @@ from .verifiers import *
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
 
-CONFIG_TAG_VERSION = "0.5"
+CONFIG_TAG_VERSION = "0.6"
 
 
 def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
@@ -89,7 +90,7 @@ SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
     None,
     os.environ.get(
         'SAMPLE_ONTOLOGY_CONFIG_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.5"
+        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
     None,
     "ontology_validators.yml"
@@ -213,4 +214,8 @@ ENIGMA_mappings = dict()
 ENIGMA_mappings['groups'] = ENIGMA_groups
 ENIGMA_mappings['date_columns'] = ENIGMA_date_columns
 
-aliases = {**SESAR_aliases, **ENIGMA_aliases}
+aliases = {
+    "sesar": SESAR_aliases,
+    "enigma": ENIGMA_aliases,
+    # "kbase": {**SESAR_aliases, **ENIGMA_aliases}
+}

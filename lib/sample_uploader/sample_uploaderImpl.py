@@ -111,7 +111,7 @@ class sample_uploader:
             header_row_index = int(params["header_row_index"]) - 1
         else:
             header_row_index = 0
-            if params.get('file_format') == "sesar":
+            if params.get('file_format').lower() == "sesar":
                 header_row_index = 1
 
         username = ctx['user_id']
@@ -133,7 +133,7 @@ class sample_uploader:
             mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
             sample_set,
             header_row_index,
-            aliases
+            aliases.get(params.get('file_format').lower(), {})
         )
 
         file_links = []

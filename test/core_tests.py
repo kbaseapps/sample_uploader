@@ -181,7 +181,7 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_igsns = [sample['node_tree'][0]['meta_user']['sesar:igsn']['value'] for sample in samples]
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['sesar:igsn']['value'] for sample in samples]
         assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
@@ -204,7 +204,7 @@ class sample_uploaderTest(unittest.TestCase):
         samples = [get_sample(sample_info, self.sample_url, self.ctx['token'])
                    for sample_info in samples_info]
 
-        sample_igsns = [sample['node_tree'][0]['meta_user']['sesar:igsn']['value'] for sample in samples]
+        sample_igsns = [sample['node_tree'][0]['meta_controlled']['sesar:igsn']['value'] for sample in samples]
         assert set(sample_igsns) == set(igsns)
 
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
@@ -227,7 +227,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         sample = get_sample(samples_info[0], self.sample_url, self.ctx['token'])
 
-        sample_igsn = sample['node_tree'][0]['meta_user']['sesar:igsn']['value']
+        sample_igsn = sample['node_tree'][0]['meta_controlled']['sesar:igsn']['value']
         assert sample_igsn == igsns
 
         expected_sample_names = 'PB-Low-5'
