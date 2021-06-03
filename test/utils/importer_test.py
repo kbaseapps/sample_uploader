@@ -62,7 +62,6 @@ class sample_uploaderTest(unittest.TestCase):
             'workspace_name': 'workspace_name',
             'sample_file': sample_file,
             'file_format': "ENIGMA",
-            'name_field': 'name',
             'prevalidate': 1,
         }
 
@@ -81,7 +80,7 @@ class sample_uploaderTest(unittest.TestCase):
             mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
             {"samples": []},
             header_row_index,
-            aliases
+            aliases.get(params.get('file_format').lower(), {})
         )
 
         samples = sample_set['samples']
@@ -101,7 +100,7 @@ class sample_uploaderTest(unittest.TestCase):
         params = {
             'workspace_name': 'workspace_name',
             'sample_file': sample_file,
-            'file_format': "SESAR",
+            'file_format': "sesar",
             'name_field': 'test name field',
             'prevalidate': 1,
         }
@@ -120,7 +119,7 @@ class sample_uploaderTest(unittest.TestCase):
             mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
             {"samples": []},
             header_row_index,
-            aliases
+            aliases.get(params.get('file_format').lower(), {})
         )
 
         samples = sample_set['samples']
@@ -158,7 +157,7 @@ class sample_uploaderTest(unittest.TestCase):
             mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
             {"samples": []},
             header_row_index,
-            aliases
+            aliases.get(params.get('file_format').lower(), {})
         )
 
         samples = sample_set['samples']
