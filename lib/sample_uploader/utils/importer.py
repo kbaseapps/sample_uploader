@@ -1,8 +1,7 @@
 import pandas as pd
 import warnings
 import os
-import json
-from installed_clients.WorkspaceClient import Workspace
+
 from sample_uploader.utils.sample_utils import (
     get_sample,
     save_sample,
@@ -263,10 +262,6 @@ def format_input_file(df, params, columns_to_input_names, aliases):
 
     df = df.rename(columns={columns_to_input_names[col]: col for col in columns_to_input_names})
     df.replace({n: None for n in NOOP_VALS}, inplace=True)
-
-    print('-'*80)
-    print('columns', df.columns)
-    print('-'*80)
 
     # TODO: Make sure to check all possible name fields, even when not parameterized
     if params.get('name_field'):

@@ -7,7 +7,6 @@ FILE-FORMAT_groups: list of
 """
 import os
 import yaml
-import json
 import urllib
 import requests
 from sample_uploader.utils.parsing_utils import upload_key_format
@@ -108,6 +107,7 @@ for field in SAMP_SERV_CONFIG['validators']:
             NON_PREFIX_TO_PREFIX[field_name].append(field.lower())
         else:
             NON_PREFIX_TO_PREFIX[field_name] = [field.lower()]
+
 
 def alias_map(col_config):
     """
