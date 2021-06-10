@@ -45,25 +45,13 @@ def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
         raise RuntimeError("Unable to load the config.yaml file from index_runner_spec")
 
 
-def _fetch_gh_token():
-    gh_token = os.environ.get('GH_TOKEN')
-
-    if not gh_token:
-        # TODO: this is Tian's personal token. Should be removed once environment variable is set up.
-        gh_token = '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'
-
-    return gh_token
-
-
-gh_token = _fetch_gh_token()
-
 uploader_config = _fetch_global_config(
     None,
     os.environ.get(
         'CONFIG_RELEASE_URL',
         f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
-    gh_token,
+    None,
     "sample_uploader_mappings.yml"
 )
 
@@ -73,7 +61,7 @@ SESAR_config = _fetch_global_config(
         'CONFIG_RELEASE_URL',
         f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
-    gh_token,
+    None,
     "sesar_template.yml"
 )
 
@@ -83,7 +71,7 @@ ENIGMA_config = _fetch_global_config(
         'CONFIG_RELEASE_URL',
         f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
-    gh_token,
+    None,
     "enigma_template.yml"
 )
 
@@ -93,7 +81,7 @@ SAMP_SERV_CONFIG = _fetch_global_config(
         'CONFIG_RELEASE_URL',
         f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
-    gh_token,
+    None,
     "metadata_validation.yml"
 )
 
@@ -103,7 +91,7 @@ SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
         'SAMPLE_ONTOLOGY_CONFIG_URL',
         f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
     ),
-    gh_token,
+    None,
     "ontology_validators.yml"
 ).items()}
 
