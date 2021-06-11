@@ -303,6 +303,7 @@ def format_input_file(df, params, columns_to_input_names, aliases):
     for col in df.columns:
         if ':' in col:
             continue
+        # get prefixed versions of the field.
         fields = NON_PREFIX_TO_PREFIX.get(col, [])
         target_field = None
         for field in fields:
