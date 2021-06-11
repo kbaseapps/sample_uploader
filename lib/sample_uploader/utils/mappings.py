@@ -16,6 +16,18 @@ from .verifiers import *
 #     data = yaml.load(f, Loader=yaml.FullLoader)
 
 CONFIG_TAG_VERSION = "0.6"
+VALIDATOR_FILES = "/kb/deployment/bin/sample_service_validator_config"
+
+
+def _fetch_local_global_config(file_name, sub_dir=None):
+    if sub_dir:
+        validator_file_path = os.path.join(VALIDATOR_FILES, sub_dir, file_name)
+    else:
+        validator_file_path = os.path.join(VALIDATOR_FILES, file_name)
+    with open(validator_file_path) as file:
+        validator_config = yaml.load(file, Loader=yaml.FullLoader)
+
+    return validator_config
 
 
 def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
@@ -45,55 +57,14 @@ def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
         raise RuntimeError("Unable to load the config.yaml file from index_runner_spec")
 
 
-uploader_config = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
-    ),
-    None,
-    "sample_uploader_mappings.yml"
-)
-
-SESAR_config = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
-    ),
-    None,
-    "sesar_template.yml"
-)
-
-ENIGMA_config = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
-    ),
-    None,
-    "enigma_template.yml"
-)
-
-SAMP_SERV_CONFIG = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
-    ),
-    None,
-    "metadata_validation.yml"
-)
-
-SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
-    None,
-    os.environ.get(
-        'SAMPLE_ONTOLOGY_CONFIG_URL',
-        f"https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/{CONFIG_TAG_VERSION}"
-    ),
-    None,
-    "ontology_validators.yml"
-).items()}
+uploader_config = _fetch_local_global_config("sample_uploader_mappings.yml")
+SESAR_config = _fetch_local_global_config("sesar_template.yml",
+                                          sub_dir="templates")
+ENIGMA_config = _fetch_local_global_config("enigma_template.yml",
+                                           sub_dir="templates")
+SAMP_SERV_CONFIG = _fetch_local_global_config("metadata_validation.yml")
+SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_local_global_config(
+                                            "ontology_validators.yml").items()}
 
 CORE_FIELDS = [
     field.lower() for field in SAMP_SERV_CONFIG['validators'] if ":" not in field
