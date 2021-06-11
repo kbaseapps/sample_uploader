@@ -15,7 +15,6 @@ from .verifiers import *
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
 
-CONFIG_TAG_VERSION = "0.6"
 VALIDATOR_FILES = "/kb/deployment/bin/sample_service_validator_config"
 
 
