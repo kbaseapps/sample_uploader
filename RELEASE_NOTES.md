@@ -3,7 +3,7 @@
 
 0.0.21
 ------
-* use 0.6 released sample_service_validator_config SESAR and ENIGMA validator
+* download validator files upon building container
 * Improve error UI and add filter-by-select
 
 0.0.20
