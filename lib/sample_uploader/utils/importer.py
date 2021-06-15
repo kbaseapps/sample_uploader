@@ -350,15 +350,19 @@ def import_samples_from_file(
         ws_name = params.get('workspace_name')
         df = load_file(sample_file, header_row_index, date_columns)
 
+        file_format = params['file_format'].lower()
+        if 'sample_template' not in df:
+            df['sample_template'] = file_format.upper()
+
         df, columns_to_input_names = format_input_file(df, params, {}, aliases)
 
         if not errors.get(severity='error'):
-            if params['file_format'].lower() in ['sesar', "enigma"]:
+            if file_format in ['sesar', "enigma"]:
                 if 'material' in df.columns:
-                    df.rename(columns={"material": params['file_format'].lower() + ":material"}, inplace=True)
+                    df.rename(columns={"material": file_format + ":material"}, inplace=True)
                     val = columns_to_input_names.pop("material")
-                    columns_to_input_names[params['file_format'].lower() + ":material"] = val
-            if params['file_format'].lower() == "kbase":
+                    columns_to_input_names[file_format + ":material"] = val
+            if file_format == "kbase":
                 if 'material' in df.columns:
                     df.rename(columns={"material": "sesar:material"}, inplace=True)
                     val = columns_to_input_names.pop("material")
