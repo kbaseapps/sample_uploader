@@ -43,6 +43,9 @@ def find_header_row(sample_file, file_format):
                 first_line = f.readline()
                 second_line = f.readline()
 
+            # when an extra header presents,
+            # the first line should have an unequal number of columns than the second line.
+            # TODO: this function will fail if the extra header line happens to have exactly the same number of columns as the real header line
             non_empty_header = [i for i in first_line.split(inferred_sep) if i not in ['', '\n']]
             if len(non_empty_header) != len(second_line.split(inferred_sep)):
                 header_row_index = 1
@@ -50,6 +53,8 @@ def find_header_row(sample_file, file_format):
         elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
             df = pd.read_excel(sample_file)
 
+            # when an extra header presents,
+            # all the unmatched columns are indexed as 'Unnamed xx'.
             unnamed_cols = [i for i in df.columns if 'Unnamed' in i]
             if len(unnamed_cols) > 0:
                 header_row_index = 1
