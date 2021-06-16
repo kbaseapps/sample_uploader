@@ -1,6 +1,7 @@
 import pandas as pd
 import warnings
 import os
+import csv
 
 from sample_uploader.utils.sample_utils import (
     get_sample,
@@ -22,6 +23,42 @@ from sample_uploader.utils.samples_content_warning import SampleContentWarning, 
 REQUIRED_COLS = {'name'}
 REGULATED_COLS = ['name', 'id', 'parent_id']
 NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a', '-']
+
+
+def find_header_row(sample_file, file_format):
+    if not os.path.isfile(sample_file):
+        # try prepending '/staging/' to file and check then
+        if os.path.isfile(os.path.join('/staging', sample_file)):
+            sample_file = os.path.join('/staging', sample_file)
+        else:
+            raise ValueError(f"input file {sample_file} does not exist.")
+
+    header_row_index = 0
+    if file_format.lower() == "sesar":
+
+        if sample_file.endswith('.tsv') or sample_file.endswith('.csv'):
+            reader = pd.read_csv(sample_file, sep=None, iterator=True)
+            inferred_sep = reader._engine.data.dialect.delimiter
+            with open(sample_file) as f:
+                first_line = f.readline()
+                second_line = f.readline()
+
+            non_empty_header = [i for i in first_line.split(inferred_sep) if i not in ['', '\n']]
+            if len(non_empty_header) != len(second_line.split(inferred_sep)):
+                header_row_index = 1
+
+        elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
+            df = pd.read_excel(sample_file)
+
+            unnamed_cols = [i for i in df.columns if 'Unnamed' in i]
+            if len(unnamed_cols) > 0:
+                header_row_index = 1
+        else:
+            raise ValueError(f"File {os.path.basename(sample_file)} is not in "
+                             f"an accepted file format, accepted file formats "
+                             f"are '.xls' '.csv' '.tsv' or '.xlsx'")
+
+    return header_row_index
 
 
 def validate_params(params):

@@ -11,7 +11,7 @@ from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
 from sample_uploader.utils.exporter import sample_set_to_output
-from sample_uploader.utils.importer import import_samples_from_file
+from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
@@ -110,9 +110,8 @@ class sample_uploader:
         if params.get('header_row_index'):
             header_row_index = int(params["header_row_index"]) - 1
         else:
-            header_row_index = 0
-            if params.get('file_format').lower() == "sesar":
-                header_row_index = 1
+            header_row_index = find_header_row(params.get('sample_file'),
+                                               params.get('file_format'))
 
         username = ctx['user_id']
 

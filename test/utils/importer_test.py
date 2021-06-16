@@ -5,7 +5,7 @@ import json
 from configparser import ConfigParser
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 
-from sample_uploader.utils.importer import import_samples_from_file
+from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import get_sample
 
@@ -52,6 +52,39 @@ class sample_uploaderTest(unittest.TestCase):
             self.assertEqual(s['version'], sc['version'], msg=f"s: {json.dumps(s['version'])}\nsc: {json.dumps(sc['version'])}")
         if check_id:
             self.assertEqual(s['id'], sc['id'])
+
+    def test_find_header_row(self):
+        # test enigma files
+        sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
+        header_row = find_header_row(sample_file, 'ENIGMA')
+        self.assertEqual(header_row, 0)
+
+        # test sesar tsv files
+        sample_file = os.path.join(self.test_dir, 'data', 'fake_samples.tsv')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 1)
+
+        sample_file = os.path.join(self.test_dir, 'example_data', 'samples_all.tsv')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 0)
+
+        # test sesar xlsx files
+        sample_file = os.path.join(self.test_dir, 'example_data', 'ANLPW_JulySamples_IGSN_v2.xls')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 1)
+
+        sample_file = os.path.join(self.test_dir, 'example_data', 'SESAR_Torn_biochem_SFA.xlsx')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 0)
+
+        # test sesar csv files
+        sample_file = os.path.join(self.test_dir, 'example_data', 'isgn_sample_example.csv')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 1)
+
+        sample_file = os.path.join(self.test_dir, 'example_data', 'ncbi_sample_example.csv')
+        header_row = find_header_row(sample_file, 'SESAR')
+        self.assertEqual(header_row, 0)
 
     # @unittest.skip('x')
     def test_ENIGMA_format(self):
