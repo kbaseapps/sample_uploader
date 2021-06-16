@@ -90,7 +90,7 @@ class sample_uploaderTest(unittest.TestCase):
 
     def get_local_data_file(self, filename):
         data = [
-            ["id", "sample name", "material"],
+            ["SampleID", "sample name", "material"],
             ["s1", "sample 1", "ENVO:00002041"],
             ["s2", "sample 2", "ENVO:00002007"]
         ]

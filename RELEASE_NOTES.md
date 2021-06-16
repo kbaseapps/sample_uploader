@@ -3,6 +3,7 @@
 
 0.0.21
 ------
+* download validator files upon building container
 * Improve error UI and add filter-by-select
 
 0.0.20

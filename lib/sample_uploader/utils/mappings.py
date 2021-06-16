@@ -1,18 +1,33 @@
 """
 Mappings for accepted file formats
 
-FILE-FORMAT_verification_mapping: 
-FILE-FORMAT_cols_mapping: 
-FILE-FORMAT_groups: list of 
+FILE-FORMAT_verification_mapping:
+FILE-FORMAT_cols_mapping:
+FILE-FORMAT_groups: list of
 """
 import os
 import yaml
 import urllib
 import requests
+from sample_uploader.utils.parsing_utils import upload_key_format
 from .verifiers import *
 
 # with open("/kb/module/lib/sample_uploader/utils/samples_spec.yml") as f:
 #     data = yaml.load(f, Loader=yaml.FullLoader)
+
+VALIDATOR_FILES = "/kb/deployment/bin/sample_service_validator_config"
+
+
+def _fetch_local_global_config(file_name, sub_dir=None):
+    if sub_dir:
+        validator_file_path = os.path.join(VALIDATOR_FILES, sub_dir, file_name)
+    else:
+        validator_file_path = os.path.join(VALIDATOR_FILES, file_name)
+    with open(validator_file_path) as file:
+        validator_config = yaml.load(file, Loader=yaml.FullLoader)
+
+    return validator_config
+
 
 def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
     """
@@ -40,63 +55,137 @@ def _fetch_global_config(config_url, github_release_url, gh_token, file_name):
                     return yaml.safe_load(res)
         raise RuntimeError("Unable to load the config.yaml file from index_runner_spec")
 
-uploader_config = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
-    ),
-    None,
-    "sample_uploader_mappings.yml"
-)
 
-SAMP_SERV_CONFIG = _fetch_global_config(
-    None,
-    os.environ.get(
-        'CONFIG_RELEASE_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
-    ),
-    None,
-    "metadata_validation.yml"
-)
+uploader_config = _fetch_local_global_config("sample_uploader_mappings.yml")
+SESAR_config = _fetch_local_global_config("sesar_template.yml",
+                                          sub_dir="templates")
+ENIGMA_config = _fetch_local_global_config("enigma_template.yml",
+                                           sub_dir="templates")
+SAMP_SERV_CONFIG = _fetch_local_global_config("metadata_validation.yml")
+SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_local_global_config(
+                                            "ontology_validators.yml").items()}
 
-SAMP_ONTO_CONFIG = {k.lower(): v for k, v in _fetch_global_config(
-    None,
-    os.environ.get(
-        'SAMPLE_ONTOLOGY_CONFIG_URL',
-        "https://api.github.com/repos/kbase/sample_service_validator_config/releases/tags/0.4"
-    ),
-    None,
-    "ontology_validators.yml"
-).items()}
+CORE_FIELDS = [
+    field.lower() for field in SAMP_SERV_CONFIG['validators'] if ":" not in field
+]
 
-default_aliases = {
-    'name': [
-        "sample name",
-        "sample id",
-        "samplename",
-        "sampleid"
-    ],
-    'latitude': [
-        "lat",
-        "geographical latitude",
-        "geographical lat",
-        "geo lat",
-        "geo latitude"
-    ],
-    'longitude': [
-        "long",
-        "lon",
-        "geographical lon",
-        "geographical long",
-        "geographical longitude",
-        "geo lon",
-        "geo long",
-        "geo longitude"
-    ]
+NON_PREFIX_TO_PREFIX = {}
+for field in SAMP_SERV_CONFIG['validators']:
+    if ":" in field:
+        prefix, field_name = field.lower().split(':')
+        if field_name in NON_PREFIX_TO_PREFIX:
+            NON_PREFIX_TO_PREFIX[field_name].append(field.lower())
+        else:
+            NON_PREFIX_TO_PREFIX[field_name] = [field.lower()]
+
+
+def alias_map(col_config):
+    """
+    aliases map
+    Expand all the aliases into a map
+    This maps from the alias name to the proper column name
+    """
+    aliases = dict()
+    for col, rules in col_config.items():
+        col_aliases = rules.get('aliases', [])
+        col_aliases.append(col)
+        col_aliases = list(set(col_aliases))
+
+        transformations = rules.get('transformations')
+
+        if not transformations:
+            aliases[col] = col_aliases
+        else:
+            first_trans = transformations[0]
+            parameters = first_trans.get('parameters', [col])
+            sample_meta_name = parameters[0]
+            aliases[sample_meta_name] = col_aliases
+
+    return aliases
+
+
+def find_date_col(col_config):
+    date_cols = list()
+
+    target_keys = [col for col in col_config.keys()
+                   if 'date' in col.lower() and 'precision' not in col.lower()]
+    for key in target_keys:
+        rules = col_config[key]
+
+        transformations = rules.get('transformations')
+        if not transformations:
+            date_cols.append(key)
+        else:
+            first_trans = transformations[0]
+            parameters = first_trans.get('parameters', [key])
+            sample_meta_name = parameters[0]
+            date_cols.append(sample_meta_name)
+
+    return date_cols
+
+
+def create_groups(col_config):
+    groups = list()
+
+    for col, rules in col_config.items():
+
+        transformations = rules.get('transformations')
+
+        if transformations:
+            first_trans = transformations[0]
+            transform = first_trans.get('transform')
+
+            if transform == 'unit_measurement':
+                parameters = first_trans.get('parameters')
+
+                value = parameters[0]
+                unit_key = parameters[1]
+                unit_rules = col_config[unit_key]
+                unit_transformations = unit_rules.get('transformations')
+
+                if not unit_transformations:
+                    unit_keys = [unit_key]
+                    unit_aliases = unit_rules.get('aliases', [])
+                    if unit_aliases:
+                        unit_keys += unit_aliases
+
+                    unit_keys = list(set([upload_key_format(unit) for unit in unit_keys]))
+
+                else:
+                    first_trans = unit_transformations[0]
+                    parameters = first_trans.get('parameters', [col])
+                    unit_keys = [upload_key_format(parameters[0])]
+
+                for unit in unit_keys:
+                    groups.append({'units': unit, 'value': value})
+            elif transform == 'unit_measurement_fixed':
+                parameters = first_trans.get('parameters')
+                value = parameters[0]
+                unit = 'str:{}'.format(parameters[1])
+
+                groups.append({'units': unit, 'value': value})
+
+    return groups
+
+
+SESAR_aliases = alias_map(SESAR_config['Columns'])
+SESAR_date_columns = find_date_col(SESAR_config['Columns'])
+SESAR_groups = create_groups(SESAR_config['Columns'])
+
+ENIGMA_aliases = alias_map(ENIGMA_config['Columns'])
+ENIGMA_date_columns = find_date_col(ENIGMA_config['Columns'])
+ENIGMA_groups = create_groups(ENIGMA_config['Columns'])
+
+SESAR_mappings = dict()
+SESAR_mappings['groups'] = SESAR_groups
+SESAR_mappings['date_columns'] = SESAR_date_columns
+
+ENIGMA_mappings = dict()
+ENIGMA_mappings['groups'] = ENIGMA_groups
+ENIGMA_mappings['date_columns'] = ENIGMA_date_columns
+
+aliases = {
+    "sesar": SESAR_aliases,
+    "enigma": ENIGMA_aliases,
+    # "kbase": {**SESAR_aliases, **ENIGMA_aliases}
 }
-
-shared_fields = uploader_config["shared_fields"]
-SESAR_mappings = uploader_config["SESAR"]
-ENIGMA_mappings = uploader_config["ENIGMA"]
-aliases = uploader_config.get('aliases', default_aliases)

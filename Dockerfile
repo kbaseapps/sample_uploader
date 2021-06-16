@@ -12,6 +12,12 @@ COPY ./requirements.txt /tmp
 RUN pip install --upgrade pip && \
 	pip install -r /tmp/requirements.txt
 
+# download validator files
+RUN VALIDATOR_COMMIT='701825e0627aad865d00256b05bc89f39cf7052d' && \
+		cd /kb/deployment/bin && \
+		git clone https://github.com/kbase/sample_service_validator_config.git && \
+    cd sample_service_validator_config && \
+    git checkout ${VALIDATOR_COMMIT}
 
 # -----------------------------------------
 
