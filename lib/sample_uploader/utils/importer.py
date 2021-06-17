@@ -432,10 +432,9 @@ def import_samples_from_file(
                 columns_to_input_names
             )
 
-            if not samples:
+            if not samples and input_sample_set.get('samples'):
                 error_msg = "No sample is produced from file.\n"
-                if existing_samples:
-                    error_msg += "The input sample set has identical information to the input file\n"
+                error_msg += "The input sample set has identical information to the input file\n"
 
                 raise ValueError(error_msg)
 

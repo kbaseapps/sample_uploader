@@ -5,6 +5,7 @@ import json
 from configparser import ConfigParser
 from openpyxl import load_workbook
 import copy
+import shutil
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
@@ -55,7 +56,6 @@ class sample_uploaderTest(unittest.TestCase):
         if check_id:
             self.assertEqual(s['id'], sc['id'])
 
-    # @unittest.skip('x')
     def test_find_header_row(self):
         # test enigma files
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
@@ -92,7 +92,9 @@ class sample_uploaderTest(unittest.TestCase):
     # @unittest.skip('x')
     def test_ENIGMA_format(self):
         # test default sample server
-        sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
+        ori_sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
+        sample_file = os.path.join(self.test_dir, 'data', 'updated_fake_samples_ENIGMA.xlsx')
+        shutil.copy2(ori_sample_file, sample_file)
 
         params = {
             'workspace_name': 'workspace_name',
