@@ -155,15 +155,10 @@ def generate_user_metadata(row, cols, groups, unit_rules):
                         # use only first match.
                         break
             # try to assing value as a float if possible
-            col_type = SAMP_SERV_CONFIG['validators'].get(col, {}).get('key_metadata', {}).get('type')
-
-            if col_type == 'string':
-                val = str(row[col])
-            else:
-                try:
-                    val = float(row[col])
-                except (ValueError, TypeError):
-                    val = row[col]
+            try:
+                val = float(row[col])
+            except (ValueError, TypeError):
+                val = row[col]
             metadata[col] = {"value": val}
             if units:
                 metadata[col]["units"] = units
