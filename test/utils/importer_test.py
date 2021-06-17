@@ -2,7 +2,6 @@
 import os
 import unittest
 import json
-import time
 from configparser import ConfigParser
 from openpyxl import load_workbook
 import copy
@@ -11,7 +10,6 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import get_sample
-from installed_clients.WorkspaceClient import Workspace
 
 
 class sample_uploaderTest(unittest.TestCase):
@@ -32,12 +30,6 @@ class sample_uploaderTest(unittest.TestCase):
         cls.sample_url = cls.cfg['kbase-endpoint'] + '/{}'.format(sample_server)
         cls.workspace_url = cls.cfg['workspace-url']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
-
-        cls.wsURL = cls.cfg['workspace-url']
-        cls.wsClient = Workspace(cls.wsURL, token=cls.token)
-        cls.wsName = "test_sample_uploader_" + str(int(time.time() * 1000))
-        ret = cls.wsClient.create_workspace({'workspace': cls.wsName})
-        cls.wsID = ret[0]
 
     def _verify_samples(self, sample_set, compare_path):
         with open(compare_path) as f:
@@ -63,7 +55,7 @@ class sample_uploaderTest(unittest.TestCase):
         if check_id:
             self.assertEqual(s['id'], sc['id'])
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_find_header_row(self):
         # test enigma files
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
@@ -288,12 +280,10 @@ class sample_uploaderTest(unittest.TestCase):
 
         params = {
             'workspace_name': 'workspace_name',
-            'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "sesar",
             'name_field': 'test name field',
-            'prevalidate': 1,
-            'share_within_workspace': 1,
+            'prevalidate': 1
         }
         header_row_index = 1
 
