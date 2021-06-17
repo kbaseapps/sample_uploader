@@ -432,6 +432,13 @@ def import_samples_from_file(
                 columns_to_input_names
             )
 
+            if not samples:
+                error_msg = "No sample is produced from file.\n"
+                if existing_samples:
+                    error_msg += "The input sample set has identical information to the input file\n"
+
+                raise ValueError(error_msg)
+
         if params.get('prevalidate') and not errors.get(severity='error'):
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:

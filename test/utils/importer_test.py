@@ -2,12 +2,16 @@
 import os
 import unittest
 import json
+import time
 from configparser import ConfigParser
+from openpyxl import load_workbook
+import copy
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import get_sample
+from installed_clients.WorkspaceClient import Workspace
 
 
 class sample_uploaderTest(unittest.TestCase):
@@ -28,6 +32,12 @@ class sample_uploaderTest(unittest.TestCase):
         cls.sample_url = cls.cfg['kbase-endpoint'] + '/{}'.format(sample_server)
         cls.workspace_url = cls.cfg['workspace-url']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
+
+        cls.wsURL = cls.cfg['workspace-url']
+        cls.wsClient = Workspace(cls.wsURL, token=cls.token)
+        cls.wsName = "test_sample_uploader_" + str(int(time.time() * 1000))
+        ret = cls.wsClient.create_workspace({'workspace': cls.wsName})
+        cls.wsID = ret[0]
 
     def _verify_samples(self, sample_set, compare_path):
         with open(compare_path) as f:
@@ -53,6 +63,7 @@ class sample_uploaderTest(unittest.TestCase):
         if check_id:
             self.assertEqual(s['id'], sc['id'])
 
+    @unittest.skip('x')
     def test_find_header_row(self):
         # test enigma files
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples_ENIGMA.xlsx')
@@ -125,6 +136,151 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
         self._verify_samples(sample_set, compare_path)
 
+        # test updating samples
+
+        # test updating samples with same sample file
+        expected_error = "No sample is produced from file.\nThe input sample set has identical information to the input file"
+        with self.assertRaisesRegex(ValueError, expected_error):
+            import_samples_from_file(
+                params,
+                self.sample_url,
+                self.workspace_url,
+                self.callback_url,
+                self.username,
+                self.token,
+                mappings[str(params.get('file_format')).lower()].get('groups', []),
+                mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+                mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+                sample_set,
+                header_row_index,
+                aliases.get(params.get('file_format').lower(), {})
+            )
+
+        # test updating a single value
+        wb = load_workbook(sample_file)
+        ws = wb.active
+        new_latitude = 66.6
+        self.assertNotEqual(new_latitude, ws['E3'].value)
+        ws['E3'].value = new_latitude  # update latitude value to 66.6 for S1
+        wb.save(sample_file)
+
+        sample_set, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            self.username,
+            self.token,
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases.get(params.get('file_format').lower(), {})
+        )
+
+        updated_samples = sample_set['samples']
+        self.assertEqual(len(updated_samples), 3)
+        expected_sample_name = ['s1', 's2', 's3']
+        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertEqual(len(errors), 0)
+
+        with open(compare_path) as f:
+            data = json.load(f)
+
+        data[0]['version'] += 1  # sample version should be bumped
+        data[0]['node_tree'][0]['meta_controlled']['latitude']['value'] = new_latitude
+
+        with open(compare_path, 'w') as json_file:
+            json.dump(data, json_file)
+
+        self._verify_samples(sample_set, compare_path)
+
+        # test adding a column
+        wb = load_workbook(sample_file)
+        ws = wb.active
+        new_column = '?size?'  # add a user metadata column
+        ws['I2'].value = new_column
+        size_load = 10
+        for cell in ws['I3':'I5']:
+            cell[0].value = size_load
+        wb.save(sample_file)
+
+        sample_set, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            self.username,
+            self.token,
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases.get(params.get('file_format').lower(), {})
+        )
+
+        updated_samples = sample_set['samples']
+        self.assertEqual(len(updated_samples), 3)
+        expected_sample_name = ['s1', 's2', 's3']
+        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertEqual(len(errors), 0)
+
+        with open(compare_path) as f:
+            data = json.load(f)
+
+        for sample in data:
+            sample['version'] += 1  # sample version should be bumped
+            sample['node_tree'][0]['meta_user'][new_column] = {'value': size_load}  # a new user meta data should be added
+
+        with open(compare_path, 'w') as json_file:
+            json.dump(data, json_file)
+        self._verify_samples(sample_set, compare_path)
+
+        # test adding a new sample (row)
+        wb = load_workbook(sample_file)
+        ws = wb.active
+        for cell in ws[5]:
+            ws[cell.column_letter + '6'] = cell.value  # copy s3 (line 5) to the next line
+        new_sample = 's4'
+        ws['A6'].value = new_sample  # update the sample id for the new row
+        wb.save(sample_file)
+
+        sample_set, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            self.username,
+            self.token,
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases.get(params.get('file_format').lower(), {})
+        )
+
+        updated_samples = sample_set['samples']
+        self.assertEqual(len(updated_samples), 4)
+        expected_sample_name = ['s1', 's2', 's3', new_sample]
+        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertEqual(len(errors), 0)
+
+        with open(compare_path) as f:
+            data = json.load(f)
+
+        data.insert(0, copy.deepcopy(data[-1]))  # copy S3 data and update sample ID and version
+        data[0]['name'] = new_sample
+        data[0]['node_tree'][0]['id'] = new_sample
+        data[0]['version'] = 1
+
+        with open(compare_path, 'w') as json_file:
+            json.dump(data, json_file)
+
+        self._verify_samples(sample_set, compare_path)
+
     # @unittest.skip('x')
     def test_import_SESAR_format(self):
         # test default sample server
@@ -132,10 +288,12 @@ class sample_uploaderTest(unittest.TestCase):
 
         params = {
             'workspace_name': 'workspace_name',
+            'workspace_id': self.wsID,
             'sample_file': sample_file,
             'file_format': "sesar",
             'name_field': 'test name field',
             'prevalidate': 1,
+            'share_within_workspace': 1,
         }
         header_row_index = 1
 
