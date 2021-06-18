@@ -128,7 +128,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(errors), 0)
 
         ori_compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
-        compare_path = os.path.join(self.test_dir, "data", "updated_fake_samples_ENIGMA.json")        shutil.copy2(ori_sample_file, sample_file)
+        compare_path = os.path.join(self.test_dir, "data", "updated_fake_samples_ENIGMA.json")
         shutil.copy2(ori_compare_path, compare_path)
 
         self._verify_samples(sample_set, compare_path)
