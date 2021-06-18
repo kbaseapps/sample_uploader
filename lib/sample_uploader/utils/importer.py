@@ -161,6 +161,7 @@ def _produce_samples(
     field_transformer = FieldTransformer(callback_url)
 
     cols = list(set(df.columns) - set(REQUIRED_COLS))
+    imported_sample_names = list()
     for row_num, row in df.iterrows():
         try:
             # only required field is 'name'
@@ -216,6 +217,8 @@ def _produce_samples(
                 }],
                 'name': name,
             }
+            imported_sample_names.append(name)
+
             # get existing sample (if exists)
             prev_sample = _get_existing_sample(name, kbase_sample_id)
 
@@ -237,6 +240,11 @@ def _produce_samples(
         except SampleContentWarning as e:
             e.row = row_num
             warnings.warn(e)
+
+    # remove samples in the existing_samples (input sample_set) but not in the input file
+    extra_samples = set(existing_sample_names.keys()) - set(imported_sample_names)
+    for extra_sample in extra_samples:
+        del existing_sample_names[extra_sample]
 
     user_keys = set()
     for s in samples:
@@ -432,13 +440,14 @@ def import_samples_from_file(
                 columns_to_input_names
             )
 
-            if not samples and input_sample_set.get('samples'):
-                error_msg = "No sample is produced from file.\n"
+            # check when no new sample is created and samples in the input file matches exactly the given input sample_set
+            if not samples and input_sample_set.get('samples') and len(input_sample_set.get('samples')) == len(existing_samples):
+                error_msg = "No sample is produced from the input file.\n"
                 error_msg += "The input sample set has identical information to the input file\n"
 
                 raise ValueError(error_msg)
 
-        if params.get('prevalidate') and not errors.get(severity='error'):
+        if params.get('prevalidate') and not errors.get(severity='error') and samples:
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
@@ -477,7 +486,9 @@ def import_samples_from_file(
                 e.row = err_sample_name_indices[e.sample_name]
 
     else:
-        saved_samples = _save_samples(samples, acls, sample_url, token)
+        saved_samples = list()
+        if samples:
+            saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
     sample_data_json = df.to_json(orient='split')

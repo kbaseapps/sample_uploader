@@ -136,7 +136,7 @@ class sample_uploaderTest(unittest.TestCase):
         # test updating samples
 
         # test updating samples with same sample file
-        expected_error = "No sample is produced from file.\nThe input sample set has identical information to the input file"
+        expected_error = "No sample is produced from the input file.\nThe input sample set has identical information to the input file"
         with self.assertRaisesRegex(ValueError, expected_error):
             import_samples_from_file(
                 params,
@@ -176,10 +176,10 @@ class sample_uploaderTest(unittest.TestCase):
             aliases.get(params.get('file_format').lower(), {})
         )
 
-        updated_samples = sample_set['samples']
-        self.assertEqual(len(updated_samples), 3)
+        samples = sample_set['samples']
+        self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
-        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
         with open(compare_path) as f:
@@ -218,10 +218,10 @@ class sample_uploaderTest(unittest.TestCase):
             aliases.get(params.get('file_format').lower(), {})
         )
 
-        updated_samples = sample_set['samples']
-        self.assertEqual(len(updated_samples), 3)
+        samples = sample_set['samples']
+        self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
-        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
         with open(compare_path) as f:
@@ -259,10 +259,10 @@ class sample_uploaderTest(unittest.TestCase):
             aliases.get(params.get('file_format').lower(), {})
         )
 
-        updated_samples = sample_set['samples']
-        self.assertEqual(len(updated_samples), 4)
+        samples = sample_set['samples']
+        self.assertEqual(len(samples), 4)
         expected_sample_name = ['s1', 's2', 's3', new_sample]
-        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
         with open(compare_path) as f:
@@ -278,7 +278,35 @@ class sample_uploaderTest(unittest.TestCase):
 
         self._verify_samples(sample_set, compare_path)
 
-    # @unittest.skip('x')
+        # test removing a new sample (row)
+        wb = load_workbook(sample_file)
+        ws = wb.active
+        for cell in ws[6]:
+            cell.value = None  # remove s4 (line 6)
+        wb.save(sample_file)
+
+        sample_set, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            self.username,
+            self.token,
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            sample_set,
+            header_row_index,
+            aliases.get(params.get('file_format').lower(), {})
+        )
+
+        updated_samples = sample_set['samples']
+        self.assertEqual(len(updated_samples), 3)
+        expected_sample_name = ['s1', 's2', 's3']
+        self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
+        self.assertEqual(len(errors), 0)
+
+    @unittest.skip('x')
     def test_import_SESAR_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples.tsv')
@@ -317,7 +345,7 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
 
-    # @unittest.skip('x')
+    @unittest.skip('x')
     def test_KBASE_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'example_data', 'ncbi_sample_example.csv')
