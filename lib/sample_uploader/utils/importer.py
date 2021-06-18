@@ -440,12 +440,12 @@ def import_samples_from_file(
                 columns_to_input_names
             )
 
-            # check when no new sample is created and samples in the input file matches exactly the given input sample_set
-            if not samples and input_sample_set.get('samples') and len(input_sample_set.get('samples')) == len(existing_samples):
-                error_msg = "No sample is produced from the input file.\n"
-                error_msg += "The input sample set has identical information to the input file\n"
+        # check when no new sample is created and samples in the input file matches exactly the given input sample_set
+        if not samples and input_sample_set.get('samples') and len(input_sample_set.get('samples')) == len(existing_samples):
+            error_msg = "No sample is produced from the input file.\n"
+            error_msg += "The input sample set has identical information to the input file\n"
 
-                raise ValueError(error_msg)
+            raise ValueError(error_msg)
 
         if params.get('prevalidate') and not errors.get(severity='error') and samples:
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)

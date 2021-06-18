@@ -306,7 +306,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
         self.assertEqual(len(errors), 0)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_import_SESAR_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'data', 'fake_samples.tsv')
@@ -345,7 +345,7 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
 
-    @unittest.skip('x')
+    # @unittest.skip('x')
     def test_KBASE_format(self):
         # test default sample server
         sample_file = os.path.join(self.test_dir, 'example_data', 'ncbi_sample_example.csv')
