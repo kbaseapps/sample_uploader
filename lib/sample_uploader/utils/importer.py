@@ -486,9 +486,7 @@ def import_samples_from_file(
                 e.row = err_sample_name_indices[e.sample_name]
 
     else:
-        saved_samples = list()
-        if samples:
-            saved_samples = _save_samples(samples, acls, sample_url, token)
+        saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
     sample_data_json = df.to_json(orient='split')
