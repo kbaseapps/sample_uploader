@@ -100,8 +100,8 @@ class sample_uploader:
         if params.get('sample_set_ref'):
             ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
             sample_set = ret['data']
-            if params['set_name']:
-                set_name = params['set_name']
+            if params.get('set_name'):
+                set_name = params.get('set_name')
             else:
                 set_name = ret['info'][1]
             save_ws_id = params['sample_set_ref'].split('/')[0]
