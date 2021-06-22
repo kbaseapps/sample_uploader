@@ -215,10 +215,11 @@ def compare_samples(s1, s2):
         'node_tree', 'name'
     """
 
-    print('start comparing samples: {} vs {}'.format(s1['name'], s2['name']))
     if s1 is None or s2 is None:
         return False
     else:
+        print('start comparing samples: {} vs {}'.format(s1['name'], s2['name']))
+
         def remove_field(node, field):
             if field in node:
                 node.pop(field)
