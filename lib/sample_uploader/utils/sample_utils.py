@@ -282,8 +282,8 @@ def save_sample(sample, sample_url, token, previous_version=None):
         "Content-Type": "application/json"
     }
     if previous_version:
-        # prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
-        if compare_samples(sample, previous_version):
+        prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
+        if compare_samples(sample, prev_sample):
             return None, None
         sample['id'] = previous_version['id']
         params = {
