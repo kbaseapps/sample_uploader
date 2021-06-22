@@ -1,7 +1,7 @@
 import pandas as pd
 import warnings
 import os
-import csv
+import copy
 
 from sample_uploader.utils.sample_utils import (
     get_sample,
@@ -153,7 +153,7 @@ def _produce_samples(
                     sample_name=name
                 )
         elif name in existing_sample_names:
-            existing_sample = existing_sample_names[name]
+            existing_sample = copy.deepcopy(existing_sample_names[name])
             # remove version of samples from sample set in order to get the latest version of sample
             existing_sample.pop('version', None)
             prev_sample = get_sample(existing_sample, sample_url, token)
