@@ -270,19 +270,19 @@ def get_sample(sample_info, sample_url, token):
 
 def save_sample(sample, sample_url, token, previous_version=None):
     """
-    sample     - completed sample as per 
+    sample     - completed sample as per
     sample_url - url to sample service
     token      - workspace token for Authorization
     previous_version - data of previous version of sample
     """
     print('start saving sample')
     headers = {
-        "Authorization": token,       
+        "Authorization": token,
         "Content-Type": "application/json"
     }
     if previous_version:
-        prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
-        if compare_samples(sample, prev_sample):
+        # prev_sample = get_sample({"id": previous_version["id"]}, sample_url, token)
+        if compare_samples(sample, previous_version):
             return None, None
         sample['id'] = previous_version['id']
         params = {
