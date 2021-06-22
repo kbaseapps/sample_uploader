@@ -273,22 +273,23 @@ def _save_samples(samples, acls, sample_url, token):
 
         sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
 
-        saved_samples.append({
-            "id": sample_id,
-            "name": name,
-            "version": sample_ver
-        })
-        # check input for any reason to update access control list
-        # should have a "write", "read", "admin" entry
-        writer = data.get('write')
-        reader = data.get('read')
-        admin  = data.get('admin')
-        if writer or reader or admin:
-            acls["read"] +=  [r for r in reader]
-            acls["write"] += [w for w in writer]
-            acls["admin"] += [a for a in admin]
-        if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-            _ = update_acls(sample_url, sample_id, acls, token)
+        if sample_id:
+            saved_samples.append({
+                "id": sample_id,
+                "name": name,
+                "version": sample_ver
+            })
+            # check input for any reason to update access control list
+            # should have a "write", "read", "admin" entry
+            writer = data.get('write')
+            reader = data.get('read')
+            admin  = data.get('admin')
+            if writer or reader or admin:
+                acls["read"] +=  [r for r in reader]
+                acls["write"] += [w for w in writer]
+                acls["admin"] += [a for a in admin]
+            if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+                _ = update_acls(sample_url, sample_id, acls, token)
     return saved_samples
 
 
