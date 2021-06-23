@@ -108,6 +108,10 @@ def load_file(
     # Remove empty rows and change index labels to row number
     df.dropna(how='all', inplace=True)
     df.index += header_row_index+1
+
+    # remove duplicate rows to ensure sample set doesn't have identical samples
+    df.drop_duplicates(inplace=True)
+
     return df
 
 
