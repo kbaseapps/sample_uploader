@@ -15,7 +15,7 @@ from sample_uploader.utils.sample_utils import (
 )
 from sample_uploader.utils.transformations import FieldTransformer
 from sample_uploader.utils.parsing_utils import upload_key_format
-from sample_uploader.utils.mappings import SAMP_SERV_CONFIG, CORE_FIELDS, NON_PREFIX_TO_PREFIX
+from sample_uploader.utils.mappings import CORE_FIELDS, NON_PREFIX_TO_PREFIX
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.samples_content_warning import SampleContentWarning, SampleContentWarningContext
 
@@ -82,8 +82,8 @@ def validate_params(params):
         try:
             upload_key_format(params.get('name_field'))
         except SampleContentWarning as e:
-            raise ValueError("Invalid ID field in params: {e.message}")
-    ws_name = params.get('workspace_name')
+            raise ValueError(f"Invalid ID field in params: {e.message}")
+
     return sample_file
 
 
@@ -404,27 +404,14 @@ def import_samples_from_file(
     with SampleContentWarningContext(ignore_warnings) as errors:
         # verify inputs
         sample_file = validate_params(params)
-        ws_name = params.get('workspace_name')
         df = load_file(sample_file, header_row_index, date_columns)
 
-        file_format = params['file_format'].lower()
         if 'sample_template' not in df:
-            df['sample_template'] = file_format.upper()
+            df['sample_template'] = params['file_format'].upper()
 
         df, columns_to_input_names = format_input_file(df, params, {}, aliases)
 
         if not errors.get(severity='error'):
-            if file_format in ['sesar', "enigma"]:
-                if 'material' in df.columns:
-                    df.rename(columns={"material": file_format + ":material"}, inplace=True)
-                    val = columns_to_input_names.pop("material")
-                    columns_to_input_names[file_format + ":material"] = val
-            if file_format == "kbase":
-                if 'material' in df.columns:
-                    df.rename(columns={"material": "sesar:material"}, inplace=True)
-                    val = columns_to_input_names.pop("material")
-                    columns_to_input_names["sesar:material"] = val
-
             acls = {
                 "read": [],
                 "write": [],
@@ -434,7 +421,6 @@ def import_samples_from_file(
             if params.get('share_within_workspace'):
                 # query workspace for user permissions.
                 acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
-            groups = SAMP_SERV_CONFIG['validators']
 
             samples, existing_samples = _produce_samples(
                 callback_url,

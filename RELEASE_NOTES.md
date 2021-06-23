@@ -1,6 +1,10 @@
 # sample_uploader release notes
 =========================================
 
+0.0.22
+------
+* cast value type to match validator file
+
 0.0.21
 ------
 * download validator files upon building container
