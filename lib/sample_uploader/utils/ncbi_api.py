@@ -4,6 +4,7 @@ import xmltodict
 import datetime
 import logging as log
 import time
+import collections
 
 """
 NCBI REST web service API
@@ -128,10 +129,15 @@ def _process_sample_content(sample_content):
 
     sample_ids = bio_sample.get('Ids', {}).get('Id', [])
 
-    for sample_id in sample_ids:
-        db_label = sample_id.get('@db_label')
-        if db_label == 'Sample name':
-            sample_dict['description'] = sample_id.get('#text')
+    if type(sample_ids) == list:
+        for sample_id in sample_ids:
+            if type(sample_id) == collections.OrderedDict:
+                db_label = sample_id.get('@db_label')
+                if db_label == 'Sample name':
+                    sample_dict['description'] = sample_id.get('#text')
+    elif type(sample_ids) == collections.OrderedDict:
+        sample_dict['description'] = sample_ids.get('#text')
+
     if not sample_dict.get('description'):
         sample_dict['description'] = sample_dict['name']
 
