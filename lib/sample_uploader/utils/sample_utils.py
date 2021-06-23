@@ -179,20 +179,29 @@ def generate_controlled_metadata(row, groups):
         if ss_validator:
             if not pd.isnull(row[col]):
                 idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
+
                 try:
                     val = float(row[col])
                 except (ValueError, TypeError):
                     val = row[col]
                 mtd = {"value": val}
+
                 if idx is not None:
                     mtd, grouped_used_cols = parse_grouped_data(row, groups[idx])
                     used_cols.update(grouped_used_cols)
+
                 # verify against validator
                 missing_fields = _find_missing_fields(mtd, ss_validator)
                 for field, default in missing_fields.items():
                     mtd[field] = default
+
+                col_type = ss_validator.get('key_metadata', {}).get('type')
+                if col_type == 'string':
+                    mtd['value'] = str(mtd['value'])
+
                 metadata[col] = mtd
                 used_cols.add(col)
+
     return metadata, used_cols
 
 
