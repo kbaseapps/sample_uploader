@@ -168,10 +168,9 @@ def generate_user_metadata(row, cols, groups, unit_rules):
 
 def generate_controlled_metadata(row, groups):
     """
-    row  - row from input pandas.DataFrame object to convert to metadata
-    cols - columns of input pandas.DataFrame to convert to metadata
+    row - row from input pandas.DataFrame object to convert to metadata
     groups - list of dicts - each dict is a grouping where key = "metadata field name" (i.e. "value
-    ", or "units") and value = input file column name 
+    ", or "units") and value = input file column name
     """
     metadata = {}
     used_cols = set([])
