@@ -209,7 +209,8 @@ window.errorUI = (()=>{
   // Adds excel-like column letter header to the table
   const addExcelHeader = (table, columns) =>{
     const excelHeader = $('<tr/>');
-    columns.forEach((_,i)=>{
+    columns.forEach((col,i)=>{
+      if(col.title.startsWith("unnamed:")) return;
       const txt = i===0?"":indexToLetters(i-1)
       excelHeader.append(
         $("<th/>").text(txt)

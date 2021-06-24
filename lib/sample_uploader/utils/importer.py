@@ -262,7 +262,7 @@ def _produce_samples(
             user_keys |= (ukeys - ckeys)
     for key in user_keys:
         warnings.warn(SampleContentWarning(
-            f"User defined column {key} will be stored but not validated",
+            f"\"{key}\" is a user-defined column. It is of unknown type, will not be automatically validated, and may not be interoperable with other samples during analysis.",
             key=key,
             severity='warning'
         ))
@@ -402,8 +402,7 @@ def import_samples_from_file(
     """
     import samples from '.csv' or '.xls' files in SESAR  format
     """
-    ignore_warnings = params.get('ignore_warnings', 1) # TODO: default to 0 (false)
-    with SampleContentWarningContext(ignore_warnings) as errors:
+    with SampleContentWarningContext() as errors:
         # verify inputs
         sample_file = validate_params(params)
         df = load_file(sample_file, header_row_index, date_columns)
@@ -452,42 +451,47 @@ def import_samples_from_file(
                         node=e['node'],
                         key=e['key']
                     ))
-    if errors.get():
+
+    # Calculate missing location information for SamplesContentError(s)
+    err_col_keys = {}
+    err_key_indices = {}
+    for col_idx, col_name in enumerate(df.columns):
+        err_col_keys[col_idx] = col_name
+        err_key_indices[col_name] = col_idx
+        if col_name in columns_to_input_names and columns_to_input_names[col_name] != col_name:
+            err_key_indices[columns_to_input_names[col_name]] = col_idx
+
+    err_row_sample_names = {}
+    err_sample_name_indices = {}
+    for row_num, row in df.iterrows():
+        sample_name = row.get('name')
+        err_sample_name_indices[sample_name] = row_num
+        err_row_sample_names[row_num] = sample_name
+
+    for e in errors:
+        if e.column!=None and e.key==None and e.column in err_col_keys:
+            e.key = err_col_keys[e.column]
+        if e.column==None and e.key!=None and e.key in err_key_indices:
+            e.column = err_key_indices[e.key]
+        if e.row!=None and e.sample_name==None and e.row in err_row_sample_names:
+            e.sample_name = err_row_sample_names[e.row]
+        if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
+            e.row = err_sample_name_indices[e.sample_name]
+
+    unignored_errs = errors.get(severity='error')
+    if params.get('ignore_warnings', 1):
+        unignored_errs.extend(errors.get(severity='warning'))
+    has_unignored_errors = len(unignored_errs) > 0
+
+    if has_unignored_errors:
         saved_samples = []
-
-        # Calculate missing location information for SamplesContentError(s)
-        err_col_keys = {}
-        err_key_indices = {}
-        for col_idx, col_name in enumerate(df.columns):
-            err_col_keys[col_idx] = col_name
-            err_key_indices[col_name] = col_idx
-            if col_name in columns_to_input_names and columns_to_input_names[col_name] != col_name:
-                err_key_indices[columns_to_input_names[col_name]] = col_idx
-
-        err_row_sample_names = {}
-        err_sample_name_indices = {}
-        for row_num, row in df.iterrows():
-            sample_name = row.get('name')
-            err_sample_name_indices[sample_name] = row_num
-            err_row_sample_names[row_num] = sample_name
-
-        for e in errors:
-            if e.column!=None and e.key==None and e.column in err_col_keys:
-                e.key = err_col_keys[e.column]
-            if e.column==None and e.key!=None and e.key in err_key_indices:
-                e.column = err_key_indices[e.key]
-            if e.row!=None and e.sample_name==None and e.row in err_row_sample_names:
-                e.sample_name = err_row_sample_names[e.row]
-            if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
-                e.row = err_sample_name_indices[e.sample_name]
-
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token)
         saved_samples += existing_samples
 
-    sample_data_json = df.to_json(orient='split')
+    sample_data_json = df.to_json(orient='split', default_handler=str)
 
     return {
         "samples": saved_samples,
         "description": params.get('description')
-    }, errors.get(), sample_data_json
+    }, has_unignored_errors, errors.get(), sample_data_json
