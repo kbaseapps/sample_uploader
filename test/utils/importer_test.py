@@ -101,6 +101,7 @@ class sample_uploaderTest(unittest.TestCase):
             'sample_file': sample_file,
             'file_format': "ENIGMA",
             'prevalidate': 1,
+            'keep_existing_samples': 1
         }
 
         header_row_index = 1
@@ -284,8 +285,6 @@ class sample_uploaderTest(unittest.TestCase):
         for cell in ws[6]:
             cell.value = None  # remove s4 (line 6)
         wb.save(sample_file)
-
-        params['keep_existing_samples'] = True
 
         # since we are keeping all existing samples, there should be no changes to the exisiting sample set
         with self.assertRaisesRegex(ValueError, expected_error):
