@@ -123,7 +123,8 @@ def _produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names
+    columns_to_input_names,
+    keep_existing_samples
 ):
     """"""
     samples = []
@@ -247,10 +248,11 @@ def _produce_samples(
             e.row = row_num
             warnings.warn(e)
 
-    # remove samples in the existing_samples (input sample_set) but not in the input file
-    extra_samples = set(existing_sample_names.keys()) - set(imported_sample_names)
-    for extra_sample in extra_samples:
-        del existing_sample_names[extra_sample]
+    if not keep_existing_samples:
+        # remove samples in the existing_samples (input sample_set) but not in the input file
+        extra_samples = set(existing_sample_names.keys()) - set(imported_sample_names)
+        for extra_sample in extra_samples:
+            del existing_sample_names[extra_sample]
 
     user_keys = set()
     for s in samples:
@@ -430,7 +432,8 @@ def import_samples_from_file(
                 sample_url,
                 token,
                 input_sample_set['samples'],
-                columns_to_input_names
+                columns_to_input_names,
+                params.get('keep_existing_samples', False)
             )
 
         # check when no new sample is created and samples in the input file matches exactly the given input sample_set

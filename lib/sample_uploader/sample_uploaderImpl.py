@@ -44,7 +44,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "0.0.22"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "4d4ed0b9fa6431230658800bc4068c6c5cfe940b"
+    GIT_COMMIT_HASH = "8352336180604f70f680617984aa5c42cade8c1f"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -80,7 +80,8 @@ class sample_uploader:
            parameter "incl_seq" of Long, parameter "otu_prefix" of String,
            parameter "share_within_workspace" of Long, parameter
            "prevalidate" of Long, parameter "incl_input_in_output" of Long,
-           parameter "ignore_warnings" of Long
+           parameter "ignore_warnings" of Long, parameter
+           "keep_existing_samples" of Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:

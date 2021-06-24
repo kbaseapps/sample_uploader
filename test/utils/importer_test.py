@@ -278,12 +278,34 @@ class sample_uploaderTest(unittest.TestCase):
 
         self._verify_samples(sample_set, compare_path)
 
-        # test removing a new sample (row)
+        # test keep_existing_samples
         wb = load_workbook(sample_file)
         ws = wb.active
         for cell in ws[6]:
             cell.value = None  # remove s4 (line 6)
         wb.save(sample_file)
+
+        params['keep_existing_samples'] = True
+
+        # since we are keeping all existing samples, there should be no changes to the exisiting sample set
+        with self.assertRaisesRegex(ValueError, expected_error):
+            import_samples_from_file(
+                params,
+                self.sample_url,
+                self.workspace_url,
+                self.callback_url,
+                self.username,
+                self.token,
+                mappings[str(params.get('file_format')).lower()].get('groups', []),
+                mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+                mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+                sample_set,
+                header_row_index,
+                aliases.get(params.get('file_format').lower(), {})
+            )
+
+        # test removing a new sample (row)
+        params['keep_existing_samples'] = False
 
         sample_set, errors, sample_data_json = import_samples_from_file(
             params,
