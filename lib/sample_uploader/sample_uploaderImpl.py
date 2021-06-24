@@ -136,6 +136,7 @@ class sample_uploader:
         )
 
         file_links = []
+        new_data_links = []
         sample_set_ref = None
         html_link = None
 
@@ -155,6 +156,26 @@ class sample_uploader:
 
             sample_set_ref = '/'.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
             sample_file_name = os.path.basename(params['sample_file']).split('.')[0] + '_OTU'
+
+            # create a data link between each sample and the sampleset
+            ss = SampleService(self.sample_url)
+            for sample_info in sample_set['samples']:
+                sample_id = sample_info['id']
+                version = sample_info['version']
+                sample = ss.get_sample({
+                    'id': sample_id,
+                    'version': version,
+                })
+                ret = ss.create_data_link(
+                    dict(
+                        upa=sample_set_ref,
+                        id=sample_id,
+                        version=version,
+                        node=sample['node_tree'][0]['id'],
+                        update=1,
+                    )
+                )
+                new_data_links.append(ret)
 
             # -- Format outputs below --
             # if output file format specified, add one to output
@@ -215,7 +236,8 @@ class sample_uploader:
             'report_name': report_info['name'],
             'sample_set': sample_set,
             'sample_set_ref': sample_set_ref,
-            'errors': errors
+            'errors': errors,
+            'links': new_data_links
         }
         #END import_samples
 

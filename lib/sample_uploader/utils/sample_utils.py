@@ -170,20 +170,26 @@ def generate_controlled_metadata(row, groups):
     """
     row  - row from input pandas.DataFrame object to convert to metadata
     cols - columns of input pandas.DataFrame to convert to metadata
+    groups - list of dicts - each dict is a grouping where key = "metadata field name" (i.e. "value
+    ", or "units") and value = input file column name 
     """
     metadata = {}
     used_cols = set([])
     # use the shared fields
     for col, val in row.iteritems():
         ss_validator = SAMP_SERV_CONFIG['validators'].get(col, None)
+        # check if `col` is controlled metadata
         if ss_validator:
+            # check if value associated with `col`, we don't store empty values
             if not pd.isnull(row[col]):
-                idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
                 try:
                     val = float(row[col])
                 except (ValueError, TypeError):
                     val = row[col]
                 mtd = {"value": val}
+                # checking if there is a "grouping" for the metadata field `col`
+                # "grouping" = two or more columns compose into one metadata field
+                idx = check_value_in_list(col, [g['value'] for g in groups], return_idx=True)
                 if idx is not None:
                     mtd, grouped_used_cols = parse_grouped_data(row, groups[idx])
                     used_cols.update(grouped_used_cols)
