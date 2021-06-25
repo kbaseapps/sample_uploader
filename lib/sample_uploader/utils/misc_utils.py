@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 
 from installed_clients.WorkspaceClient import Workspace
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -41,7 +42,7 @@ def error_ui(errors, sample_data_json, scratch):
     scratch: kbase scratch space
     """
     template = env.get_template('index.html')
-    site_path = os.path.join(scratch, 'report_site')
+    site_path = os.path.join(scratch, str(uuid.uuid4()), 'report_site')
     html_path = os.path.join(site_path, 'index.html')
     asset_path = '/kb/module/data/error_ui_static'
     shutil.copytree(

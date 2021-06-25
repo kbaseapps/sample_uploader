@@ -107,7 +107,7 @@ class sample_uploaderTest(unittest.TestCase):
         header_row_index = 1
 
         mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -126,7 +126,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
         ori_compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
         compare_path = os.path.join(self.test_dir, "data", "updated_fake_samples_ENIGMA.json")
@@ -342,7 +342,7 @@ class sample_uploaderTest(unittest.TestCase):
         header_row_index = 1
 
         mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -361,7 +361,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
         compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
@@ -380,7 +380,7 @@ class sample_uploaderTest(unittest.TestCase):
         header_row_index = 0
 
         mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -399,4 +399,4 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 2)
         expected_sample_name = ['SAMN03166112', 'SAMN04383980']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)

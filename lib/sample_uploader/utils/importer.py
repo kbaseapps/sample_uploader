@@ -479,7 +479,7 @@ def import_samples_from_file(
             e.row = err_sample_name_indices[e.sample_name]
 
     unignored_errs = errors.get(severity='error')
-    if params.get('ignore_warnings', 1):
+    if not params.get('ignore_warnings', 1):
         unignored_errs.extend(errors.get(severity='warning'))
     has_unignored_errors = len(unignored_errs) > 0
 
