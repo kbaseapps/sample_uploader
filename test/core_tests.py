@@ -111,6 +111,8 @@ class sample_uploaderTest(unittest.TestCase):
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
         sample_set_ref = ret ['sample_set_ref']
+        # assert that correct amount of links are made
+        self.assertEqual(len(ret['links']), len(sample_set['samples']))
         compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA.json')
         self._verify_samples(sample_set, compare_path)
         # next we test if the update functionality is working
@@ -138,7 +140,9 @@ class sample_uploaderTest(unittest.TestCase):
             'incl_input_in_output': 1,
             'share_within_workspace': 1,
         }
-        sample_set_2 = self.serviceImpl.import_samples(self.ctx, params)[0]['sample_set']
+        ret_2 = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set_2 = ret_2['sample_set']
+        self.assertEqual(len(ret_2['links']), len(sample_set_2['samples']))
         ss2 = {s['name']: s for s in sample_set_2['samples']}
         # check that s1 and s3 were updated and s2 was not.
         for it, samp1 in enumerate(sample_set['samples']):
