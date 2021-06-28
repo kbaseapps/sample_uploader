@@ -227,9 +227,12 @@ def compare_samples(s1, s2):
     s1, s2 - samples with the following fields:
         'node_tree', 'name'
     """
+
     if s1 is None or s2 is None:
         return False
     else:
+        print('start comparing samples: {} vs {}'.format(s1['name'], s2['name']))
+
         def remove_field(node, field):
             if field in node:
                 node.pop(field)
@@ -239,7 +242,12 @@ def compare_samples(s1, s2):
         s2_nt = [remove_field(n, 'source_meta') for n in s2['node_tree']]
 
         # TODO: worth scrutiny
-        return s1['name'] == s2['name'] and s1_nt == s2_nt
+        comp = s1['name'] == s2['name'] and s1_nt == s2_nt
+        if comp:
+            print('compared samples are the same')
+        else:
+            print('compared samples are different')
+        return comp
 
 
 def get_sample(sample_info, sample_url, token):
@@ -276,13 +284,14 @@ def get_sample(sample_info, sample_url, token):
 
 def save_sample(sample, sample_url, token, previous_version=None):
     """
-    sample     - completed sample as per 
+    sample     - completed sample as per
     sample_url - url to sample service
     token      - workspace token for Authorization
     previous_version - data of previous version of sample
     """
+    print('start saving sample')
     headers = {
-        "Authorization": token,       
+        "Authorization": token,
         "Content-Type": "application/json"
     }
     if previous_version:
@@ -314,6 +323,8 @@ def save_sample(sample, sample_url, token, previous_version=None):
     resp_json = _handle_response(resp)
     sample_id = resp_json['result'][0]['id']
     sample_ver = resp_json['result'][0]['version']
+
+    print('saved sample {} (version: {}'.format(sample_id, sample_ver))
     return sample_id, sample_ver
 
 

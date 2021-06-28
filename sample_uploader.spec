@@ -28,6 +28,7 @@ module sample_uploader {
         int prevalidate;
         int incl_input_in_output;
         int ignore_warnings;
+        int keep_existing_samples;
     } ImportSampleInputs;
 
     typedef structure {

@@ -1,6 +1,7 @@
 import pandas as pd
 import warnings
 import os
+import copy
 
 from sample_uploader.utils.sample_utils import (
     get_sample,
@@ -107,6 +108,10 @@ def load_file(
     # Remove empty rows and change index labels to row number
     df.dropna(how='all', inplace=True)
     df.index += header_row_index+1
+
+    # remove duplicate rows to ensure sample set doesn't have identical samples
+    df.drop_duplicates(inplace=True)
+
     return df
 
 
@@ -118,7 +123,8 @@ def _produce_samples(
     sample_url,
     token,
     existing_samples,
-    columns_to_input_names
+    columns_to_input_names,
+    keep_existing_samples
 ):
     """"""
     samples = []
@@ -152,14 +158,17 @@ def _produce_samples(
                     sample_name=name
                 )
         elif name in existing_sample_names:
-
-            prev_sample = get_sample(existing_sample_names[name], sample_url, token)
+            existing_sample = copy.deepcopy(existing_sample_names[name])
+            # remove version of samples from sample set in order to get the latest version of sample
+            existing_sample.pop('version', None)
+            prev_sample = get_sample(existing_sample, sample_url, token)
 
         return prev_sample
 
     field_transformer = FieldTransformer(callback_url)
 
     cols = list(set(df.columns) - set(REQUIRED_COLS))
+    imported_sample_names = list()
     for row_num, row in df.iterrows():
         try:
             # only required field is 'name'
@@ -215,6 +224,8 @@ def _produce_samples(
                 }],
                 'name': name,
             }
+            imported_sample_names.append(name)
+
             # get existing sample (if exists)
             prev_sample = _get_existing_sample(name, kbase_sample_id)
 
@@ -236,6 +247,12 @@ def _produce_samples(
         except SampleContentWarning as e:
             e.row = row_num
             warnings.warn(e)
+
+    if not keep_existing_samples:
+        # remove samples in the existing_samples (input sample_set) but not in the input file
+        extra_samples = set(existing_sample_names.keys()) - set(imported_sample_names)
+        for extra_sample in extra_samples:
+            del existing_sample_names[extra_sample]
 
     user_keys = set()
     for s in samples:
@@ -264,22 +281,23 @@ def _save_samples(samples, acls, sample_url, token):
 
         sample_id, sample_ver = save_sample(sample, sample_url, token, previous_version=prev_sample)
 
-        saved_samples.append({
-            "id": sample_id,
-            "name": name,
-            "version": sample_ver
-        })
-        # check input for any reason to update access control list
-        # should have a "write", "read", "admin" entry
-        writer = data.get('write')
-        reader = data.get('read')
-        admin  = data.get('admin')
-        if writer or reader or admin:
-            acls["read"] +=  [r for r in reader]
-            acls["write"] += [w for w in writer]
-            acls["admin"] += [a for a in admin]
-        if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
-            _ = update_acls(sample_url, sample_id, acls, token)
+        if sample_id:
+            saved_samples.append({
+                "id": sample_id,
+                "name": name,
+                "version": sample_ver
+            })
+            # check input for any reason to update access control list
+            # should have a "write", "read", "admin" entry
+            writer = data.get('write')
+            reader = data.get('read')
+            admin  = data.get('admin')
+            if writer or reader or admin:
+                acls["read"] +=  [r for r in reader]
+                acls["write"] += [w for w in writer]
+                acls["admin"] += [a for a in admin]
+            if len(acls["read"]) > 0 or len(acls['write']) > 0 or len(acls['admin']) > 0:
+                _ = update_acls(sample_url, sample_id, acls, token)
     return saved_samples
 
 
@@ -414,10 +432,18 @@ def import_samples_from_file(
                 sample_url,
                 token,
                 input_sample_set['samples'],
-                columns_to_input_names
+                columns_to_input_names,
+                params.get('keep_existing_samples', False)
             )
 
-        if params.get('prevalidate') and not errors.get(severity='error'):
+        # check when no new sample is created and samples in the input file matches exactly the given input sample_set
+        if not samples and input_sample_set.get('samples') and len(input_sample_set.get('samples')) == len(existing_samples):
+            error_msg = "No sample is produced from the input file.\n"
+            error_msg += "The input sample set has identical information to the input file\n"
+
+            raise ValueError(error_msg)
+
+        if params.get('prevalidate') and not errors.get(severity='error') and samples:
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
