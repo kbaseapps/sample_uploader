@@ -8,7 +8,7 @@
     <script type="text/javascript" src="static/error_ui.js"></script>
 	</head>
 	<body>
-		<h2> Upload errors </h2>
+		<h2> Upload <strong>{{ 'Failed' if failed else 'Succeeded' }}</strong> with the following Errors and Warnings</h2>
     <p>Select cells in the samples table to filter the error list below.</p>
     <table id="errSampleTable" class="compact cell-border spreadsheet-table"></table>
     <hr/>

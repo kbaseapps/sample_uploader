@@ -144,7 +144,7 @@ class sample_uploader:
         sample_set_ref = None
 
         # create UI to display the errors clearly
-        html_link = _error_ui(errors, sample_data_json, self.scratch)
+        html_link = _error_ui(errors, sample_data_json, has_unignored_errors, self.scratch)
 
         if not has_unignored_errors:
             # only save object if there are no errors
