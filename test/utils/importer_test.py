@@ -162,7 +162,7 @@ class sample_uploaderTest(unittest.TestCase):
         ws['E3'].value = new_latitude  # update latitude value to 66.6 for S1
         wb.save(sample_file)
 
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -181,7 +181,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
         with open(compare_path) as f:
             data = json.load(f)
@@ -204,7 +204,7 @@ class sample_uploaderTest(unittest.TestCase):
             cell[0].value = size_load
         wb.save(sample_file)
 
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -223,7 +223,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
         with open(compare_path) as f:
             data = json.load(f)
@@ -245,7 +245,7 @@ class sample_uploaderTest(unittest.TestCase):
         ws['A6'].value = new_sample  # update the sample id for the new row
         wb.save(sample_file)
 
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -264,7 +264,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(samples), 4)
         expected_sample_name = ['s1', 's2', 's3', new_sample]
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
         with open(compare_path) as f:
             data = json.load(f)
@@ -306,7 +306,7 @@ class sample_uploaderTest(unittest.TestCase):
         # test removing a new sample (row)
         params['keep_existing_samples'] = False
 
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -325,7 +325,7 @@ class sample_uploaderTest(unittest.TestCase):
         self.assertEqual(len(updated_samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in updated_samples], expected_sample_name)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(has_unignored_errors, False)
 
     # @unittest.skip('x')
     def test_import_SESAR_format(self):
