@@ -48,8 +48,8 @@ class SampleContentWarningContext:
     warnings using `warnings.warn`. Use a `with as` block to capture warnings.
     Warnings can then be accessed using the `get` method.
     """
-    def __init__(self, ignore_warnings):
-        self._severities = ("error",) if ignore_warnings else ("error","warning")
+    def __init__(self):
+        self._severities = ("error","warning")
         self._warning_catcher = warnings.catch_warnings(record=True)
         self._caught = []
         self._targeted = []

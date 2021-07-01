@@ -124,7 +124,7 @@ class sample_uploader:
                              f"File of format {params.get('file_format')} not supported.")
         mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
 
-        sample_set, errors, sample_data_json = import_samples_from_file(
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
             params,
             self.sample_url,
             self.workspace_url,
@@ -142,12 +142,11 @@ class sample_uploader:
         file_links = []
         new_data_links = []
         sample_set_ref = None
-        html_link = None
 
-        if errors:
-            # create UI to display the errors clearly
-            html_link = _error_ui(errors, sample_data_json, self.scratch)
-        else:
+        # create UI to display the errors clearly
+        html_link = _error_ui(errors, sample_data_json, has_unignored_errors, self.scratch)
+
+        if not has_unignored_errors:
             # only save object if there are no errors
             obj_info = self.dfu.save_objects({
                 'id': save_ws_id,

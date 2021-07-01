@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 
 from installed_clients.WorkspaceClient import Workspace
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -34,14 +35,14 @@ def get_workspace_user_perms(workspace_url, workspace_id, token, owner, acls):
     return acls
 
 
-def error_ui(errors, sample_data_json, scratch):
+def error_ui(errors, sample_data_json, failed, scratch):
     """
     TODO: make this better/change it all
     errors: list of errors
     scratch: kbase scratch space
     """
     template = env.get_template('index.html')
-    site_path = os.path.join(scratch, 'report_site')
+    site_path = os.path.join(scratch, str(uuid.uuid4()), 'report_site')
     html_path = os.path.join(site_path, 'index.html')
     asset_path = '/kb/module/data/error_ui_static'
     shutil.copytree(
@@ -53,7 +54,8 @@ def error_ui(errors, sample_data_json, scratch):
 
     rendered_html = template.render(
         error_data=error_data,
-        sample_data_json=sample_data_json
+        sample_data_json=sample_data_json,
+        failed=failed
     )
     with open(html_path, 'w') as f:
         f.write(rendered_html)

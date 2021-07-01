@@ -8,7 +8,7 @@
     <script type="text/javascript" src="static/error_ui.js"></script>
 	</head>
 	<body>
-		<h2> Upload errors </h2>
+		<h2> Upload <strong>{{ 'Failed' if failed else 'Succeeded' }}</strong> with the following Errors and Warnings</h2>
     <p>Select cells in the samples table to filter the error list below.</p>
     <table id="errSampleTable" class="compact cell-border spreadsheet-table"></table>
     <hr/>
@@ -33,6 +33,7 @@
         const columns = createDatatableColumns(sample_data.columns);
         // Initialize error handling code
         const errHandler = new ErrorHandler(error_data);
+
         // Mount samples datatable
         const sampleTable = $('#errSampleTable').DataTable({
           dom: 'Bfrtip',
@@ -68,9 +69,6 @@
           ]
         });
 
-        // Hide blank sample rows
-        sampleTable.columns(0).search("^.+$", true, false).draw();
-
         const detailTable = $('#errDetailTable').DataTable({
           dom: 'rtip',
           columns:[
@@ -80,7 +78,7 @@
                 const c = Number.isInteger(err.column) ? indexToLetters(err.column) : "";
                 return `${c}${r}`
               }, 
-              title:"Position"
+              title:"Column/Row"
             },
             {
               data:(err)=> err.severity=="error"?"\u00A0\ud83d\udd34\u00A0\u00A0Error":"\u00A0\ud83d\udd36\u00A0\u00A0Warning",
@@ -89,7 +87,7 @@
             },
             {data:"message", title:"Error Message", defaultContent:""},
             {data:"sample_name", title:"Sample Name", defaultContent:""},
-            {data:"key", title:"Column/Key", defaultContent:""},
+            {data:"key", title:"Column (Key)", defaultContent:""},
           ],
           columnDefs:[{
             targets:[0],
@@ -98,6 +96,16 @@
           data: error_data
         });
 
+        // Hide blank sample rows
+        sampleTable.columns(0).search("^.+$", true, false).draw();
+        // Hide empty columns
+        sampleTable.columns().every(colID=>{
+          const col = sampleTable.column(colID);
+          const h = col.header().innerHTML;
+          if (h.startsWith("unnamed:")) {
+            col.visible(false);
+          }
+        });
         // Add excel column headers
         addExcelHeader(sampleTable, columns);
         // Set up selection filtering
