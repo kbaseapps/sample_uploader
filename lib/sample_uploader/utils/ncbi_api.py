@@ -28,7 +28,7 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
     """
 
     if not sample_id.isdigit():
-        log.info('Provided sample ID [{}] contains none digit character'.format(sample_id))
+        log.info('Provided sample ID [{}] contains non-digit character'.format(sample_id))
         retrieved_sample_id = retrieve_id_from_accession(sample_id)
 
         if retrieved_sample_id and retrieved_sample_id.isdigit():
