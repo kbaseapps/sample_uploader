@@ -65,8 +65,6 @@ def retrieve_id_from_accession(accession_name, db='biosample', endpoint='esearch
     https://www.ncbi.nlm.nih.gov/books/NBK25499/#_chapter4_ESearch_
     """
 
-    # https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=biosample&term=SAMEA7090475&idtype=acc
-
     url = '{base}/{endpoint}?db={db}&term={accession_name}&idtype=acc'.format(
                                         base=NCBI_BASE_URL,
                                         endpoint=endpoint,
