@@ -27,6 +27,18 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
     https://www.ncbi.nlm.nih.gov/books/NBK25499/#_chapter4_EFetch_
     """
 
+    if not sample_id.isdigit():
+        log.info('Provided sample ID [{}] contains non-digit character'.format(sample_id))
+        retrieved_sample_id = retrieve_id_from_accession(sample_id)
+
+        if retrieved_sample_id and retrieved_sample_id.isdigit():
+            log.info('Retrieved ID [{}] from accession name [{}]'.format(retrieved_sample_id,
+                                                                         sample_id))
+            sample_id = retrieved_sample_id
+        else:
+            log.warning('Cannot retrieve ID from accession name')
+            log.warning('Using original sample ID [{}] for Efetch'.format(sample_id))
+
     url = '{base}/{endpoint}?db={db}&id={sample_id}&retmode=xml'.format(
                                         base=NCBI_BASE_URL,
                                         endpoint=endpoint,
@@ -34,13 +46,7 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
                                         sample_id=sample_id)
 
     log.info('Start requesting NCBI sample from: {}'.format(url))
-    try:
-        time.sleep(1)  # in case of server overload, NCBI has 3 query per second limit
-        resp = requests.get(url=url)
-        resp.raise_for_status()
-    except Exception as err:
-        raise RuntimeError(f'Error from NCBI service:\n{resp.status_code}:{resp.text}\n{err}')
-
+    resp = _query_eutilities(url)
     try:
         sample_content = xmltodict.parse(resp.content)
     except Exception as err:
@@ -49,6 +55,43 @@ def retrieve_sample_from_ncbi(sample_id, db='biosample', endpoint='efetch.fcgi')
     sample = _process_sample_content(sample_content)
 
     return sample
+
+
+def retrieve_id_from_accession(accession_name, db='biosample', endpoint='esearch.fcgi'):
+    """
+    Retrieve and convert accession term to ID using NCBI E-utilities ESearch endpoint
+
+    The official NCBI documentation about this endpoint:
+    https://www.ncbi.nlm.nih.gov/books/NBK25499/#_chapter4_ESearch_
+    """
+
+    url = '{base}/{endpoint}?db={db}&term={accession_name}&idtype=acc'.format(
+                                        base=NCBI_BASE_URL,
+                                        endpoint=endpoint,
+                                        db=db,
+                                        accession_name=accession_name)
+
+    log.info('Start searching ID from accession name using: {}'.format(url))
+    resp = _query_eutilities(url)
+    try:
+        search_content = xmltodict.parse(resp.content)
+    except Exception as err:
+        raise RuntimeError(f'Failed to convert response to DICT\n{err}\n{resp.content}')
+
+    sample_id = _process_search_id_content(search_content)
+
+    return sample_id
+
+
+def _query_eutilities(url):
+    try:
+        time.sleep(1)  # in case of server overload, NCBI has 3 query per second limit
+        resp = requests.get(url=url)
+        resp.raise_for_status()
+    except Exception as err:
+        raise RuntimeError(f'Error from NCBI service:\n{resp.status_code}:{resp.text}\n{err}')
+
+    return resp
 
 
 def _process_time_str(time_str):
@@ -106,6 +149,12 @@ def _process_lat_lon_str(lat_lon):
         longitude = None
 
     return latitude, longitude
+
+
+def _process_search_id_content(search_content):
+    sample_id = search_content.get('eSearchResult', {}).get('IdList', {}).get('Id')
+
+    return sample_id
 
 
 def _process_sample_content(sample_content):

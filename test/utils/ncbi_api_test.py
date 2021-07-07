@@ -8,6 +8,7 @@ from sample_uploader.utils.ncbi_api import (
     _process_time_str,
     _process_lat_lon_str,
     retrieve_sample_from_ncbi,
+    retrieve_id_from_accession,
     ncbi_samples_to_csv,
 )
 
@@ -61,6 +62,15 @@ def test__process_lat_lon_str():
     assert longitude is None
 
 
+def test_retrieve_id_from_accession():
+    start_test()
+
+    accession_name = 'SAMEA7090475'
+    sample_id = retrieve_id_from_accession(accession_name)
+    expected_sample_id = '18013722'
+    assert sample_id == expected_sample_id
+
+
 def test_retrieve_sample_from_ncbi():
 
     start_test()
@@ -96,7 +106,7 @@ def test_retrieve_sample_from_ncbi():
                     'misc_param': 'Seawater_16'}
     assert expected_sample == {key: sample[key] for key in expected_sample.keys()}
 
-    bad_ncbi_sample_id = 'AABB'
+    bad_ncbi_sample_id = '0000'
     with raises(Exception) as context:
         retrieve_sample_from_ncbi(bad_ncbi_sample_id)
     expected_err_msg = 'Error from NCBI service'
