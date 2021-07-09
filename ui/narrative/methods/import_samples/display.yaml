@@ -32,7 +32,7 @@ parameters :
 
     file_format:
         ui-name : |
-            File format
+            Template format
         short-hint : |
             Format source of the input file, files downloaded from KBase are in SESAR format.
         long-hint  : |
@@ -160,3 +160,4 @@ parameters :
 
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>
+    <p>For more information on file template formats, look at the <a href="https://docs.kbase.us/workflows/samples-and-samplesets/sesar-samples">documentation.</a></p>

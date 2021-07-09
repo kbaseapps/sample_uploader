@@ -32,15 +32,15 @@
                 "options": [
                     {
                         "value": "kbase",
-                        "display": "KBase format"
+                        "display": "KBase"
                     },
                     {
                         "value": "sesar",
-                        "display": "SESAR format"
+                        "display": "SESAR"
                     },
                     {
                         "value": "enigma",
-                        "display": "ENIGMA format"
+                        "display": "ENIGMA"
                     }
                 ]
             }
