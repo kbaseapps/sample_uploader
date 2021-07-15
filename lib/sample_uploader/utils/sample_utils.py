@@ -358,6 +358,35 @@ def validate_samples(samples, sample_url, token):
     return errors
 
 
+def get_data_links_from_ss(sample_set_ref, sample_url, token):
+    """
+    fetch data links associated with sample set object
+    sample_set_ref - ref of a sample set object
+    sample_url     - url to sample service
+    token          - workspace token for Authorization
+    """
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json"
+    }
+    params = {
+        "upa": sample_set_ref
+    }
+    payload = {
+        "method": "SampleService.get_data_links_from_data",
+        "id": str(uuid.uuid4()),
+        "params": [params],
+        "version": "1.1"
+    }
+
+    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
+    resp_json = _handle_response(resp)
+
+    links = resp_json['result'][0].get('links')
+
+    return links
+
+
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
     """"""
     if sample_headers:

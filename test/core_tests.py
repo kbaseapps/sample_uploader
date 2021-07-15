@@ -13,7 +13,7 @@ from configparser import ConfigParser
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample
+from sample_uploader.utils.sample_utils import get_sample, get_data_links_from_ss
 from installed_clients.WorkspaceClient import Workspace
 
 
@@ -93,6 +93,18 @@ class sample_uploaderTest(unittest.TestCase):
         compare_path = os.path.join(self.curr_dir, "data", "fake_samples.json")
         self._verify_samples(self.sample_set, compare_path)
 
+    def test_data_links(self):
+        data_links = get_data_links_from_ss(self.sample_set_ref, self.sample_url, self.ctx['token'])
+        expected_link_count = 3
+        self.assertEqual(len(data_links), expected_link_count)
+
+        upa = set([data_link['upa'] for data_link in data_links])
+        self.assertEqual(upa, set([self.sample_set_ref]))
+
+        data_ids = [data_link['dataid'] for data_link in data_links]
+        expected_data_ids = ['samples/{}'.format(i) for i in range(expected_link_count)]
+        self.assertEqual(data_ids, expected_data_ids)
+
     # @unittest.skip('x')
     def test_ENIGMA_file(self):
         ''''''
@@ -110,11 +122,14 @@ class sample_uploaderTest(unittest.TestCase):
         }
         ret = self.serviceImpl.import_samples(self.ctx, params)[0]
         sample_set = ret['sample_set']
-        sample_set_ref = ret ['sample_set_ref']
+        sample_set_ref = ret['sample_set_ref']
         # assert that correct amount of links are made
         self.assertEqual(len(ret['links']), len(sample_set['samples']))
         compare_path = os.path.join(self.curr_dir, 'data', 'fake_samples_ENIGMA.json')
         self._verify_samples(sample_set, compare_path)
+
+        data_links = get_data_links_from_ss(sample_set_ref, self.sample_url, self.ctx['token'])
+        self.assertEqual(len(data_links), len(sample_set['samples']))
         # next we test if the update functionality is working
         # make copy of file in scratch
         os.mkdir(os.path.join(self.scratch, 'temporary_data'))
@@ -179,6 +194,7 @@ class sample_uploaderTest(unittest.TestCase):
         }
         ret = self.serviceImpl.import_samples_from_IGSN(self.ctx, params)[0]
         samples_info = ret['sample_set']['samples']
+        sample_set_ref = ret['sample_set_ref']
 
         assert len(samples_info) == len(igsns)
 
@@ -191,6 +207,9 @@ class sample_uploaderTest(unittest.TestCase):
         expected_sample_names = ['PB-Low-5', 'ww163e', 'Core 1-1*-1M']
         sample_names = [sample['name'] for sample in samples]
         assert set(expected_sample_names) == set(sample_names)
+
+        data_links = get_data_links_from_ss(sample_set_ref, self.sample_url, self.ctx['token'])
+        self.assertEqual(len(data_links), len(igsns))
 
         # test string igsns input with multiple IGSNs
         params = {
