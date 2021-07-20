@@ -162,7 +162,7 @@ class sample_uploader:
 
             # create a data link between each sample and the sampleset
             ss = SampleService(self.sample_url)
-            for sample_info in sample_set['samples']:
+            for idx, sample_info in enumerate(sample_set['samples']):
                 sample_id = sample_info['id']
                 version = sample_info['version']
                 sample = ss.get_sample({
@@ -173,6 +173,7 @@ class sample_uploader:
                     dict(
                         upa=sample_set_ref,
                         id=sample_id,
+                        dataid='samples/{}'.format(idx),
                         version=version,
                         node=sample['node_tree'][0]['id'],
                         update=1,

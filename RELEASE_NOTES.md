@@ -1,6 +1,10 @@
 # sample_uploader release notes
 =========================================
 
+0.0.23
+------
+* Adding dataid ('samples/[index]') for the create data link call
+
 0.0.22
 ------
 * cast value type to match validator file
