@@ -86,20 +86,6 @@ def igsns_to_csv(igsns, sample_csv):
     df = pd.DataFrame.from_dict(samples)
     df.set_index('igsn', inplace=True)
 
-    # write SESAR header
-    logging.info('Start writting SESAR header to csv: {}'.format(sample_csv))
-    try:
-        object_type = ', '.join(df.sample_type.unique())
-    except Exception:
-        object_type = ''
-    try:
-        user_code = ', '.join(df.user_code.unique())
-    except Exception:
-        user_code = ''
-    with open(sample_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Object Type:', object_type, 'User Code:', user_code])
-
     logging.info('Start writting samples info to csv: {}'.format(sample_csv))
 
     with open(sample_csv, 'a') as f:
