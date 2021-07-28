@@ -36,7 +36,7 @@ def find_header_row(sample_file, file_format):
     header_row_index = 0
     if file_format.lower() == "sesar":
 
-        if sample_file.endswith('.tsv') or sample_file.endswith('.csv'):
+        if sample_file.endswith('.tsv'):
             reader = pd.read_csv(sample_file, sep=None, iterator=True)
             inferred_sep = reader._engine.data.dialect.delimiter
             with open(sample_file) as f:
@@ -48,6 +48,15 @@ def find_header_row(sample_file, file_format):
             # TODO: this function will fail if the extra header line happens to have exactly the same number of columns as the real header line
             non_empty_header = [i for i in first_line.split(inferred_sep) if i not in ['', '\n']]
             if len(non_empty_header) != len(second_line.split(inferred_sep)):
+                header_row_index = 1
+
+        elif sample_file.endswith('.csv'):
+            df = pd.read_csv(sample_file)
+
+            first_row = df.iloc[1]
+            # when an extra header presents,
+            # all of the data cells will be 'NaN'
+            if all(first_row.isna()):
                 header_row_index = 1
 
         elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
