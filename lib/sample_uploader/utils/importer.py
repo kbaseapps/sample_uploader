@@ -54,12 +54,17 @@ def find_header_row(sample_file, file_format):
         elif sample_file.endswith('.csv'):
             df = pd.read_csv(sample_file)
 
-            first_row = df.iloc[1]
-            # when an extra header presents,
-            # all of the data cells will be 'NaN'
-            if all(first_row.isna()):
-                print('Detected extra header line. Setting header_row_index to 1')
-                header_row_index = 1
+            try:
+                first_row = df.iloc[1]
+
+                # when an extra header presents,
+                # all of the data cells will be 'NaN'
+                if all(first_row.isna()):
+                    print('Detected extra header line. Setting header_row_index to 1')
+                    header_row_index = 1
+            except IndexError:
+                # file only has 2 lines. Keep default header_row_index=0
+                pass
 
         elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
             df = pd.read_excel(sample_file)
