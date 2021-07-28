@@ -231,7 +231,7 @@ class sample_uploader:
             report_data['html_links'] =  [{
                 'path': html_link,
                 'name': 'index.html',
-                'description': 'Sample Set Import Error ui'
+                'description': 'HTML Report for Sample Uploader'
             }]
             report_data['direct_html_link_index'] = 0
         report_info = report_client.create_extended_report(report_data)
