@@ -300,6 +300,7 @@ class sample_uploader:
 
         params['sample_file'] = sample_file
         params['file_format'] = 'sesar'
+        params["header_row_index"] = 2
 
         output = self.import_samples(ctx, params)[0]
         #END import_samples_from_IGSN

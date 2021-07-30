@@ -36,7 +36,7 @@ def find_header_row(sample_file, file_format):
     header_row_index = 0
     if file_format.lower() == "sesar":
 
-        if sample_file.endswith('.tsv') or sample_file.endswith('.csv'):
+        if sample_file.endswith('.tsv'):
             reader = pd.read_csv(sample_file, sep=None, iterator=True)
             inferred_sep = reader._engine.data.dialect.delimiter
             with open(sample_file) as f:
@@ -48,7 +48,23 @@ def find_header_row(sample_file, file_format):
             # TODO: this function will fail if the extra header line happens to have exactly the same number of columns as the real header line
             non_empty_header = [i for i in first_line.split(inferred_sep) if i not in ['', '\n']]
             if len(non_empty_header) != len(second_line.split(inferred_sep)):
+                print('Detected extra header line. Setting header_row_index to 1')
                 header_row_index = 1
+
+        elif sample_file.endswith('.csv'):
+            df = pd.read_csv(sample_file)
+
+            try:
+                first_row = df.iloc[1]
+
+                # when an extra header presents,
+                # all of the data cells will be 'NaN'
+                if all(first_row.isna()):
+                    print('Detected extra header line. Setting header_row_index to 1')
+                    header_row_index = 1
+            except IndexError:
+                # file only has 2 lines. Keep default header_row_index=0
+                pass
 
         elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
             df = pd.read_excel(sample_file)
@@ -57,6 +73,7 @@ def find_header_row(sample_file, file_format):
             # all of the unmatched columns are indexed as 'Unnamed xx'.
             unnamed_cols = [i for i in df.columns if 'Unnamed' in i]
             if len(unnamed_cols) > 0:
+                print('Detected extra header line. Setting header_row_index to 1')
                 header_row_index = 1
         else:
             raise ValueError(f"File {os.path.basename(sample_file)} is not in "
