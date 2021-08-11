@@ -495,6 +495,11 @@ def import_samples_from_file(
             e.sample_name = err_row_sample_names[e.row]
         if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
             e.row = err_sample_name_indices[e.sample_name]
+        if e.subkey:
+            for group in column_groups:
+                if e.subkey in group and e.key == group["value"]:
+                    e.column = err_col_keys[group[e.subkey]]
+                    break
 
     unignored_errs = errors.get(severity='error')
     if not params.get('ignore_warnings', 1):
