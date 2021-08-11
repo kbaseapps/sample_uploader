@@ -464,10 +464,11 @@ def import_samples_from_file(
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
-                        e['message'],
-                        sample_name=e['sample_name'],
-                        node=e['node'],
-                        key=e['key']
+                        e.get('message'),
+                        sample_name=e.get('sample_name'),
+                        node=e.get('node'),
+                        key=e.get('key'),
+                        subkey=e.get('subkey')
                     ))
 
     # Calculate missing location information for SamplesContentError(s)
