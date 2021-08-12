@@ -462,6 +462,7 @@ def import_samples_from_file(
 
         if params.get('prevalidate') and not errors.get(severity='error') and samples:
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
+            print("!!!-!",error_detail)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
                         e.get('message'),
