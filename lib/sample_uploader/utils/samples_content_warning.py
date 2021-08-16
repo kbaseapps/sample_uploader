@@ -29,6 +29,7 @@ class SampleContentWarning(Warning):
         self.row = row
         self.column = column
         self.severity = severity
+        self.column_name = None if subkey is not None else key
         if(self.severity not in ('error','warning')):
             raise ValueError(f'Invalid severity for SampleContentWarning: {self.severity}')
 
@@ -41,6 +42,7 @@ class SampleContentWarning(Warning):
             'subkey': self.subkey,
             'row': self.row,
             'column': self.column,
+            'column_name': self.column_name,
             'severity': self.severity
         }
 
