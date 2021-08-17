@@ -501,7 +501,7 @@ def import_samples_from_file(
                 if e.subkey in group and e.key == group["value"]:
                     e.column = err_key_indices[group[e.subkey]]
                     break
-        e.column_name = err_col_keys[e.column]
+        e.column_name = err_col_keys.get(e.column)
 
     unignored_errs = errors.get(severity='error')
     if not params.get('ignore_warnings', 1):

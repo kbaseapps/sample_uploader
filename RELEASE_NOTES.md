@@ -4,6 +4,7 @@
 0.0.23
 ------
 * Adding dataid ('samples/[index]') for the create data link call
+* Adds support for metadata subkey (ie unit) column errors
 
 0.0.22
 ------
