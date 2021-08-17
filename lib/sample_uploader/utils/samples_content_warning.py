@@ -10,7 +10,7 @@ class SampleContentWarning(Warning):
     or can be passed to `warnings.warn` within a `SampleContentWarningContext` context
     block.
     """
-    def __init__(self, message:str, sample_name:str=None, node=None, key=None, row=None, column=None, severity='error'):
+    def __init__(self, message:str, sample_name:str=None, node=None, key=None, subkey=None, row=None, column=None, severity='error'):
         """
         :param message: the error message, str
         :param sample_name: the sample name (user defined ID) related to the error, str or None
@@ -25,9 +25,11 @@ class SampleContentWarning(Warning):
         self.sample_name = sample_name
         self.node = node
         self.key = key
+        self.subkey = subkey
         self.row = row
         self.column = column
         self.severity = severity
+        self.column_name = None if subkey is not None else key
         if(self.severity not in ('error','warning')):
             raise ValueError(f'Invalid severity for SampleContentWarning: {self.severity}')
 
@@ -37,8 +39,10 @@ class SampleContentWarning(Warning):
             'sample_name': self.sample_name,
             'node': self.node,
             'key': self.key,
+            'subkey': self.subkey,
             'row': self.row,
             'column': self.column,
+            'column_name': self.column_name,
             'severity': self.severity
         }
 

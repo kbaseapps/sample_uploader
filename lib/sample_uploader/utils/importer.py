@@ -464,10 +464,11 @@ def import_samples_from_file(
             error_detail = validate_samples([s['sample'] for s in samples], sample_url, token)
             for e in error_detail:
                 warnings.warn(SampleContentWarning(
-                        e['message'],
-                        sample_name=e['sample_name'],
-                        node=e['node'],
-                        key=e['key']
+                        e.get('message'),
+                        sample_name=e.get('sample_name'),
+                        node=e.get('node'),
+                        key=e.get('key'),
+                        subkey=e.get('subkey')
                     ))
 
     # Calculate missing location information for SamplesContentError(s)
@@ -495,6 +496,12 @@ def import_samples_from_file(
             e.sample_name = err_row_sample_names[e.row]
         if e.row==None and e.sample_name!=None and e.sample_name in err_sample_name_indices:
             e.row = err_sample_name_indices[e.sample_name]
+        if e.subkey:
+            for group in column_groups:
+                if e.subkey in group and e.key == group["value"]:
+                    e.column = err_key_indices[group[e.subkey]]
+                    break
+        e.column_name = err_col_keys.get(e.column)
 
     unignored_errs = errors.get(severity='error')
     if not params.get('ignore_warnings', 1):
