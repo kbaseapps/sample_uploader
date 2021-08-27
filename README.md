@@ -2,6 +2,12 @@
 
 this module supports upload of the sample objects into kbase. It accepts '.csv' and '.xls' files in the SESAR format. For specifics on the format visit the SESAR webpage [here](http://www.geosamples.org).
 
+## Current Status
+
+| Branch  | Build | Coverage | LGTM Alerts |
+| --- | --- | --- | --- |
+| master  | [![KBase SDK Tests](https://github.com/kbaseapps/sample_uploader/workflows/KBase%20SDK%20Tests/badge.svg)](https://github.com/kbaseapps/sample_uploader/actions?query=workflow%3A%22KBase+SDK+Tests%22)  | [![codecov](https://codecov.io/gh/kbaseapps/sample_uploader/branch/master/graph/badge.svg?token=Y33S6Z2VO6)](https://codecov.io/gh/kbaseapps/sample_uploader) | [![Total alerts](https://img.shields.io/lgtm/alerts/g/kbaseapps/sample_uploader.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kbaseapps/sample_uploader/alerts/) |
+
 # Setup and test
 
 Add your KBase developer token to `test_local/test.cfg` and run the following:
