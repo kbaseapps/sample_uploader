@@ -42,9 +42,9 @@ parameters :
         ui-name : |
             Sample Set description
         short-hint : |
-            description of the set of samples
+            Description of the set of samples
         long-hint  : |
-            description of the set of samples
+            Description of the set of samples
 
     sample_set_ref:
         ui-name: |
@@ -58,25 +58,25 @@ parameters :
         ui-name: |
             Output File Format
         short-hint : |
-            format for output file, output excluded by default
+            Format for output file, output excluded by default
         long-hint  : |
-            format for output file, output excluded by default
+            Format for output file, output excluded by default
 
     taxonomy_source:
         ui-name: |
             Taxonomy source
         short-hint : |
-            source database for taxonomic classifications
+            Source database for taxonomic classifications
         long-hint  : |
-            source database for taxonomic classifications
+            Source database for taxonomic classifications
 
     num_otus:
         ui-name: |
             Number of OTUs (Operational Taxonomic Units)
         short-hint : |
-            number of OTUs, for construction of output file
+            Number of OTUs, for construction of output file
         long-hint  : |
-            number of OTUs, for construction of output file
+            Number of OTUs, for construction of output file
 
     incl_seq:
         ui-name: |
@@ -98,25 +98,25 @@ parameters :
         ui-name: |
             Include Input as Output
         short-hint : |
-            whether to include the input file as an output, default=True
+            Check box to include the input file as an output, default=True
         long-hint  : |
-            whether to include the input file as an output, default=True. This is an option so that collaborators can access raw data.
+            Check box to include the input file as an output, default=True. This is an option so that collaborators can access raw data.
 
     share_within_workspace:
         ui-name: |
             Share with Users in Workspace
         short-hint: |
-            Shares access controls with users who have access to this workspace.
+            Check box to share access controls with users who have access to this workspace.
         long-hint: |
-            Shares access controls with users who have access to this workspace. They are given the same level of control. default=True
+            Check box to share access controls with users who have access to this workspace. They are given the same level of control. default=True
 
     prevalidate:
         ui-name: |
             Validate all samples before upload
         short-hint: |
-            Validate all samples before upload and display any errors
+            Check box to validate all samples before upload and display any errors
         long-hint: |
-            Validate all samples before upload and display any errors
+            Check box to validate all samples before upload and display any errors
 
 description : |
     <p>Uploader for Samples into KBase. Produces a SampleSet object.</p>
