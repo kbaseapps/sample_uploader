@@ -42,25 +42,25 @@ parameters :
         ui-name: |
             Output File Format
         short-hint : |
-            format for output file
+            Format for output file
         long-hint  : |
-            format for output file, CSV (comma separated values) format by default
+            Format for output file. The default is a CSV (comma separated values).
 
     taxonomy_source:
         ui-name: |
             Taxonomy source
         short-hint : |
-            source database for taxonomic classifications
+            Source database for taxonomic classifications
         long-hint  : |
-            source database for taxonomic classifications
+            Source database for taxonomic classifications
 
     num_otus:
         ui-name: |
             Number of OTUs (Operational Taxonomic Units)
         short-hint : |
-            number of OTUs, for construction of output file
+            Number of OTUs, for construction of output file
         long-hint  : |
-            number of OTUs, for construction of output file
+            Number of OTUs, for construction of output file
 
     incl_seq:
         ui-name: |
