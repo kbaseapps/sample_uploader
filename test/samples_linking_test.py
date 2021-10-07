@@ -1,17 +1,14 @@
 import os
 import time
 import unittest
-import uuid
-import json
-import shutil
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+
 
 class Test(unittest.TestCase):
 
@@ -57,11 +54,19 @@ class Test(unittest.TestCase):
             cls.rhodo_art_jgi_reads = '44442/8/1'
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
+            cls.test_genome = '44442/16/1'
+            cls.test_assembly_SE_reads = '44442/15/1'
+            cls.test_assembly_PE_reads = '44442/14/1'
+            cls.test_AMA_genome = '44442/13/2'
         elif 'ci' in cls.cfg['kbase-endpoint']:
-            cls.ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
-            cls.rhodo_art_jgi_reads = '59862/8/4' # paired
-            cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
-            cls.rhodobacter_art_q50_SE_reads = '59862/5/1' # single
+            cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
+            cls.rhodo_art_jgi_reads = '59862/8/4'  # paired
+            cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1'  # paired
+            cls.rhodobacter_art_q50_SE_reads = '59862/5/1'  # single
+            cls.test_genome = '59862/27/1'
+            cls.test_assembly_SE_reads = '59862/26/1'
+            cls.test_assembly_PE_reads = '59862/25/1'
+            cls.test_AMA_genome = '59862/28/1'
 
     @classmethod
     def tearDownClass(cls):
@@ -69,18 +74,22 @@ class Test(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
-    def test_link_reads(self):
+    def test_link_samples(self):
         links_in = [
-            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'reads_ref': self.rhodo_art_jgi_reads},
-            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'reads_ref': self.rhodobacter_art_q20_int_PE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'reads_ref': self.rhodobacter_art_q50_SE_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'obj_ref': self.rhodo_art_jgi_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.rhodobacter_art_q50_SE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_genome},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_SE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_PE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_AMA_genome},
         ]
 
-        ret = self.serviceImpl.link_reads(
+        ret = self.serviceImpl.link_samples(
             self.ctx, {
                 'workspace_name': self.wsName,
                 'sample_set_ref': self.ReadLinkingTestSampleSet,
-                'links': links_in, 
+                'links': links_in,
             })
 
         links_out = [d['new_link'] for d in ret[0]['links']]
@@ -88,9 +97,25 @@ class Test(unittest.TestCase):
         assert len(links_out) == len(links_in)
         for lin, lout in zip(links_in, links_out):
             assert lout['linkid'] and lout['id'] and lout['version']
-            assert lout['upa'] == lin['reads_ref']
+            assert lout['upa'] == lin['obj_ref']
             assert lout['node'] == lin['sample_name'][0]
 
+        # test unsupported object type
+        links_in = [
+            {'sample_name': ['0408-FW021.46.11.27.12.10'],
+             'obj_ref': self.ReadLinkingTestSampleSet},
+            ]
+
+        expected_error = 'Unsupported object type [KBaseSets.SampleSet]. Please provide one of'
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.link_samples(
+                self.ctx, {
+                    'workspace_name': self.wsName,
+                    'sample_set_ref': self.ReadLinkingTestSampleSet,
+                    'links': links_in,
+                })
+
+        self.assertIn(expected_error, str(context.exception.args[0]))
 
 # Appdev
 # ReadLinkingTestSampleSet = '44442/4/1'

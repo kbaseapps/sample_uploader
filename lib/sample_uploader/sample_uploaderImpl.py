@@ -10,6 +10,7 @@ import csv
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.WorkspaceClient import Workspace as workspaceService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
@@ -42,9 +43,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.22"
+    VERSION = "1.0.1"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "8352336180604f70f680617984aa5c42cade8c1f"
+    GIT_COMMIT_HASH = "5e16c8f87c2223e9976b5949c81d373ebdf1e019"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -54,6 +55,7 @@ class sample_uploader:
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.token = os.environ['KB_AUTH_TOKEN']
         self.workspace_url = config['workspace-url']
         self.scratch = config['scratch']
         # janky, but works for now
@@ -63,6 +65,7 @@ class sample_uploader:
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
         self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
+        self.wsClient = workspaceService(self.workspace_url, token=self.token)
         #END_CONSTRUCTOR
         pass
 
@@ -524,21 +527,25 @@ class sample_uploader:
         # return the results
         return [output]
 
-    def link_reads(self, ctx, params):
+    def link_samples(self, ctx, params):
         """
-        :param params: instance of type "LinkReadsParams" -> structure:
+        :param params: instance of type "LinkObjsParams" -> structure:
            parameter "workspace_name" of String, parameter "workspace_id" of
            String, parameter "sample_set_ref" of String, parameter "links" of
-           list of type "ReadsLink" (Create links between samples and reads
-           objects.) -> structure: parameter "sample_name" of String,
-           parameter "reads_ref" of String
-        :returns: instance of type "LinkReadsOutput" -> structure: parameter
+           list of type "ObjsLink" (Create links between samples and other
+           workspace objects. currently support:
+           KBaseFile.PairedEndLibrary/SingleEndLibrary,
+           KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
+           KBaseGenomes.Genome KBaseMetagenomes.AnnotatedMetagenomeAssembly)
+           -> structure: parameter "sample_name" of String, parameter
+           "obj_ref" of String
+        :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
         """
         # ctx is the context object
         # return variables are: output
-        #BEGIN link_reads
+        #BEGIN link_samples
         logging.info(params)
 
         ss = SampleService(self.sample_url)
@@ -547,10 +554,24 @@ class sample_uploader:
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']
         sample_name_2_info = {d['name']: d for d in sample_set_obj['samples']}
 
-        links = [(d['sample_name'][0], d['reads_ref']) for d in params['links']]
+        links = [(d['sample_name'][0], d['obj_ref']) for d in params['links']]
+
+        accepted_types = ["KBaseFile.SingleEndLibrary",
+                          "KBaseFile.PairedEndLibrary",
+                          "KBaseAssembly.SingleEndLibrary",
+                          "KBaseAssembly.PairedEndLibrary",
+                          "KBaseGenomes.Genome",
+                          "KBaseMetagenomes.AnnotatedMetagenomeAssembly"]
 
         new_data_links = []
-        for sample_name, reads_ref in links:
+        for sample_name, obj_ref in links:
+            obj_type = self.wsClient.get_object_info3({
+                                            'objects': [{"ref": obj_ref}],
+                                            'includeMetadata': 0})["infos"][0][2].split('-')[0]
+            if obj_type not in accepted_types:
+                raise ValueError('Unsupported object type [{}]. Please provide one of {}'.format(
+                                                                                obj_type,
+                                                                                accepted_types))
             sample_id = sample_name_2_info[sample_name]['id']
             version = sample_name_2_info[sample_name]['version']
             sample = ss.get_sample({
@@ -559,7 +580,7 @@ class sample_uploader:
             })
             ret = ss.create_data_link(
                 dict(
-                    upa=reads_ref,
+                    upa=obj_ref,
                     id=sample_id,
                     version=version,
                     node=sample['node_tree'][0]['id'],
@@ -577,11 +598,11 @@ class sample_uploader:
             'report_ref': report_info['ref'],
             'links': new_data_links,
         }
-        #END link_reads
+        #END link_samples
 
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
-            raise ValueError('Method link_reads return value ' +
+            raise ValueError('Method link_samples return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]
