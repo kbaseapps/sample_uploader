@@ -49,6 +49,29 @@ class Test(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
         cls.ss = SampleService(cls.sample_url, token=token)
+
+        cls.sesar_sample_file = os.path.join(cls.curr_dir, "data", "fake_samples.tsv")
+        cls.sample_set_name = "test_sample_set_1"
+        params = {
+            'workspace_name': cls.wsName,
+            'workspace_id': cls.wsID,
+            'sample_file':  cls.sesar_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': cls.sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field",
+            'incl_input_in_output': 1,
+            'share_within_workspace': 1,
+        }
+        ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
+        cls.sample_set = ret['sample_set']
+        cls.sample_name_1 = cls.sample_set['samples'][0]['name']
+        cls.sample_name_2 = cls.sample_set['samples'][1]['name']
+        cls.sample_name_3 = cls.sample_set['samples'][2]['name']
+        cls.sample_set_ref = ret['sample_set_ref']
+
         if 'appdev' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '44442/4/1'
             cls.rhodo_art_jgi_reads = '44442/8/1'
@@ -76,21 +99,21 @@ class Test(unittest.TestCase):
 
     def test_link_samples(self):
         links_in = [
-            {'sample_name': ['0408-FW021.46.11.27.12.10'], 'obj_ref': self.rhodo_art_jgi_reads},
-            {'sample_name': ['0408-FW021.46.11.27.12.02'],
+            {'sample_name': [self.sample_name_1], 'obj_ref': self.rhodo_art_jgi_reads},
+            {'sample_name': [self.sample_name_2],
              'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'],
+            {'sample_name': [self.sample_name_3],
              'obj_ref': self.rhodobacter_art_q50_SE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_genome},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_SE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_PE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_AMA_genome},
+            {'sample_name': [self.sample_name_3], 'obj_ref': self.test_genome},
+            {'sample_name': [self.sample_name_3], 'obj_ref': self.test_assembly_SE_reads},
+            {'sample_name': [self.sample_name_3], 'obj_ref': self.test_assembly_PE_reads},
+            {'sample_name': [self.sample_name_3], 'obj_ref': self.test_AMA_genome},
         ]
 
         ret = self.serviceImpl.link_samples(
             self.ctx, {
                 'workspace_name': self.wsName,
-                'sample_set_ref': self.ReadLinkingTestSampleSet,
+                'sample_set_ref': self.sample_set_ref,
                 'links': links_in,
             })
 
@@ -104,8 +127,7 @@ class Test(unittest.TestCase):
 
         # test unsupported object type
         links_in = [
-            {'sample_name': ['0408-FW021.46.11.27.12.10'],
-             'obj_ref': self.ReadLinkingTestSampleSet},
+            {'sample_name': [self.sample_name_1], 'obj_ref': self.sample_set_ref},
         ]
 
         expected_error = 'Unsupported object type [KBaseSets.SampleSet]. Please provide one of'
@@ -113,7 +135,7 @@ class Test(unittest.TestCase):
             self.serviceImpl.link_samples(
                 self.ctx, {
                     'workspace_name': self.wsName,
-                    'sample_set_ref': self.ReadLinkingTestSampleSet,
+                    'sample_set_ref': self.sample_set_ref,
                     'links': links_in,
                 })
 
