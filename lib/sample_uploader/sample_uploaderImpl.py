@@ -566,12 +566,10 @@ class sample_uploader:
         new_data_links = []
         for sample_name, obj_ref in links:
             obj_type = self.wsClient.get_object_info3({
-                                            'objects': [{"ref": obj_ref}],
-                                            'includeMetadata': 0})["infos"][0][2].split('-')[0]
+                'objects': [{"ref": obj_ref}], 'includeMetadata': 0})["infos"][0][2].split('-')[0]
             if obj_type not in accepted_types:
                 raise ValueError('Unsupported object type [{}]. Please provide one of {}'.format(
-                                                                                obj_type,
-                                                                                accepted_types))
+                    obj_type, accepted_types))
             sample_id = sample_name_2_info[sample_name]['id']
             version = sample_name_2_info[sample_name]['version']
             sample = ss.get_sample({

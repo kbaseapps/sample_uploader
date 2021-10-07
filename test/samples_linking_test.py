@@ -77,8 +77,10 @@ class Test(unittest.TestCase):
     def test_link_samples(self):
         links_in = [
             {'sample_name': ['0408-FW021.46.11.27.12.10'], 'obj_ref': self.rhodo_art_jgi_reads},
-            {'sample_name': ['0408-FW021.46.11.27.12.02'], 'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
-            {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.rhodobacter_art_q50_SE_reads},
+            {'sample_name': ['0408-FW021.46.11.27.12.02'],
+             'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
+            {'sample_name': ['0408-FW021.7.26.12.02'],
+             'obj_ref': self.rhodobacter_art_q50_SE_reads},
             {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_genome},
             {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_SE_reads},
             {'sample_name': ['0408-FW021.7.26.12.02'], 'obj_ref': self.test_assembly_PE_reads},
@@ -104,7 +106,7 @@ class Test(unittest.TestCase):
         links_in = [
             {'sample_name': ['0408-FW021.46.11.27.12.10'],
              'obj_ref': self.ReadLinkingTestSampleSet},
-            ]
+        ]
 
         expected_error = 'Unsupported object type [KBaseSets.SampleSet]. Please provide one of'
         with self.assertRaises(ValueError) as context:
