@@ -52,16 +52,13 @@ class Test(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
         cls.ss = SampleService(cls.sample_url, token=token)
-        if 'appdev' in cls.cfg['kbase-endpoint']:
-            cls.ReadLinkingTestSampleSet = '44442/4/1'
-            cls.rhodo_art_jgi_reads = '44442/8/1'
-            cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
-            cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
-        elif 'ci' in cls.cfg['kbase-endpoint']:
-            cls.ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
-            cls.rhodo_art_jgi_reads = '59862/8/4' # paired
-            cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
-            cls.rhodobacter_art_q50_SE_reads = '59862/5/1' # single
+        # if 'appdev' in cls.cfg['kbase-endpoint']:
+        #     cls.ReadLinkingTestSampleSet = '44442/4/1'
+        #     cls.rhodo_art_jgi_reads = '44442/8/1'
+        #     cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
+        #     cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
+        if 'ci' in cls.cfg['kbase-endpoint']:
+            cls.testSampleSet = '64599/2/2' # SampleSet
 
     @classmethod
     def tearDownClass(cls):
@@ -75,7 +72,7 @@ class Test(unittest.TestCase):
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
             'out_sample_set_name': "foo_out",
-            'sample_set_ref': ['one','two','three'],
+            'sample_set_ref': [self.testSampleSet],
             'filter_conditions': [{
                 'column':"foo_col",
                 'comparison':"==",

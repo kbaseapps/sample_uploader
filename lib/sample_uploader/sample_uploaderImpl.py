@@ -45,7 +45,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "0.0.23"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "5e16c8f87c2223e9976b5949c81d373ebdf1e019"
+    GIT_COMMIT_HASH = "0c88922061e56dad3bd0b233c145309311ab3aaa"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -626,28 +626,37 @@ class sample_uploader:
         # return variables are: output
         #BEGIN filter_samplesets
         samples = []
-        for sample_set_ref in params['sample_set_refs']:
-            ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
-            samples.extend(ret['samples'])
-        
-        sample_ids = [sample['name'] for sample in samples]
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        sample_ids = [{'id':sample['id'], 'version':sample['version']} for sample in samples]
+
+        filter_conditions = []
+        for condition in params['filter_conditions']:
+            filter_conditions.append({
+                'metadata_field': condition['column'],
+                'operator': condition['comparison'],
+                'metadata_value': condition['value'],
+                'join_condition': condition['condition']
+            })
 
         sample_search_api_request = {
             'sample_ids': sample_ids,
-            'filter_conditions':[]
+            'filter_conditions': filter_conditions
         }
+
+        print("fss-request:",sample_search_api_request)
+
+        # call out to sample set service
         
         sample_search_api_response = {
             'sample_ids': []
         }
 
-        samples_to_keep = set(sample_search_api_response['sample_ids'])
+        samples_to_keep = set(sample_id['id'] for sample_id in sample_search_api_response['sample_ids'])
 
         sample_set = {
-            'samples': [sample for sample in samples if sample['name'] in samples_to_keep]
+            'samples': [sample for sample in samples if sample['id'] in samples_to_keep]
         }
-
-        print(sample_set)
 
         # obj_info = self.dfu.save_objects({
         #     'id': params['workspace_id'],

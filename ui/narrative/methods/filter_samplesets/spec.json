@@ -56,12 +56,12 @@
             "dropdown_options": {
                 "options": [
                     {
-                        "value": "AND",
-                        "display": "AND"
+                        "value": "and",
+                        "display": "and"
                     },
                     {
-                        "value": "OR",
-                        "display": "OR"
+                        "value": "or",
+                        "display": "or"
                     }
                 ]
             }
@@ -88,35 +88,35 @@
             "dropdown_options": {
                 "options": [
                     {
-                        "value": "Equals",
+                        "value": "==",
                         "display": "Equals"
                     },
                     {
-                        "value": "Does not equal",
+                        "value": "!=",
                         "display": "Does not equal"
                     },
                     {
-                        "value": "Contains",
+                        "value": "in",
                         "display": "Contains"
                     },
                     {
-                        "value": "Does not contain",
+                        "value": "not in",
                         "display": "Does not contain"
                     },
                     {
-                        "value": "Greater than",
+                        "value": ">",
                         "display": "Greater than"
                     },
                     {
-                        "value": "Lesser than",
+                        "value": "<",
                         "display": "Lesser than"
                     },
                     {
-                        "value": "Greater than or equal to",
+                        "value": ">=",
                         "display": "Greater than or equal to"
                     },
                     {
-                        "value": "Lesser than or equal to",
+                        "value": "<=",
                         "display": "Lesser than or equal to"
                     }
                 ]
