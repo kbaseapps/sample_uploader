@@ -1,0 +1,186 @@
+{
+    "ver": "0.0.1",
+    "authors": [
+        "pranjan77",
+        "dlyon"
+    ],
+    "contact": "",
+    "categories": [
+        "active"
+    ],
+    "widgets": {
+        "input": null,
+        "output": null
+    },
+    "parameters": [
+        {
+            "id": "sample_set_ref",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": true,
+            "default_values": [
+                ""
+            ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": [
+                    "KBaseSets.SampleSet"
+                ]
+            }
+        },
+        {
+            "id": "out_sample_set_name",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [
+                ""
+            ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": [
+                    "KBaseSets.SampleSet"
+                ],
+                "is_output_name": true
+            }
+        },
+        {
+            "id": "condition",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [
+                ""
+            ],
+            "field_type": "dropdown",
+            "dropdown_options": {
+                "options": [
+                    {
+                        "value": "AND",
+                        "display": "AND"
+                    },
+                    {
+                        "value": "OR",
+                        "display": "OR"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "column",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [
+                ""
+            ],
+            "field_type": "text"
+        },
+        {
+            "id": "comparison",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [
+                ""
+            ],
+            "field_type": "dropdown",
+            "dropdown_options": {
+                "options": [
+                    {
+                        "value": "Equals",
+                        "display": "Equals"
+                    },
+                    {
+                        "value": "Does not equal",
+                        "display": "Does not equal"
+                    },
+                    {
+                        "value": "Contains",
+                        "display": "Contains"
+                    },
+                    {
+                        "value": "Does not contain",
+                        "display": "Does not contain"
+                    },
+                    {
+                        "value": "Greater than",
+                        "display": "Greater than"
+                    },
+                    {
+                        "value": "Lesser than",
+                        "display": "Lesser than"
+                    },
+                    {
+                        "value": "Greater than or equal to",
+                        "display": "Greater than or equal to"
+                    },
+                    {
+                        "value": "Lesser than or equal to",
+                        "display": "Lesser than or equal to"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "value",
+            "optional": false,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [
+                ""
+            ],
+            "field_type": "text"
+        }
+    ],
+    "parameter-groups": [
+        {
+            "id": "filter_conditions",
+            "parameters": [
+                "column",
+                "comparison",
+                "value",
+                "condition"
+            ],
+            "optional": false,
+            "allow_multiple": true,
+            "with_border": true
+        }
+    ],
+    "behavior": {
+        "service-mapping": {
+            "url": "",
+            "name": "sample_uploader",
+            "method": "filter_samplesets",
+            "input_mapping": [
+                {
+                    "narrative_system_variable": "workspace",
+                    "target_property": "workspace_name"
+                },{
+                    "narrative_system_variable": "workspace_id",
+                    "target_property": "workspace_id"
+                },{
+                    "input_parameter": "sample_set_ref",
+                    "target_property": "sample_set_ref",
+                    "target_type_transform": "resolved-ref"
+                },{
+                    "input_parameter": "out_sample_set_name",
+                    "target_property": "out_sample_set_name"
+                },{
+                    "input_parameter":"filter_conditions",
+                    "target_property": "filter_conditions"
+                }
+            ],
+            "output_mapping": [
+                {
+                    "service_method_output_path": [0,"report_name"],
+                    "target_property": "report_name"
+                },{
+                    "service_method_output_path": [0,"report_ref"],
+                    "target_property": "report_ref"
+                }
+            ]
+        }
+    },
+    "job_id_output_field": "docker"
+}

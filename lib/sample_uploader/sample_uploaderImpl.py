@@ -43,8 +43,8 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.1"
-    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
+    VERSION = "0.0.23"
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
     GIT_COMMIT_HASH = "5e16c8f87c2223e9976b5949c81d373ebdf1e019"
 
     #BEGIN_CLASS_HEADER
@@ -601,6 +601,67 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method link_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def filter_samplesets(self, ctx, params):
+        """
+        :param params: instance of type "FilterSampleSetsParams" ->
+           structure: parameter "workspace_name" of String, parameter
+           "workspace_id" of String, parameter "out_sample_set_name" of
+           String, parameter "sample_set_ref" of list of String, parameter
+           "filter_conditions" of list of type "FilterCondition" (Filter
+           SampleSets) -> structure: parameter "column" of String, parameter
+           "comparison" of String, parameter "value" of String, parameter
+           "condition" of String
+        :returns: instance of type "FilterSampleSetsOutput" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN filter_samplesets
+        samples = []
+        for sample_set_ref in params['sample_set_refs']:
+            ret = self.dfu.get_objects({'object_refs': [params['sample_set_ref']]})['data'][0]
+            samples.extend(ret['samples'])
+        
+        sample_ids = [sample['name'] for sample in samples]
+
+        sample_search_api_request = {
+            'sample_ids': sample_ids,
+            'filter_conditions':[]
+        }
+        
+        sample_search_api_response = {
+            'sample_ids': []
+        }
+
+        samples_to_keep = set(sample_search_api_response['sample_ids'])
+
+        sample_set = {
+            'samples': [sample for sample in samples if sample['name'] in samples_to_keep]
+        }
+
+        print(sample_set)
+
+        # obj_info = self.dfu.save_objects({
+        #     'id': params['workspace_id'],
+        #     'objects': [{
+        #         "name": params['out_sample_set_name'],
+        #         "type": "KBaseSets.SampleSet",
+        #         "data": sample_set
+        #     }]
+        # })[0]
+        #END filter_samplesets
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method filter_samplesets return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

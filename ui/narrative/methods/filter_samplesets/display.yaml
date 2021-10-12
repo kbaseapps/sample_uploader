@@ -1,0 +1,66 @@
+#
+# define display information
+#
+name: Sample set editor 
+
+tooltip: |
+    Sample set editor
+screenshots: []
+
+icon: icon.png
+
+#
+# define a set of similar methods that might be useful to the user
+#
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_ref :
+        ui-name : |
+            Sample set
+        short-hint : |
+            Sample set
+        long  : |
+            Sampleset
+    condition:
+        ui-name : |
+            condition
+        short-hint : |
+            condition
+        long : |
+            condition
+    column:
+        ui-name : |
+            column
+        short-hint : |
+            Column
+    comparison:
+        ui-name : |
+            Comparison
+        short-hint : |
+            Comparison
+    value:
+        ui-name : |
+            value
+        short-hint : |
+            value
+        long : |
+            value
+    out_sample_set_name:
+        ui-name : |
+            out sample set name
+        short-hint : |
+            out sample set name
+        long : |
+            out sample set name
+            
+parameter-groups :
+    filter_conditions :
+        ui-name : |
+             Filter condition
+        short-hint : |
+            Filter condition
+description : |
+    <p>Sample set editor</p>

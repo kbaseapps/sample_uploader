@@ -163,4 +163,31 @@ module sample_uploader {
     } LinkObjsOutput;
 
     funcdef link_samples(LinkObjsParams params) returns (LinkObjsOutput output) authentication required;
+    /*
+    Filter SampleSets
+    */
+
+    typedef structure {
+        string column;
+        string comparison;
+        string value;
+        string condition;
+    } FilterCondition;
+
+    typedef structure {
+        string workspace_name;
+        string workspace_id;
+        string out_sample_set_name;
+        list<string> sample_set_ref;
+        list<FilterCondition> filter_conditions;
+    } FilterSampleSetsParams;
+
+    typedef structure {
+        string report_name;
+        string report_ref;
+        SampleSet sample_set;
+    } FilterSampleSetsOutput;
+
+    funcdef filter_samplesets(FilterSampleSetsParams params) returns (FilterSampleSetsOutput output) authentication required;
+
 };
