@@ -1,7 +1,10 @@
 # sample_uploader release notes
 =========================================
+1.0.1
+-----
+supporting more data type (Assembly, Genome, AMA Genome, etc.) to link_samples appliction
 
-0.0.23
+0.0.23 (first released version in prod)
 ------
 * Adding dataid ('samples/[index]') for the create data link call
 * Adds support for metadata subkey (ie unit) column errors

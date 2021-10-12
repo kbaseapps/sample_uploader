@@ -14,7 +14,7 @@
             "id": "links",
             "parameters": [
                 "sample_name",
-                "reads_ref"
+                "obj_ref"
             ],
             "optional": false,
             "advanced": false,
@@ -64,7 +64,7 @@
                 }
             }
         }, {
-            "id": "reads_ref",
+            "id": "obj_ref",
             "optional": false,
             "advanced": false,
             "allow_multiple": false,
@@ -73,7 +73,11 @@
             "text_options": {
                 "valid_ws_types": [ 
                     "KBaseFile.SingleEndLibrary", 
-                    "KBaseFile.PairedEndLibrary" 
+                    "KBaseFile.PairedEndLibrary",
+                    "KBaseAssembly.SingleEndLibrary",
+                    "KBaseAssembly.PairedEndLibrary",
+                    "KBaseGenomes.Genome",
+                    "KBaseMetagenomes.AnnotatedMetagenomeAssembly"
                 ]
             }
         }
@@ -82,7 +86,7 @@
         "service-mapping": {
             "url": "",
             "name": "sample_uploader",
-            "method": "link_reads",
+            "method": "link_samples",
             "input_mapping": [
                 {
                     "narrative_system_variable": "workspace",
@@ -93,13 +97,6 @@
                 },{
                     "input_parameter": "sample_set_ref",
                     "target_property": "sample_set_ref",
-                    "target_type_transform": "resolved-ref"
-                },{
-                    "input_parameter": "sample_name",
-                    "target_property": "sample_name"
-                },{
-                    "input_parameter": "reads_ref",
-                    "target_property": "reads_ref",
                     "target_type_transform": "resolved-ref"
                 },{
                     "input_parameter": "links",

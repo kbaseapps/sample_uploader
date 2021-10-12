@@ -1,7 +1,7 @@
 #
 # define display information
 #
-name: Link Reads to Samples
+name: Link Workspace Objects to Samples
 
 tooltip: |
     Link reads objects to samples
@@ -34,11 +34,11 @@ parameters :
             Sample
         short-hint : |
             Sample
-    reads_ref :
+    obj_ref :
         ui-name : |
-            PairedEndLibrary or SingleEndLibrary
+            Workspace Objects
         short-hint : |
-            PairedEndLibrary or SingleEndLibrary
+            Supporting types: KBaseFile.PairedEndLibrary/SingleEndLibrary, KBaseAssembly.PairedEndLibrary/SingleEndLibrary, KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly
 
 parameter-groups :
     links:
