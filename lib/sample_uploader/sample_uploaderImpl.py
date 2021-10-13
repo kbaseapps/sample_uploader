@@ -587,8 +587,12 @@ class sample_uploader:
             )
             new_data_links.append(ret)
 
+        new_links = [d['new_link'] for d in new_data_links]
+        sample_names_out = [link['node'] for link in new_links]
+        report_msg = 'Links created for samples:\n{}'.format('\n'.join(sample_names_out))
         report_client = KBaseReport(self.callback_url)
         report_info = report_client.create_extended_report({
+            'message': report_msg,
             'workspace_name': params['workspace_name'],
         })
         output = {
