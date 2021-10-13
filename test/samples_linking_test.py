@@ -2,12 +2,16 @@ import os
 import time
 import unittest
 from configparser import ConfigParser
+from unittest.mock import patch
+import pandas as pd
+import uuid
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 
 class Test(unittest.TestCase):
@@ -97,6 +101,14 @@ class Test(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
+    def mock_download_staging_file(params):
+        print('Mocking DataFileUtilClient.download_staging_file')
+        print(params)
+
+        file_path = params.get('staging_file_subdir_path')
+
+        return {'copy_file_path': file_path}
+
     def test_link_samples(self):
         links_in = [
             {'sample_name': [self.sample_name_1], 'obj_ref': self.rhodo_art_jgi_reads},
@@ -137,6 +149,60 @@ class Test(unittest.TestCase):
                     'workspace_name': self.wsName,
                     'sample_set_ref': self.sample_set_ref,
                     'links': links_in,
+                })
+
+        self.assertIn(expected_error, str(context.exception.args[0]))
+
+        # test missing sample_set_ref
+        expected_error = 'Missing sample set object'
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.link_samples(
+                self.ctx, {
+                    'workspace_name': self.wsName,
+                    'links': links_in,
+                })
+
+        self.assertIn(expected_error, str(context.exception.args[0]))
+
+    @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
+    def test_batch_link_samples(self, download_staging_file):
+
+        # build test file
+        input_staging_file_path = os.path.join(
+            'data',
+            'batch_link_sample_test_{}.tsv'.format(str(uuid.uuid4())))
+        sample_names = [self.sample_name_1, self.sample_name_2, self.sample_name_3,
+                        self.sample_name_3, self.sample_name_2, self.sample_name_1]
+        obj_refs = [self.rhodo_art_jgi_reads, self.rhodobacter_art_q20_int_PE_reads,
+                    self.rhodobacter_art_q50_SE_reads, self.test_genome,
+                    self.test_assembly_SE_reads, self.test_AMA_genome]
+        data = {'sample_name': sample_names, 'obj_ref': obj_refs}
+        df = pd.DataFrame(data)
+        df.to_csv(input_staging_file_path)
+
+        ret = self.serviceImpl.batch_link_samples(
+            self.ctx, {
+                'workspace_name': self.wsName,
+                'sample_set_ref': self.sample_set_ref,
+                'input_staging_file_path': input_staging_file_path,
+            })
+
+        links_out = [d['new_link'] for d in ret[0]['links']]
+        assert len(links_out) == df.shape[0]
+        for sample_name, obj_ref, lout in zip(sample_names, obj_refs, links_out):
+            assert lout['linkid'] and lout['id'] and lout['version']
+            assert lout['upa'] == obj_ref
+            assert lout['node'] == sample_name
+
+        # test missing sample_name or obj_ref header
+        input_staging_file_path = os.path.join('data', 'fake_samples.tsv')
+        expected_error = "Missing ['sample_name', 'obj_ref'] in header"
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.batch_link_samples(
+                self.ctx, {
+                    'workspace_name': self.wsName,
+                    'sample_set_ref': self.sample_set_ref,
+                    'input_staging_file_path': input_staging_file_path,
                 })
 
         self.assertIn(expected_error, str(context.exception.args[0]))

@@ -11,6 +11,7 @@ from sample_uploader.utils.parsing_utils import (
     check_value_in_list,
     handle_groups_metadata
 )
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 
 def _handle_response(resp):
@@ -423,3 +424,28 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
         return header_str.strip() + '\n', row_str.strip() + '\n'
     else:
         return None, None
+
+
+def build_links(input_staging_file_path, callback_url):
+
+    if not input_staging_file_path:
+        raise ValueError('Missing batch links file')
+
+    dfu = DataFileUtil(url=callback_url)
+    download_staging_file_params = {
+        'staging_file_subdir_path': input_staging_file_path
+    }
+    scratch_file_path = dfu.download_staging_file(
+                    download_staging_file_params).get('copy_file_path')
+
+    df = pd.read_csv(scratch_file_path, sep=None)
+
+    required_headers = ['sample_name', 'obj_ref']
+    check = all(header in df.columns for header in required_headers)
+    if not check:
+        raise ValueError('Missing {} in header'.format(required_headers))
+
+    links = [({'sample_name': [row['sample_name']],
+               'obj_ref': row['obj_ref']}) for idx, row in df.iterrows()]
+
+    return links
