@@ -436,7 +436,7 @@ def build_links(input_staging_file_path, callback_url):
         'staging_file_subdir_path': input_staging_file_path
     }
     scratch_file_path = dfu.download_staging_file(
-                    download_staging_file_params).get('copy_file_path')
+        download_staging_file_params).get('copy_file_path')
 
     df = pd.read_csv(scratch_file_path, sep=None)
 
