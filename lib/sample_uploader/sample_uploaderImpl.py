@@ -42,7 +42,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.1"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "730f9088e0cd0d4b9945cfda860b650a7588659d"
+    GIT_COMMIT_HASH = "19c432369af26ac4c6789a2ee08b80211e0ff3a9"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -611,10 +611,12 @@ class sample_uploader:
 
     def batch_link_samples(self, ctx, params):
         """
-        :param params: instance of type "BatchLinkObjsParams" -> structure:
-           parameter "workspace_name" of String, parameter "workspace_id" of
-           String, parameter "sample_set_ref" of String, parameter
-           "input_staging_file_path" of String
+        :param params: instance of type "BatchLinkObjsParams"
+           (input_staging_file_path: tsv or csv file with sample_name and
+           object_name headers) -> structure: parameter "workspace_name" of
+           String, parameter "workspace_id" of String, parameter
+           "sample_set_ref" of String, parameter "input_staging_file_path" of
+           String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
@@ -625,7 +627,8 @@ class sample_uploader:
         logging.info('start batch linking samples\n{}'.format(params))
 
         links = build_links(params.get('input_staging_file_path'),
-                            self.callback_url)
+                            self.callback_url,
+                            params.get('workspace_id'))
         params['links'] = links
 
         output = self.link_samples(ctx, params)[0]

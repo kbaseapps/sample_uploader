@@ -157,7 +157,7 @@ module sample_uploader {
     } LinkObjsParams;
 
     /*
-    input_staging_file_path: tsv or csv file with sample_name and obj_ref headers
+    input_staging_file_path: tsv or csv file with sample_name and object_name headers
     */
     typedef structure {
         string workspace_name;

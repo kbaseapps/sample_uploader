@@ -426,7 +426,7 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
         return None, None
 
 
-def build_links(input_staging_file_path, callback_url):
+def build_links(input_staging_file_path, callback_url, workspace_id):
 
     if not input_staging_file_path:
         raise ValueError('Missing batch links file')
@@ -440,12 +440,21 @@ def build_links(input_staging_file_path, callback_url):
 
     df = pd.read_csv(scratch_file_path, sep=None)
 
-    required_headers = ['sample_name', 'obj_ref']
+    required_headers = ['sample_name', 'object_name']
     check = all(header in df.columns for header in required_headers)
     if not check:
         raise ValueError('Missing {} in header'.format(required_headers))
 
-    links = [({'sample_name': [row['sample_name']],
-               'obj_ref': row['obj_ref']}) for idx, row in df.iterrows()]
+    links = list()
+    for idx, row in df.iterrows():
+        sample_name = row['sample_name']
+        object_name = row['object_name']
+
+        # get numerical object reference (valid UPA for samples link)
+        obj_ref_chain = '{}/{}'.format(workspace_id, object_name)
+        obj_info = dfu.get_objects({'object_refs': [obj_ref_chain]})['data'][0]['info']
+        obj_ref = "%s/%s/%s" % (obj_info[6], obj_info[0], obj_info[4])
+
+        links.append({'sample_name': [sample_name], 'obj_ref': obj_ref})
 
     return links

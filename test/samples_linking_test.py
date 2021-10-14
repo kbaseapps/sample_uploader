@@ -82,18 +82,26 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
+            cls.test_genome_name = 'test_genome'
             cls.test_assembly_SE_reads = '44442/15/1'
+            cls.test_assembly_SE_reads_name = 'single_end_kbassy'
             cls.test_assembly_PE_reads = '44442/14/1'
+            cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
             cls.test_AMA_genome = '44442/13/2'
+            cls.target_wsID = 44442
         elif 'ci' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
             cls.rhodo_art_jgi_reads = '59862/8/4'  # paired
             cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1'  # paired
             cls.rhodobacter_art_q50_SE_reads = '59862/5/1'  # single
             cls.test_genome = '59862/27/1'
+            cls.test_genome_name = 'test_Genome'
             cls.test_assembly_SE_reads = '59862/26/1'
+            cls.test_assembly_SE_reads_name = 'single_end_kbassy'
             cls.test_assembly_PE_reads = '59862/25/1'
+            cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
             cls.test_AMA_genome = '59862/28/1'
+            cls.target_wsID = 59862
 
     @classmethod
     def tearDownClass(cls):
@@ -171,32 +179,31 @@ class Test(unittest.TestCase):
         input_staging_file_path = os.path.join(
             'data',
             'batch_link_sample_test_{}.tsv'.format(str(uuid.uuid4())))
-        sample_names = [self.sample_name_1, self.sample_name_2, self.sample_name_3,
-                        self.sample_name_3, self.sample_name_2, self.sample_name_1]
-        obj_refs = [self.rhodo_art_jgi_reads, self.rhodobacter_art_q20_int_PE_reads,
-                    self.rhodobacter_art_q50_SE_reads, self.test_genome,
-                    self.test_assembly_SE_reads, self.test_AMA_genome]
-        data = {'sample_name': sample_names, 'obj_ref': obj_refs}
+        sample_names = [self.sample_name_1, self.sample_name_2, self.sample_name_3]
+        obj_names = [self.test_genome_name, self.test_assembly_SE_reads_name,
+                     self.test_assembly_PE_reads_name]
+
+        data = {'sample_name': sample_names, 'object_name': obj_names}
         df = pd.DataFrame(data)
         df.to_csv(input_staging_file_path)
 
         ret = self.serviceImpl.batch_link_samples(
             self.ctx, {
                 'workspace_name': self.wsName,
+                'workspace_id': self.target_wsID,
                 'sample_set_ref': self.sample_set_ref,
                 'input_staging_file_path': input_staging_file_path,
             })
 
         links_out = [d['new_link'] for d in ret[0]['links']]
         assert len(links_out) == df.shape[0]
-        for sample_name, obj_ref, lout in zip(sample_names, obj_refs, links_out):
+        for sample_name, obj_name, lout in zip(sample_names, obj_names, links_out):
             assert lout['linkid'] and lout['id'] and lout['version']
-            assert lout['upa'] == obj_ref
             assert lout['node'] == sample_name
 
-        # test missing sample_name or obj_ref header
+        # test missing sample_name or object_name header
         input_staging_file_path = os.path.join('data', 'fake_samples.tsv')
-        expected_error = "Missing ['sample_name', 'obj_ref'] in header"
+        expected_error = "Missing ['sample_name', 'object_name'] in header"
         with self.assertRaises(ValueError) as context:
             self.serviceImpl.batch_link_samples(
                 self.ctx, {
