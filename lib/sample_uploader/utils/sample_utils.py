@@ -455,7 +455,7 @@ def build_links(input_staging_file_path, callback_url, workspace_url, workspace_
         # get numerical object reference (valid UPA for samples link)
         obj_ref_chain = '{}/{}'.format(workspace_id, object_name)
         obj_info = wsClient.get_object_info3({
-                'objects': [{"ref": obj_ref_chain}], 'includeMetadata': 0})["infos"][0]
+            'objects': [{"ref": obj_ref_chain}], 'includeMetadata': 0})["infos"][0]
         obj_ref = "%s/%s/%s" % (obj_info[6], obj_info[0], obj_info[4])
 
         links.append({'sample_name': [sample_name], 'obj_ref': obj_ref})
