@@ -628,7 +628,9 @@ class sample_uploader:
 
         links = build_links(params.get('input_staging_file_path'),
                             self.callback_url,
-                            params.get('workspace_id'))
+                            self.workspace_url,
+                            params.get('workspace_id'),
+                            self.token)
         params['links'] = links
 
         output = self.link_samples(ctx, params)[0]

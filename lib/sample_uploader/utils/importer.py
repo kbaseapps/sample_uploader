@@ -25,6 +25,21 @@ REGULATED_COLS = ['name', 'id', 'parent_id']
 NOOP_VALS = ['ND', 'nd', 'NA', 'na', 'None', 'n/a', 'N/A', 'Na', 'N/a', '-']
 
 
+def _has_sesar_header(df):
+    has_sesar_header = False
+    # when an extra header presents,
+    # all of the unmatched columns are indexed as 'Unnamed xx'.
+    unnamed_cols = [i for i in df.columns if 'unnamed' in i.lower()]
+    # check if target SESAR header phrase exists in the file headers
+    sesar_headers = ['object type:', 'user code:']
+    sesar_headers_count = [i for i in df.columns if i.lower() in sesar_headers]
+    if len(unnamed_cols) > 0 or len(sesar_headers_count) > 0:
+        print('Detected extra header line. Setting header_row_index to 1')
+        has_sesar_header = True
+
+    return has_sesar_header
+
+
 def find_header_row(sample_file, file_format):
     if not os.path.isfile(sample_file):
         # try prepending '/staging/' to file and check then
@@ -56,34 +71,15 @@ def find_header_row(sample_file, file_format):
             # assume the file does NOT have the SESAR header line with header=0
             df = pd.read_csv(sample_file, header=0, skip_blank_lines=False)
 
-            try:
-                # when an extra header presents,
-                # all of the unmatched columns are indexed as 'Unnamed xx'.
-                unnamed_cols = [i for i in df.columns if 'unnamed' in i.lower()]
-                # check if target SESAR header phrase exists in the file headers
-                sesar_headers = ['object type:', 'user code:']
-                sesar_headers_count = [i for i in df.columns if i.lower() in sesar_headers]
-                if len(unnamed_cols) > 0 or len(sesar_headers_count) > 0:
-                    print('Detected extra header line. Setting header_row_index to 1')
-                    header_row_index = 1
-
-            except IndexError:
-                # file only has 2 lines. Keep default header_row_index=0
-                pass
+            if _has_sesar_header(df):
+                header_row_index = 1
 
         elif sample_file.endswith('.xls') or sample_file.endswith('.xlsx'):
 
             # assume the file does NOT have the SESAR header line with header=0
             df = pd.read_excel(sample_file, header=0, skip_blank_lines=False)
 
-            # when an extra header presents,
-            # all of the unmatched columns are indexed as 'Unnamed xx'.
-            unnamed_cols = [i for i in df.columns if 'unnamed' in i.lower()]
-            # check if target SESAR header phrase exists in the file headers
-            sesar_headers = ['object type:', 'user code:']
-            sesar_headers_count = [i for i in df.columns if i.lower() in sesar_headers]
-            if len(unnamed_cols) > 0 or len(sesar_headers_count) > 0:
-                print('Detected extra header line. Setting header_row_index to 1')
+            if _has_sesar_header(df):
                 header_row_index = 1
         else:
             raise ValueError(f"File {os.path.basename(sample_file)} is not in "
