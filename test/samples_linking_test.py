@@ -2,12 +2,16 @@ import os
 import time
 import unittest
 from configparser import ConfigParser
+from unittest.mock import patch
+import pandas as pd
+import uuid
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 
 class Test(unittest.TestCase):
@@ -78,24 +82,40 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
+            cls.test_genome_name = 'test_genome'
             cls.test_assembly_SE_reads = '44442/15/1'
+            cls.test_assembly_SE_reads_name = 'single_end_kbassy'
             cls.test_assembly_PE_reads = '44442/14/1'
+            cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
             cls.test_AMA_genome = '44442/13/2'
+            cls.target_wsID = 44442
         elif 'ci' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
             cls.rhodo_art_jgi_reads = '59862/8/4'  # paired
             cls.rhodobacter_art_q20_int_PE_reads = '59862/6/1'  # paired
             cls.rhodobacter_art_q50_SE_reads = '59862/5/1'  # single
             cls.test_genome = '59862/27/1'
+            cls.test_genome_name = 'test_Genome'
             cls.test_assembly_SE_reads = '59862/26/1'
+            cls.test_assembly_SE_reads_name = 'single_end_kbassy'
             cls.test_assembly_PE_reads = '59862/25/1'
+            cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
             cls.test_AMA_genome = '59862/28/1'
+            cls.target_wsID = 59862
 
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
+
+    def mock_download_staging_file(params):
+        print('Mocking DataFileUtilClient.download_staging_file')
+        print(params)
+
+        file_path = params.get('staging_file_subdir_path')
+
+        return {'copy_file_path': file_path}
 
     def test_link_samples(self):
         links_in = [
@@ -137,6 +157,59 @@ class Test(unittest.TestCase):
                     'workspace_name': self.wsName,
                     'sample_set_ref': self.sample_set_ref,
                     'links': links_in,
+                })
+
+        self.assertIn(expected_error, str(context.exception.args[0]))
+
+        # test missing sample_set_ref
+        expected_error = 'Missing sample set object'
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.link_samples(
+                self.ctx, {
+                    'workspace_name': self.wsName,
+                    'links': links_in,
+                })
+
+        self.assertIn(expected_error, str(context.exception.args[0]))
+
+    @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
+    def test_batch_link_samples(self, download_staging_file):
+
+        # build test file
+        input_staging_file_path = os.path.join(
+            'data',
+            'batch_link_sample_test_{}.tsv'.format(str(uuid.uuid4())))
+        sample_names = [self.sample_name_1, self.sample_name_2, self.sample_name_3]
+        obj_names = [self.test_genome_name, self.test_assembly_SE_reads_name,
+                     self.test_assembly_PE_reads_name]
+
+        data = {'sample_name': sample_names, 'object_name': obj_names}
+        df = pd.DataFrame(data)
+        df.to_csv(input_staging_file_path)
+
+        ret = self.serviceImpl.batch_link_samples(
+            self.ctx, {
+                'workspace_name': self.wsName,
+                'workspace_id': self.target_wsID,
+                'sample_set_ref': self.sample_set_ref,
+                'input_staging_file_path': input_staging_file_path,
+            })
+
+        links_out = [d['new_link'] for d in ret[0]['links']]
+        assert len(links_out) == df.shape[0]
+        for sample_name, obj_name, lout in zip(sample_names, obj_names, links_out):
+            assert lout['linkid'] and lout['id'] and lout['version']
+            assert lout['node'] == sample_name
+
+        # test missing sample_name or object_name header
+        input_staging_file_path = os.path.join('data', 'fake_samples.tsv')
+        expected_error = "Missing ['sample_name', 'object_name'] in header"
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.batch_link_samples(
+                self.ctx, {
+                    'workspace_name': self.wsName,
+                    'sample_set_ref': self.sample_set_ref,
+                    'input_staging_file_path': input_staging_file_path,
                 })
 
         self.assertIn(expected_error, str(context.exception.args[0]))

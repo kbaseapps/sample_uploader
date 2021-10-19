@@ -2,7 +2,6 @@
 #BEGIN_HEADER
 import logging
 import os
-import json
 import uuid
 import shutil
 import csv
@@ -17,14 +16,12 @@ from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, alia
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    get_sample,
-    format_sample_as_row,
+    build_links
 )
 from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
-import pandas as pd
 #END_HEADER
 
 
@@ -45,7 +42,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.1"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "5e16c8f87c2223e9976b5949c81d373ebdf1e019"
+    GIT_COMMIT_HASH = "19c432369af26ac4c6789a2ee08b80211e0ff3a9"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -550,7 +547,10 @@ class sample_uploader:
 
         ss = SampleService(self.sample_url)
 
-        sample_set_ref = params['sample_set_ref']
+        sample_set_ref = params.get('sample_set_ref')
+        if not sample_set_ref:
+            raise ValueError('Missing sample set object')
+
         sample_set_obj = self.dfu.get_objects({'object_refs': [sample_set_ref]})['data'][0]['data']
         sample_name_2_info = {d['name']: d for d in sample_set_obj['samples']}
 
@@ -587,8 +587,12 @@ class sample_uploader:
             )
             new_data_links.append(ret)
 
+        new_links = [d['new_link'] for d in new_data_links]
+        sample_names_out = [link['node'] for link in new_links]
+        report_msg = 'Links created for samples:\n{}'.format('\n'.join(sample_names_out))
         report_client = KBaseReport(self.callback_url)
         report_info = report_client.create_extended_report({
+            'message': report_msg,
             'workspace_name': params['workspace_name'],
         })
         output = {
@@ -601,6 +605,40 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method link_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def batch_link_samples(self, ctx, params):
+        """
+        :param params: instance of type "BatchLinkObjsParams"
+           (input_staging_file_path: tsv or csv file with sample_name and
+           object_name headers) -> structure: parameter "workspace_name" of
+           String, parameter "workspace_id" of String, parameter
+           "sample_set_ref" of String, parameter "input_staging_file_path" of
+           String
+        :returns: instance of type "LinkObjsOutput" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String,
+           parameter "links" of list of unspecified object
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN batch_link_samples
+        logging.info('start batch linking samples\n{}'.format(params))
+
+        links = build_links(params.get('input_staging_file_path'),
+                            self.callback_url,
+                            self.workspace_url,
+                            params.get('workspace_id'),
+                            self.token)
+        params['links'] = links
+
+        output = self.link_samples(ctx, params)[0]
+        #END batch_link_samples
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method batch_link_samples return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

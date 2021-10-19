@@ -4,11 +4,11 @@
 name: Link Workspace Objects to Samples
 
 tooltip: |
-    Link reads objects to samples
+    Link workspace objects to samples
 
 screenshots: []
 
-icon: icon.png
+icon: sample_uploader.png
 
 #
 # define a set of similar apps that might be useful to the user
