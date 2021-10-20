@@ -10,6 +10,7 @@ import csv
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.sample_search_apiClient import sample_search_api
 from installed_clients.WorkspaceClient import Workspace as workspaceService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
@@ -628,14 +629,19 @@ class sample_uploader:
         samples = []
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
             samples.extend(sample_set['data']['samples'])
-        sample_ids = [{'id':sample['id'], 'version':sample['version']} for sample in samples]
+        sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
 
         filter_conditions = []
         for condition in params['filter_conditions']:
+            values = []
+            if (condition['comparison'].strip().lower() not in ["in", "not in"]):
+                values = [condition['value']]
+            else:
+                values = [v.strip().lower() for v in condition['value'].split(", ")]
             filter_conditions.append({
                 'metadata_field': condition['column'],
                 'operator': condition['comparison'],
-                'metadata_value': condition['value'],
+                'metadata_values': values,
                 'join_condition': condition['condition']
             })
 
@@ -644,28 +650,34 @@ class sample_uploader:
             'filter_conditions': filter_conditions
         }
 
-        print("fss-request:",sample_search_api_request)
+        sample_search_api_response = sample_search_api(
+            url=self.callback_url).filter_samples(sample_search_api_request)
 
-        # call out to sample set service
-        
-        sample_search_api_response = {
-            'sample_ids': []
-        }
-
-        samples_to_keep = set(sample_id['id'] for sample_id in sample_search_api_response['sample_ids'])
+        samples_to_keep = set(sample_id['id']
+                              for sample_id in sample_search_api_response['sample_ids'])
 
         sample_set = {
             'samples': [sample for sample in samples if sample['id'] in samples_to_keep]
         }
 
-        # obj_info = self.dfu.save_objects({
-        #     'id': params['workspace_id'],
-        #     'objects': [{
-        #         "name": params['out_sample_set_name'],
-        #         "type": "KBaseSets.SampleSet",
-        #         "data": sample_set
-        #     }]
-        # })[0]
+        obj_info = self.dfu.save_objects({
+            'id': params['workspace_id'],
+            'objects': [{
+                "name": params['out_sample_set_name'],
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set
+            }]
+        })[0]
+
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report({
+            'workspace_name': params['workspace_name'],
+        })
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref'],
+            'sample_set': obj_info,
+        }
         #END filter_samplesets
 
         # At some point might do deeper type checking...

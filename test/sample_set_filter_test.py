@@ -1,17 +1,18 @@
 import os
 import time
 import unittest
-import uuid
-import json
-import shutil
+# import uuid
+# import json
+# import shutil
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-from sample_uploader.utils.sample_utils import get_sample
+# from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+
 
 class Test(unittest.TestCase):
 
@@ -58,7 +59,7 @@ class Test(unittest.TestCase):
         #     cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
         #     cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
         if 'ci' in cls.cfg['kbase-endpoint']:
-            cls.testSampleSet = '64599/2/2' # SampleSet
+            cls.testSampleSet = '64599/2/2'  # SampleSet
 
     @classmethod
     def tearDownClass(cls):
@@ -74,12 +75,12 @@ class Test(unittest.TestCase):
             'out_sample_set_name': "foo_out",
             'sample_set_ref': [self.testSampleSet],
             'filter_conditions': [{
-                'column':"foo_col",
-                'comparison':"==",
-                'value':"99",
-                'condition':"AND",
+                'column': "foo_col",
+                'comparison': "==",
+                'value': "99",
+                'condition': "AND",
             }]
-        };
+        }
 
         ret = self.serviceImpl.filter_samplesets(
             self.ctx, params)

@@ -11,6 +11,10 @@
   "type" : "sdk",
   "version_tag" : "dev"
 }, {
+  "module_name" : "sample_search_api",
+  "type" : "sdk",
+  "version_tag" : "dev"
+}, {
   "module_name" : "SampleService",
   "type" : "core"
 }, {
