@@ -664,10 +664,13 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN filter_samplesets
+        print("!!!filter_samples", 0)
         samples = []
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
             samples.extend(sample_set['data']['samples'])
         sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+
+        print("!!!filter_samples", 1)
 
         filter_conditions = []
         for condition in params['filter_conditions']:
@@ -689,7 +692,9 @@ class sample_uploader:
         }
 
         sample_search_api_response = sample_search_api(
-            url=self.callback_url, service_ver='dev').filter_samples(sample_search_api_request)
+            url=self.sw_url, service_ver='dev').filter_samples(sample_search_api_request)
+
+        print("!!!filter_samples", 2)
 
         samples_to_keep = set(sample_id['id']
                               for sample_id in sample_search_api_response['sample_ids'])
@@ -706,6 +711,8 @@ class sample_uploader:
                 "data": sample_set
             }]
         })[0]
+
+        print("!!!filter_samples", 3)
 
         report_client = KBaseReport(self.callback_url)
         report_info = report_client.create_extended_report({
