@@ -23,6 +23,7 @@ from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
+from sample_uploader.utils.parsing_utils import upload_key_format as _upload_key_format
 #END_HEADER
 
 
@@ -677,7 +678,7 @@ class sample_uploader:
             else:
                 values = [v.strip().lower() for v in condition['value'].split(", ")]
             filter_conditions.append({
-                'metadata_field': condition['column'],
+                'metadata_field': _upload_key_format(condition['column']),
                 'comparison_operator': condition['comparison'],
                 'metadata_values': values,
                 'logical_operator': condition['condition']
