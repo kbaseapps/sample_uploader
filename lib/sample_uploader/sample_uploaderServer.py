@@ -366,14 +366,14 @@ class Application(object):
                              name='sample_uploader.link_samples',
                              types=[dict])
         self.method_authentication['sample_uploader.link_samples'] = 'required'  # noqa
-        self.rpc_service.add(impl_sample_uploader.filter_samplesets,
-                             name='sample_uploader.filter_samplesets',
-                             types=[dict])
-        self.method_authentication['sample_uploader.filter_samplesets'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.batch_link_samples,
                              name='sample_uploader.batch_link_samples',
                              types=[dict])
         self.method_authentication['sample_uploader.batch_link_samples'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.filter_samplesets,
+                             name='sample_uploader.filter_samplesets',
+                             types=[dict])
+        self.method_authentication['sample_uploader.filter_samplesets'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])

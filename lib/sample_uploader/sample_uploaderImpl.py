@@ -41,9 +41,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.23"
+    VERSION = "1.0.1"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "0c88922061e56dad3bd0b233c145309311ab3aaa"
+    GIT_COMMIT_HASH = "1f88ece5a2d608899e2cf35501f80bf30a072f3d"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -610,6 +610,40 @@ class sample_uploader:
         # return the results
         return [output]
 
+    def batch_link_samples(self, ctx, params):
+        """
+        :param params: instance of type "BatchLinkObjsParams"
+           (input_staging_file_path: tsv or csv file with sample_name and
+           object_name headers) -> structure: parameter "workspace_name" of
+           String, parameter "workspace_id" of String, parameter
+           "sample_set_ref" of String, parameter "input_staging_file_path" of
+           String
+        :returns: instance of type "LinkObjsOutput" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String,
+           parameter "links" of list of unspecified object
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN batch_link_samples
+        logging.info('start batch linking samples\n{}'.format(params))
+
+        links = build_links(params.get('input_staging_file_path'),
+                            self.callback_url,
+                            self.workspace_url,
+                            params.get('workspace_id'),
+                            self.token)
+        params['links'] = links
+
+        output = self.link_samples(ctx, params)[0]
+        #END batch_link_samples
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method batch_link_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
     def filter_samplesets(self, ctx, params):
         """
         :param params: instance of type "FilterSampleSetsParams" ->
@@ -655,7 +689,7 @@ class sample_uploader:
         }
 
         sample_search_api_response = sample_search_api(
-            url=self.callback_url).filter_samples(sample_search_api_request)
+            url=self.callback_url, service_ver='dev').filter_samples(sample_search_api_request)
 
         samples_to_keep = set(sample_id['id']
                               for sample_id in sample_search_api_response['sample_ids'])
@@ -687,36 +721,6 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method filter_samplesets return value ' +
-    def batch_link_samples(self, ctx, params):
-        """
-        :param params: instance of type "BatchLinkObjsParams"
-           (input_staging_file_path: tsv or csv file with sample_name and
-           object_name headers) -> structure: parameter "workspace_name" of
-           String, parameter "workspace_id" of String, parameter
-           "sample_set_ref" of String, parameter "input_staging_file_path" of
-           String
-        :returns: instance of type "LinkObjsOutput" -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String,
-           parameter "links" of list of unspecified object
-        """
-        # ctx is the context object
-        # return variables are: output
-        #BEGIN batch_link_samples
-        logging.info('start batch linking samples\n{}'.format(params))
-
-        links = build_links(params.get('input_staging_file_path'),
-                            self.callback_url,
-                            self.workspace_url,
-                            params.get('workspace_id'),
-                            self.token)
-        params['links'] = links
-
-        output = self.link_samples(ctx, params)[0]
-        #END batch_link_samples
-
-        # At some point might do deeper type checking...
-        if not isinstance(output, dict):
-            raise ValueError('Method batch_link_samples return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]
