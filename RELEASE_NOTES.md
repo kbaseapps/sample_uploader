@@ -2,7 +2,8 @@
 =========================================
 1.0.1
 -----
-supporting more data type (Assembly, Genome, AMA Genome, etc.) to link_samples appliction
+* supporting more data type (Assembly, Genome, AMA Genome, etc.) to link_samples appliction
+* Adds batch_link_samples to link multiple objects to samples with a file
 
 0.0.23 (first released version in prod)
 ------

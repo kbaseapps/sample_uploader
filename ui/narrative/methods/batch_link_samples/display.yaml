@@ -1,0 +1,40 @@
+#
+# define display information
+#
+name: Batch Link Workspace Objects to Samples
+
+tooltip: |
+    Batch link workspace objects to samples with a tsv or csv file
+
+screenshots: []
+
+icon: sample_uploader.png
+
+#
+# define a set of similar apps that might be useful to the user
+#
+suggestions:
+    apps:
+        related:
+            [app1, app2]
+        next:
+            [app3, app4]
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_ref :
+        ui-name : |
+            SampleSet
+        short-hint : |
+            SampleSet
+    input_staging_file_path :
+        ui-name : |
+            Link Samples File
+        short-hint : |
+            tsv or csv file with sample_name and obj_ref header
+
+
+description : |
+    <p>Batch link workspace objects to samples with a tsv or csv file</p>

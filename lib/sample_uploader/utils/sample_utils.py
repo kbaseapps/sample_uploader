@@ -11,6 +11,8 @@ from sample_uploader.utils.parsing_utils import (
     check_value_in_list,
     handle_groups_metadata
 )
+from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.WorkspaceClient import Workspace as workspaceService
 
 
 def _handle_response(resp):
@@ -423,3 +425,39 @@ def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
         return header_str.strip() + '\n', row_str.strip() + '\n'
     else:
         return None, None
+
+
+def build_links(input_staging_file_path, callback_url, workspace_url, workspace_id, token):
+
+    if not input_staging_file_path:
+        raise ValueError('Missing batch links file')
+
+    dfu = DataFileUtil(url=callback_url)
+    wsClient = workspaceService(workspace_url, token=token)
+    download_staging_file_params = {
+        'staging_file_subdir_path': input_staging_file_path
+    }
+    scratch_file_path = dfu.download_staging_file(
+        download_staging_file_params).get('copy_file_path')
+
+    df = pd.read_csv(scratch_file_path, sep=None)
+
+    required_headers = ['sample_name', 'object_name']
+    check = all(header in df.columns for header in required_headers)
+    if not check:
+        raise ValueError('Missing {} in header'.format(required_headers))
+
+    links = list()
+    for idx, row in df.iterrows():
+        sample_name = row['sample_name']
+        object_name = row['object_name']
+
+        # get numerical object reference (valid UPA for samples link)
+        obj_ref_chain = '{}/{}'.format(workspace_id, object_name)
+        obj_info = wsClient.get_object_info3({
+            'objects': [{"ref": obj_ref_chain}], 'includeMetadata': 0})["infos"][0]
+        obj_ref = "%s/%s/%s" % (obj_info[6], obj_info[0], obj_info[4])
+
+        links.append({'sample_name': [sample_name], 'obj_ref': obj_ref})
+
+    return links

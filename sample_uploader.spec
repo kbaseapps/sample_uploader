@@ -156,6 +156,16 @@ module sample_uploader {
         list<ObjsLink> links;
     } LinkObjsParams;
 
+    /*
+    input_staging_file_path: tsv or csv file with sample_name and object_name headers
+    */
+    typedef structure {
+        string workspace_name;
+        string workspace_id;
+        string sample_set_ref;
+        string input_staging_file_path;
+    } BatchLinkObjsParams;
+
     typedef structure {
         string report_name;
         string report_ref;
@@ -163,6 +173,9 @@ module sample_uploader {
     } LinkObjsOutput;
 
     funcdef link_samples(LinkObjsParams params) returns (LinkObjsOutput output) authentication required;
+
+    funcdef batch_link_samples(BatchLinkObjsParams params) returns (LinkObjsOutput output) authentication required;
+
     /*
     Filter SampleSets
     */
@@ -189,5 +202,4 @@ module sample_uploader {
     } FilterSampleSetsOutput;
 
     funcdef filter_samplesets(FilterSampleSetsParams params) returns (FilterSampleSetsOutput output) authentication required;
-
 };
