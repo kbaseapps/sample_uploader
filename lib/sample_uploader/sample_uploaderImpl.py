@@ -669,6 +669,7 @@ class sample_uploader:
         input_set_names = []
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
             samples.extend(sample_set['data']['samples'])
+            print(sample_set)
             input_set_names.append(sample_set['name'])
         sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
 
