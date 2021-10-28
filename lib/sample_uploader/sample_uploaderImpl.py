@@ -696,14 +696,14 @@ class sample_uploader:
                               for sample_id in sample_search_api_response['sample_ids'])
 
         sample_set = {
-            'samples': [sample for sample in samples if sample['id'] in samples_to_keep]
+            'samples': [sample for sample in samples if sample['id'] in samples_to_keep],
+            "description": "Generated with the Sample Set Editor"
         }
 
         obj_info = self.dfu.save_objects({
             'id': params['workspace_id'],
             'objects': [{
                 "name": params['out_sample_set_name'],
-                "description": "Generated with the Sample Set Editor",
                 "type": "KBaseSets.SampleSet",
                 "data": sample_set
             }]
