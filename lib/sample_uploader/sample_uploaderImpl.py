@@ -666,11 +666,8 @@ class sample_uploader:
         # return variables are: output
         #BEGIN filter_samplesets
         samples = []
-        input_set_names = []
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
             samples.extend(sample_set['data']['samples'])
-            print(sample_set)
-            input_set_names.append(sample_set['name'])
         sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
 
         filter_conditions = []
@@ -706,7 +703,7 @@ class sample_uploader:
             'id': params['workspace_id'],
             'objects': [{
                 "name": params['out_sample_set_name'],
-                "description": "selected samples from: " + ",".join(input_set_names),
+                "description": "Generated with the Sample Set Editor",
                 "type": "KBaseSets.SampleSet",
                 "data": sample_set
             }]

@@ -1,10 +1,10 @@
 #
 # define display information
 #
-name: Sample set editor 
+name: Sample Set Editor 
 
 tooltip: |
-    Sample set editor
+    Sample Set Editor
 screenshots: []
 
 icon: icon.png
@@ -63,4 +63,4 @@ parameter-groups :
         short-hint : |
             Filter condition
 description : |
-    <p>Sample set editor</p>
+    <p>Sample Set Editor</p>
