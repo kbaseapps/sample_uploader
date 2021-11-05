@@ -400,3 +400,40 @@ class sample_uploaderTest(unittest.TestCase):
         expected_sample_name = ['SAMN03166112', 'SAMN04383980']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(has_unignored_errors, False)
+
+    def test_dup_column_file(self):
+        ''''''
+        sample_file = os.path.join(self.test_dir, 'data', 'dup_col_error_file.csv')
+
+        params = {
+            'workspace_name': 'workspace_name',
+            'sample_file': sample_file,
+            'file_format': "ENIGMA",
+            'prevalidate': 1,
+            'keep_existing_samples': 1
+        }
+
+        header_row_index = 0
+
+        mappings = {'enigma': ENIGMA_mappings, 'sesar': SESAR_mappings, 'kbase': {}}
+        sample_set, has_unignored_errors, errors, sample_data_json = import_samples_from_file(
+            params,
+            self.sample_url,
+            self.workspace_url,
+            self.callback_url,
+            self.username,
+            self.token,
+            mappings[str(params.get('file_format')).lower()].get('groups', []),
+            mappings[str(params.get('file_format')).lower()].get('date_columns', []),
+            mappings[str(params.get('file_format')).lower()].get('column_unit_regex', []),
+            {"samples": []},
+            header_row_index,
+            aliases.get(params.get('file_format').lower(), {})
+        )
+
+        # check errors
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0].message, 'Duplicate column "some_field". "some_field" would ' +
+                                            'overwrite a different column "some field". Rename ' +
+                                            'your columns to be unique alphanumericaly, ' +
+                                            'ignoring whitespace and case.')
