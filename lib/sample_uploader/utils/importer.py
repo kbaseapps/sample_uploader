@@ -435,7 +435,7 @@ def import_samples_from_file(
             df['sample_template'] = params['file_format'].upper()
 
         df, columns_to_input_names = format_input_file(df, params, {}, aliases)
-
+        samples = []
         if not errors.get(severity='error'):
             acls = {
                 "read": [],
