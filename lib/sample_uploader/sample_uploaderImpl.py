@@ -44,7 +44,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.1"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "1f88ece5a2d608899e2cf35501f80bf30a072f3d"
+    GIT_COMMIT_HASH = "82dee1f8de087a88782700d8fbed4b2915ab31b9"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -656,11 +656,7 @@ class sample_uploader:
            "comparison" of String, parameter "value" of String, parameter
            "condition" of String
         :returns: instance of type "FilterSampleSetsOutput" -> structure:
-           parameter "report_name" of String, parameter "report_ref" of
-           String, parameter "sample_set" of type "SampleSet" -> structure:
-           parameter "samples" of list of type "sample_info" -> structure:
-           parameter "id" of type "sample_id", parameter "name" of String,
-           parameter "description" of String
+           parameter "report_name" of String, parameter "report_ref" of String
         """
         # ctx is the context object
         # return variables are: output
@@ -707,16 +703,21 @@ class sample_uploader:
                 "type": "KBaseSets.SampleSet",
                 "data": sample_set
             }]
-        })[0]
+        })
 
         report_client = KBaseReport(self.callback_url)
         report_info = report_client.create_extended_report({
-            'workspace_name': params['workspace_name'],
+            'objects_created': [
+                {
+                    'ref': "/".join([str(info[6]), str(info[0]), str(info[4])])
+                } for info in obj_info
+            ],
+            'message': f"SampleSet object named \"{params['out_sample_set_name']}\" created.",
+            'workspace_name': params['workspace_name']
         })
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],
-            'sample_set': obj_info[0],
         }
         #END filter_samplesets
 
