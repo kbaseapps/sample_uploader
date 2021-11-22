@@ -1,15 +1,11 @@
 import os
 import time
 import unittest
-# import uuid
-# import json
-# import shutil
 from configparser import ConfigParser
 
 from sample_uploader.sample_uploaderImpl import sample_uploader
 from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
-# from sample_uploader.utils.sample_utils import get_sample
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
 
@@ -29,6 +25,8 @@ class Test(unittest.TestCase):
         authServiceUrl = cls.cfg['auth-service-url']
         auth_client = _KBaseAuth(authServiceUrl)
         user_id = auth_client.get_user(token)
+        cls.token = token
+        cls.username = user_id
         # WARNING: don't call any logging methods on the context object,
         # it'll result in a NoneType error
         cls.ctx = MethodContext(None)
@@ -53,13 +51,44 @@ class Test(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
         cls.wsID = ret[0]
         cls.ss = SampleService(cls.sample_url, token=token)
-        # if 'appdev' in cls.cfg['kbase-endpoint']:
-        #     cls.ReadLinkingTestSampleSet = '44442/4/1'
-        #     cls.rhodo_art_jgi_reads = '44442/8/1'
-        #     cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
-        #     cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
-        if 'ci' in cls.cfg['kbase-endpoint']:
-            cls.testSampleSet = '64599/2/2'  # SampleSet
+
+        sample_set_1_file = os.path.join(cls.curr_dir, 'example_data', 'isgn_sample_example.csv')
+        params = {
+            'workspace_name': cls.wsName,
+            'workspace_id': cls.wsID,
+            'sample_file':  sample_set_1_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': 'sample_set_1',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'incl_input_in_output': 1,
+            'share_within_workspace': 1,
+            'ignore_warnings': 1
+        }
+        ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
+        cls.sample_set_1 = ret['sample_set']
+        cls.sample_set_1_id = ret['sample_set']['samples'][0]['id']
+        cls.sample_set_1_ref = ret['sample_set_ref']
+
+        sample_set_2_file = os.path.join(cls.curr_dir, 'example_data', 'ANLPW_JulySamples_IGSN_v2-forKB.csv')
+        params = {
+            'workspace_name': cls.wsName,
+            'workspace_id': cls.wsID,
+            'sample_file':  sample_set_2_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': 'sample_set_2',
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'incl_input_in_output': 1,
+            'share_within_workspace': 1,
+            'ignore_warnings': 1
+        }
+        ret = cls.serviceImpl.import_samples(cls.ctx, params)[0]
+        cls.sample_set_2 = ret['sample_set']
+        cls.sample_set_2_id = ret['sample_set']['samples'][0]['id']
+        cls.sample_set_2_ref = ret['sample_set_ref']
 
     @classmethod
     def tearDownClass(cls):
@@ -67,38 +96,120 @@ class Test(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
-    def test_sample_set_filter(self):
-
-        params = {
+    def filter(self, sets, conditions):
+        ''''''
+        ret = self.serviceImpl.filter_samplesets(self.ctx, {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
-            'out_sample_set_name': "foo_out",
-            'sample_set_ref': [self.testSampleSet],
-            'filter_conditions': [{
-                'column': "foo_col",
-                'comparison': "==",
-                'value': "99",
+            'out_sample_set_name': "filtered_" + str(int(time.time() * 1000)),
+            'sample_set_ref': sets,
+            'filter_conditions': conditions
+        })
+
+        return ret[0]['sample_set']['samples']
+
+    def test_filter_number_gt(self):
+        ''''''
+        samples_gt = self.filter([self.sample_set_1_ref], [{
+                'column': "latitude",
+                'comparison': ">=",
+                'value': "25",
                 'condition': "AND",
-            }]
-        }
+            }])
 
-        ret = self.serviceImpl.filter_samplesets(
-            self.ctx, params)
+        self.assertEqual(len(samples_gt), 2)
+        self.assertEqual(set(sample['name'] for sample in samples_gt),
+                         set(['PB-Low-5', 'Core 1-1*-1M']))
 
-        print(ret)
+    def test_filter_number_lt(self):
+        samples_lt = self.filter([self.sample_set_1_ref], [{
+                'column': "latitude",
+                'comparison': "<=",
+                'value': "25",
+                'condition': "AND",
+            }])
 
+        self.assertEqual(len(samples_lt), 1)
+        self.assertEqual(set(sample['name'] for sample in samples_lt),
+                         set(['ww163e']))
 
-# Appdev
-# ReadLinkingTestSampleSet = '44442/4/1'
-# rhodo_art_jgi_reads = '44442/8/1'
-# rhodobacter_art_q20_int_PE_reads = '44442/6/1'
-# rhodobacter_art_q50_SE_reads = '44442/7/2'
+    def test_filter_number_eq(self):
+        samples_eq = self.filter([self.sample_set_1_ref], [{
+                'column': "longitude",
+                'comparison': "==",
+                'value': "-92.1833",
+                'condition': "AND",
+            }])
 
-# CI (not publicly available TODO)
-# SampleMetaData_tsv_sample_set = '59862/2/1' # SampleSet
-# ReadLinkingTestSampleSet = '59862/11/1' # SampleSet
-# Example_Reads_Libraries = '59862/9/1' # ReadsSet
-# rhodo_art_jgi_reads = '59862/8/4' # paired
-# rhodobacter_art_q10_PE_reads = '59862/7/1' # paired
-# rhodobacter_art_q20_int_PE_reads = '59862/6/1' # paired
-# rhodobacter_art_q50_SE_reads = '59862/5/1' # single
+        self.assertEqual(len(samples_eq), 1)
+        self.assertEqual(set(sample['name'] for sample in samples_eq),
+                         set(['Core 1-1*-1M']))
+
+    def test_merge_sets_string_eq(self):
+        samples_merge = self.filter([self.sample_set_1_ref, self.sample_set_2_ref], [{
+                'column': "sesar:collection_method",
+                'comparison': "==",
+                'value': "Coring > Syringe",
+                'condition': "AND",
+            }])
+        self.assertEqual(len(samples_merge), 207)
+
+    def test_str_in(self):
+        samples_merge = self.filter([self.sample_set_2_ref], [{
+                'column': "sesar:collection_method",
+                'comparison': "in",
+                'value': "Coring > Syringe, Grab",
+                'condition': "AND",
+            }])
+        self.assertEqual(len(samples_merge), 209)
+
+    def test_and(self):
+        samples_merge = self.filter([self.sample_set_2_ref], [{
+                'column': "sesar:collection_method",
+                'comparison': "==",
+                'value': "Coring > Syringe",
+                'condition': "AND",
+            },
+            {
+                'column': "latitude",
+                'comparison': ">",
+                'value': "33.33",
+                'condition': "OR",
+            }])
+        self.assertEqual(len(samples_merge), 160)
+
+    def test_or(self):
+        samples_merge = self.filter([self.sample_set_2_ref], [{
+                'column': "sesar:collection_method",
+                'comparison': "==",
+                'value': "Coring > Syringe",
+                'condition': "OR",
+            },
+            {
+                'column': "latitude",
+                'comparison': ">",
+                'value': "33.33",
+                'condition': "AND",
+            }])
+        self.assertEqual(len(samples_merge), 210)
+
+    def test_order_of_ops(self):
+        samples_merge = self.filter([self.sample_set_2_ref], [{
+                'column': "sesar:collection_method",
+                'comparison': "==",
+                'value': "Coring > Syringe",
+                'condition': "OR",
+            },
+            {
+                'column': "latitude",
+                'comparison': ">",
+                'value': "33.33",
+                'condition': "AND",
+            },
+            {
+                'column': "longitude",
+                'comparison': "<",
+                'value': "81.718",
+                'condition': "OR",
+            }])
+        self.assertEqual(len(samples_merge), 206)
