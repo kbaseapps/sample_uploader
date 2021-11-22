@@ -19,47 +19,55 @@ icon: icon.png
 parameters :
     sample_set_ref :
         ui-name : |
-            Sample set
+            Sample Set(s)
         short-hint : |
-            Sample set
+            Input Sample Set(s)
         long  : |
-            Sampleset
+            Input Sample Set(s). Output Sample Set with contain all matching results.
     condition:
         ui-name : |
-            condition
+            Logical Operator
         short-hint : |
-            condition
+            Logical Operator
         long : |
-            condition
+            Logical Operator. This will set how the following Filter Condition is applied. 
+            "AND" indicates that this AND the following conditions must match. 
+            "OR" indicates that this OR the following condition must match. 
+            The last logical operator will not have any effect. 
+            For any set of Filter Conditions, "AND"s are evalutated before "OR"s 
+            in accordance with the order of precedence of logical operators.
     column:
         ui-name : |
-            column
+            Column/Key
         short-hint : |
-            Column
+            Column/Key must match a controlled sample metadata key
+        long : |
+            Column/Key must match a controlled sample metadata key. 
+            This key will be used for the comparison.
     comparison:
         ui-name : |
-            Comparison
+            Filter Operator
         short-hint : |
-            Comparison
+            Filter Operator
     value:
         ui-name : |
-            value
+            Filter Value
         short-hint : |
-            value
+            Filter Value
         long : |
-            value
+            Filter Value
     out_sample_set_name:
         ui-name : |
-            out sample set name
+            Output Sample Set Name
         short-hint : |
-            out sample set name
+            Output Sample Set Name
         long : |
-            out sample set name
+            Output Sample Set Name
             
 parameter-groups :
     filter_conditions :
         ui-name : |
-             Filter condition
+             Filter Condition(s)
         short-hint : |
             Filter condition
 description : |

@@ -57,11 +57,11 @@
                 "options": [
                     {
                         "value": "and",
-                        "display": "and"
+                        "display": "AND"
                     },
                     {
                         "value": "or",
-                        "display": "or"
+                        "display": "OR"
                     }
                 ]
             }
