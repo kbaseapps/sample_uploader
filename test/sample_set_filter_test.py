@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
-            'sample_file':  sample_set_1_file,
+            'sample_file': sample_set_1_file,
             'file_format': "sesar",
             'header_row_index': 2,
             'set_name': 'sample_set_1',
@@ -76,7 +76,7 @@ class Test(unittest.TestCase):
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
-            'sample_file':  sample_set_2_file,
+            'sample_file': sample_set_2_file,
             'file_format': "sesar",
             'header_row_index': 2,
             'set_name': 'sample_set_2',
