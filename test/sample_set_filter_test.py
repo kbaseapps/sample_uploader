@@ -71,7 +71,8 @@ class Test(unittest.TestCase):
         cls.sample_set_1_id = ret['sample_set']['samples'][0]['id']
         cls.sample_set_1_ref = ret['sample_set_ref']
 
-        sample_set_2_file = os.path.join(cls.curr_dir, 'example_data', 'ANLPW_JulySamples_IGSN_v2-forKB.csv')
+        sample_set_2_file = os.path.join(
+            cls.curr_dir, 'example_data', 'ANLPW_JulySamples_IGSN_v2-forKB.csv')
         params = {
             'workspace_name': cls.wsName,
             'workspace_id': cls.wsID,
@@ -111,11 +112,11 @@ class Test(unittest.TestCase):
     def test_filter_number_gt(self):
         ''''''
         samples_gt = self.filter([self.sample_set_1_ref], [{
-                'column': "latitude",
-                'comparison': ">=",
-                'value': "25",
-                'condition': "AND",
-            }])
+            'column': "latitude",
+            'comparison': ">=",
+            'value': "25",
+            'condition': "AND",
+        }])
 
         self.assertEqual(len(samples_gt), 2)
         self.assertEqual(set(sample['name'] for sample in samples_gt),
@@ -123,11 +124,11 @@ class Test(unittest.TestCase):
 
     def test_filter_number_lt(self):
         samples_lt = self.filter([self.sample_set_1_ref], [{
-                'column': "latitude",
-                'comparison': "<=",
-                'value': "25",
-                'condition': "AND",
-            }])
+            'column': "latitude",
+            'comparison': "<=",
+            'value': "25",
+            'condition': "AND",
+        }])
 
         self.assertEqual(len(samples_lt), 1)
         self.assertEqual(set(sample['name'] for sample in samples_lt),
@@ -135,11 +136,11 @@ class Test(unittest.TestCase):
 
     def test_filter_number_eq(self):
         samples_eq = self.filter([self.sample_set_1_ref], [{
-                'column': "longitude",
-                'comparison': "==",
-                'value': "-92.1833",
-                'condition': "AND",
-            }])
+            'column': "longitude",
+            'comparison': "==",
+            'value': "-92.1833",
+            'condition': "AND",
+        }])
 
         self.assertEqual(len(samples_eq), 1)
         self.assertEqual(set(sample['name'] for sample in samples_eq),
@@ -147,24 +148,25 @@ class Test(unittest.TestCase):
 
     def test_merge_sets_string_eq(self):
         samples_merge = self.filter([self.sample_set_1_ref, self.sample_set_2_ref], [{
-                'column': "sesar:collection_method",
-                'comparison': "==",
-                'value': "Coring > Syringe",
-                'condition': "AND",
-            }])
+            'column': "sesar:collection_method",
+            'comparison': "==",
+            'value': "Coring > Syringe",
+            'condition': "AND",
+        }])
         self.assertEqual(len(samples_merge), 207)
 
     def test_str_in(self):
         samples_merge = self.filter([self.sample_set_2_ref], [{
-                'column': "sesar:collection_method",
-                'comparison': "in",
-                'value': "Coring > Syringe, Grab",
-                'condition': "AND",
-            }])
+            'column': "sesar:collection_method",
+            'comparison': "in",
+            'value': "Coring > Syringe, Grab",
+            'condition': "AND",
+        }])
         self.assertEqual(len(samples_merge), 209)
 
     def test_and(self):
-        samples_merge = self.filter([self.sample_set_2_ref], [{
+        samples_merge = self.filter([self.sample_set_2_ref], [
+            {
                 'column': "sesar:collection_method",
                 'comparison': "==",
                 'value': "Coring > Syringe",
@@ -175,11 +177,13 @@ class Test(unittest.TestCase):
                 'comparison': ">",
                 'value': "33.33",
                 'condition': "OR",
-            }])
+            }
+        ])
         self.assertEqual(len(samples_merge), 160)
 
     def test_or(self):
-        samples_merge = self.filter([self.sample_set_2_ref], [{
+        samples_merge = self.filter([self.sample_set_2_ref], [
+            {
                 'column': "sesar:collection_method",
                 'comparison': "==",
                 'value': "Coring > Syringe",
@@ -190,11 +194,13 @@ class Test(unittest.TestCase):
                 'comparison': ">",
                 'value': "33.33",
                 'condition': "AND",
-            }])
+            }
+        ])
         self.assertEqual(len(samples_merge), 210)
 
     def test_order_of_ops(self):
-        samples_merge = self.filter([self.sample_set_2_ref], [{
+        samples_merge = self.filter([self.sample_set_2_ref], [
+            {
                 'column': "sesar:collection_method",
                 'comparison': "==",
                 'value': "Coring > Syringe",
@@ -211,5 +217,6 @@ class Test(unittest.TestCase):
                 'comparison': "<",
                 'value': "81.718",
                 'condition': "OR",
-            }])
+            }
+        ])
         self.assertEqual(len(samples_merge), 206)
