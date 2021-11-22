@@ -198,6 +198,7 @@ module sample_uploader {
     typedef structure {
         string report_name;
         string report_ref;
+        SampleSet sample_set;
     } FilterSampleSetsOutput;
 
     funcdef filter_samplesets(FilterSampleSetsParams params) returns (FilterSampleSetsOutput output) authentication required;

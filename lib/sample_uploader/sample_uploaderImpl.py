@@ -672,7 +672,7 @@ class sample_uploader:
             if (condition['comparison'].strip().lower() not in ["in", "not in"]):
                 values = [condition['value']]
             else:
-                values = [v.strip().lower() for v in condition['value'].split(", ")]
+                values = [v.strip() for v in condition['value'].split(", ")]
             filter_conditions.append({
                 'metadata_field': _upload_key_format(condition['column']),
                 'comparison_operator': condition['comparison'],
@@ -718,6 +718,7 @@ class sample_uploader:
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],
+            'sample_set': sample_set
         }
         #END filter_samplesets
 
