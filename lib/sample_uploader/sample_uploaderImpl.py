@@ -580,6 +580,7 @@ class sample_uploader:
                 dict(
                     upa=obj_ref,
                     id=sample_id,
+                    dataid='samples/{}'.format(idx),
                     version=version,
                     node=sample['node_tree'][0]['id'],
                     update=1,
