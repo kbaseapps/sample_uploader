@@ -572,7 +572,7 @@ class sample_uploader:
                     obj_type, accepted_types))
             sample_id = sample_name_2_info[sample_name]['id']
             version = sample_name_2_info[sample_name]['version']
-            idx = list(sample_name_2_info.keys()).index('data')
+            idx = list(sample_name_2_info.keys()).index(sample_name)
 
             sample = ss.get_sample({
                 'id': sample_id,
