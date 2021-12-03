@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
 
@@ -48,6 +49,7 @@ jobs:
         sed -ie "s/^test_token=.*$/&$KBASE_TEST_TOKEN/g" ./test_local/test.cfg
         # change config to 'ci' from 'appdev' environment
         # sed -i 's/appdev/ci/g' ./test_local/test.cfg
+        curl -H "Authorization: $<TOKEN VAR>" https://ci.kbase.us/services/auth/me
 
     - name: Run tests
       if: "!contains(github.event.head_commit.message, 'skip ci')"
