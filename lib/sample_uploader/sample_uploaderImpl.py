@@ -574,6 +574,8 @@ class sample_uploader:
                     obj_type, accepted_types))
             sample_id = sample_name_2_info[sample_name]['id']
             version = sample_name_2_info[sample_name]['version']
+            idx = list(sample_name_2_info.keys()).index(sample_name)
+
             sample = ss.get_sample({
                 'id': sample_id,
                 'version': version,
@@ -582,6 +584,7 @@ class sample_uploader:
                 dict(
                     upa=obj_ref,
                     id=sample_id,
+                    dataid='samples/{}'.format(idx),
                     version=version,
                     node=sample['node_tree'][0]['id'],
                     update=1,
