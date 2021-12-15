@@ -678,26 +678,26 @@ class sample_uploader:
             metadata_values = []
             if (condition['comparison_operator'].strip().lower() not in ["in", "not in"]):
                 if (len(condition['value']) < 1):
-                    raise ValueError('Filter condition #{} has no filter value'.format(i+1))
+                    raise ValueError('Filter condition #{} has no filter value'.format(i + 1))
                 metadata_values = [condition['value']]
             else:
                 metadata_values = [v.strip() for v in condition['value'].split(", ")]
                 if (len(metadata_values) < 1):
-                    raise ValueError('Filter condition #{} has no filter values'.format(i+1))
+                    raise ValueError('Filter condition #{} has no filter values'.format(i + 1))
 
             metadata_field = _upload_key_format(condition['metadata_field'])
             if (metadata_field is None or len(metadata_field) < 1):
-                raise ValueError('Filter condition #{} has no specified Column/Key'.format(i+1))
+                raise ValueError('Filter condition #{} has no specified Column/Key'.format(i + 1))
 
             comparison_operator = condition['comparison_operator']
             if (comparison_operator is None or len(comparison_operator) < 1):
                 raise ValueError(
-                    'Filter condition #{} has no specified comparison operator'.format(i+1))
+                    'Filter condition #{} has no specified comparison operator'.format(i + 1))
 
             logical_operator = condition['logical_operator']
             if (logical_operator is None or len(logical_operator) < 1):
                 raise ValueError(
-                    'Filter condition #{} has no specified logical operator'.format(i+1))
+                    'Filter condition #{} has no specified logical operator'.format(i + 1))
 
             filter_conditions.append({
                 'metadata_field': metadata_field,
