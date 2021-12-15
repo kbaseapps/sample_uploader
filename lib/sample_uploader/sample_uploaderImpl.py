@@ -672,15 +672,15 @@ class sample_uploader:
         filter_conditions = []
         for condition in params['filter_conditions']:
             values = []
-            if (condition['comparison'].strip().lower() not in ["in", "not in"]):
+            if (condition['comparison_operator'].strip().lower() not in ["in", "not in"]):
                 values = [condition['value']]
             else:
                 values = [v.strip() for v in condition['value'].split(", ")]
             filter_conditions.append({
-                'metadata_field': _upload_key_format(condition['column']),
-                'comparison_operator': condition['comparison'],
+                'metadata_field': _upload_key_format(condition['metadata_field']),
+                'comparison_operator': condition['comparison_operator'],
                 'metadata_values': values,
-                'logical_operator': condition['condition']
+                'logical_operator': condition['logical_operator']
             })
 
         sample_search_api_request = {

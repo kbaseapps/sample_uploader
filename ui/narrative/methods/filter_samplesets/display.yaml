@@ -24,7 +24,7 @@ parameters :
             Input Sample Set(s)
         long  : |
             Input Sample Set(s). Output Sample Set with contain all matching results.
-    condition:
+    logical_operator:
         ui-name : |
             Logical Operator
         short-hint : |
@@ -36,7 +36,7 @@ parameters :
             The last logical operator will not have any effect. 
             For any set of Filter Conditions, "AND"s are evalutated before "OR"s 
             in accordance with the order of precedence of logical operators.
-    column:
+    metadata_field:
         ui-name : |
             Column/Key
         short-hint : |
@@ -44,7 +44,7 @@ parameters :
         long : |
             Column/Key must match a controlled sample metadata key. 
             This key will be used for the comparison.
-    comparison:
+    comparison_operator:
         ui-name : |
             Filter Operator
         short-hint : |
@@ -55,7 +55,7 @@ parameters :
         short-hint : |
             Filter Value
         long : |
-            Filter Value
+            Filter Value: For IN or NOT IN, a comma seperated list. For numeric comparisons, a number. For all others, a string.
     out_sample_set_name:
         ui-name : |
             Output Sample Set Name

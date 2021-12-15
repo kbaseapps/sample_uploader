@@ -45,7 +45,7 @@
             }
         },
         {
-            "id": "condition",
+            "id": "logical_operator",
             "optional": false,
             "advanced": false,
             "allow_multiple": false,
@@ -67,7 +67,7 @@
             }
         },
         {
-            "id": "column",
+            "id": "metadata_field",
             "optional": false,
             "advanced": false,
             "allow_multiple": false,
@@ -77,7 +77,7 @@
             "field_type": "text"
         },
         {
-            "id": "comparison",
+            "id": "comparison_operator",
             "optional": false,
             "advanced": false,
             "allow_multiple": false,
@@ -137,10 +137,10 @@
         {
             "id": "filter_conditions",
             "parameters": [
-                "column",
-                "comparison",
+                "metadata_field",
+                "comparison_operator",
                 "value",
-                "condition"
+                "logical_operator"
             ],
             "optional": false,
             "allow_multiple": true,

@@ -181,10 +181,10 @@ module sample_uploader {
     */
 
     typedef structure {
-        string column;
-        string comparison;
+        string metadata_field;
+        string comparison_operator;
         string value;
-        string condition;
+        string logical_operator;
     } FilterCondition;
 
     typedef structure {
