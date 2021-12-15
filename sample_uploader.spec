@@ -181,10 +181,10 @@ module sample_uploader {
     */
 
     typedef structure {
-        string metadata_field;
-        string comparison_operator;
-        string value;
-        string logical_operator;
+        string metadata_field; /* full metdata feild name (e.g. "enigma:foo") */
+        string comparison_operator; /* "==", "!=", "in", "not in", ">", "<", ">=", "<=" */
+        string value; /* string, number string for numeric comparisons, comma seperated for (not)in */
+        string logical_operator; /* "and", "or" */
     } FilterCondition;
 
     typedef structure {

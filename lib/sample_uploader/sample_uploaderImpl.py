@@ -44,7 +44,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.1"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "82dee1f8de087a88782700d8fbed4b2915ab31b9"
+    GIT_COMMIT_HASH = "86b9cec6f8ebda3a7e485a07dea9077cdd1d431b"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -655,11 +655,15 @@ class sample_uploader:
            "workspace_id" of String, parameter "out_sample_set_name" of
            String, parameter "sample_set_ref" of list of String, parameter
            "filter_conditions" of list of type "FilterCondition" (Filter
-           SampleSets) -> structure: parameter "column" of String, parameter
-           "comparison" of String, parameter "value" of String, parameter
-           "condition" of String
+           SampleSets) -> structure: parameter "metadata_field" of String,
+           parameter "comparison_operator" of String, parameter "value" of
+           String, parameter "logical_operator" of String
         :returns: instance of type "FilterSampleSetsOutput" -> structure:
-           parameter "report_name" of String, parameter "report_ref" of String
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String
         """
         # ctx is the context object
         # return variables are: output
@@ -670,17 +674,36 @@ class sample_uploader:
         sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
 
         filter_conditions = []
-        for condition in params['filter_conditions']:
-            values = []
+        for i, condition in enumerate(params['filter_conditions']):
+            metadata_values = []
             if (condition['comparison_operator'].strip().lower() not in ["in", "not in"]):
-                values = [condition['value']]
+                if (len(condition['value']) < 1):
+                    raise ValueError('Filter condition #{} has no filter value'.format(i+1))
+                metadata_values = [condition['value']]
             else:
-                values = [v.strip() for v in condition['value'].split(", ")]
+                metadata_values = [v.strip() for v in condition['value'].split(", ")]
+                if (len(metadata_values) < 1):
+                    raise ValueError('Filter condition #{} has no filter values'.format(i+1))
+
+            metadata_field = _upload_key_format(condition['metadata_field'])
+            if (metadata_field is None or len(metadata_field) < 1):
+                raise ValueError('Filter condition #{} has no specified Column/Key'.format(i+1))
+
+            comparison_operator = condition['comparison_operator']
+            if (comparison_operator is None or len(comparison_operator) < 1):
+                raise ValueError(
+                    'Filter condition #{} has no specified comparison operator'.format(i+1))
+
+            logical_operator = condition['logical_operator']
+            if (logical_operator is None or len(logical_operator) < 1):
+                raise ValueError(
+                    'Filter condition #{} has no specified logical operator'.format(i+1))
+
             filter_conditions.append({
-                'metadata_field': _upload_key_format(condition['metadata_field']),
-                'comparison_operator': condition['comparison_operator'],
-                'metadata_values': values,
-                'logical_operator': condition['logical_operator']
+                'metadata_field': metadata_field,
+                'comparison_operator': comparison_operator,
+                'metadata_values': metadata_values,
+                'logical_operator': logical_operator
             })
 
         sample_search_api_request = {
