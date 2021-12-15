@@ -722,6 +722,16 @@ class sample_uploader:
             "description": "Generated with the Sample Set Editor"
         }
 
+        conditions_summary = ''
+        for i, condition in enumerate(filter_conditions):
+            conditions_summary += '"{}" {} "{}" {}'.format(
+                condition['metadata_field'],
+                condition['comparison_operator'],
+                condition['metadata_values'],
+                (
+                    'AND ' if condition['logical_operator'].upper() == 'AND' else 'OR '
+                ) if i != len(filter_conditions) - 1 else '')
+
         obj_info = self.dfu.save_objects({
             'id': params['workspace_id'],
             'objects': [{
@@ -738,7 +748,8 @@ class sample_uploader:
                     'ref': "/".join([str(info[6]), str(info[0]), str(info[4])])
                 } for info in obj_info
             ],
-            'message': f"SampleSet object named \"{params['out_sample_set_name']}\" created.",
+            'message': f"SampleSet object named \"{params['out_sample_set_name']}\" \
+created with condition(s): {conditions_summary}",
             'workspace_name': params['workspace_name']
         })
         output = {
