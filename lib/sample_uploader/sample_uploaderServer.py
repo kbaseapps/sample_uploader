@@ -374,6 +374,10 @@ class Application(object):
                              name='sample_uploader.filter_samplesets',
                              types=[dict])
         self.method_authentication['sample_uploader.filter_samplesets'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.get_sampleset_meta,
+                             name='sample_uploader.get_sampleset_meta',
+                             types=[dict])
+        self.method_authentication['sample_uploader.get_sampleset_meta'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.status,
                              name='sample_uploader.status',
                              types=[dict])
