@@ -13,6 +13,7 @@ from sample_uploader.utils.parsing_utils import (
 )
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.WorkspaceClient import Workspace as workspaceService
+from installed_clients.SampleServiceClient import SampleService
 
 
 def _handle_response(resp):
@@ -284,7 +285,7 @@ def get_sample(sample_info, sample_url, token):
     return sample
 
 
-def save_sample(sample, sample_url, token, previous_version=None):
+def save_sample(sample, sample_url, token, previous_version=None, propagate_links=0):
     """
     sample     - completed sample as per
     sample_url - url to sample service
@@ -327,6 +328,32 @@ def save_sample(sample, sample_url, token, previous_version=None):
     sample_ver = resp_json['result'][0]['version']
 
     print('saved sample {} (version: {}'.format(sample_id, sample_ver))
+
+    if previous_version and propagate_links:
+        print('start propagating previous data links')
+
+        data_links = get_data_links_from_sample(previous_version['id'],
+                                                previous_version['version'],
+                                                sample_url, token)
+
+        ss = SampleService(sample_url)
+
+        for data_link in data_links:
+
+            # TODO: check and remove old sample set upa
+            upa = data_link['upa']
+
+            ss.create_data_link(
+                dict(
+                    upa=upa,
+                    dataid=data_link['dataid'],
+                    id=sample_id,
+                    version=sample_ver,
+                    node=sample['node_tree'][0]['id'],
+                    update=1,
+                )
+            )
+
     return sample_id, sample_ver
 
 
@@ -396,27 +423,16 @@ def get_data_links_from_sample(sample_id, version, sample_url, token):
     sample_url     - url to sample service
     token          - workspace token for Authorization
     """
-    headers = {
-        "Authorization": token,
-        "Content-Type": "application/json"
-    }
-    params = {
-        "id": sample_id,
-        "version": version
-    }
-    payload = {
-        "method": "SampleService.get_data_links_from_sample",
-        "id": str(uuid.uuid4()),
-        "params": [params],
-        "version": "1.1"
-    }
+    ss = SampleService(sample_url)
 
-    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
-    resp_json = _handle_response(resp)
+    ret = ss.get_data_links_from_sample(
+                dict(
+                    id=sample_id,
+                    version=version,
+                )
+            )
 
-    links = resp_json['result'][0].get('links')
-
-    return links
+    return ret.get('links')
 
 
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
