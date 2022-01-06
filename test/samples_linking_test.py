@@ -163,7 +163,7 @@ class Test(unittest.TestCase):
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
-            'sample_file':  new_sample_file,
+            'sample_file': new_sample_file,
             'file_format': "sesar",
             'header_row_index': 2,
             'set_name': sample_set_name,
