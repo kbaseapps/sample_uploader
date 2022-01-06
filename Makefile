@@ -1,4 +1,4 @@
-TARGET_TESTS = samples_linking_test.py
+TARGET_TESTS = .
 SERVICE = sample_uploader
 SERVICE_CAPS = sample_uploader
 SPEC_FILE = sample_uploader.spec
