@@ -120,6 +120,24 @@ class Test(unittest.TestCase):
 
     def test_overwrite_samples(self):
 
+        # create initial test sample set
+        sesar_sample_file = os.path.join(self.curr_dir, "data", "fake_samples.tsv")
+        sample_set_name = "test_sample_set_1"
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sesar_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': self.sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field"
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        sample_set_ref = ret['sample_set_ref']
+
         # create data link for each sample
         links_in = [
             {'sample_name': [self.sample_name_1], 'obj_ref': self.rhodo_art_jgi_reads},
@@ -132,7 +150,7 @@ class Test(unittest.TestCase):
         ret = self.serviceImpl.link_samples(
             self.ctx, {
                 'workspace_name': self.wsName,
-                'sample_set_ref': self.sample_set_ref,
+                'sample_set_ref': sample_set_ref,
                 'links': links_in,
             })
 
@@ -144,13 +162,13 @@ class Test(unittest.TestCase):
             assert lout['upa'] == lin['obj_ref']
             assert lout['node'] == lin['sample_name'][0]
 
-        for it, samp in enumerate(self.sample_set['samples']):
+        for it, samp in enumerate(sample_set['samples']):
             sample_id = samp['id']
             version = samp['version']
             data_links = get_data_links_from_sample(sample_id, version,
                                                     self.sample_url, self.ctx['token'])
             links_upa = [link['upa'] for link in data_links]
-            expected_links = [links_in[it]['obj_ref'], self.sample_set_ref]
+            expected_links = [links_in[it]['obj_ref'], sample_set_ref]
             self.assertCountEqual(links_upa, expected_links)
 
         # overwrite existing sample set
@@ -163,6 +181,7 @@ class Test(unittest.TestCase):
         params = {
             'workspace_name': self.wsName,
             'workspace_id': self.wsID,
+            'sample_set_ref': sample_set_ref,
             'sample_file': new_sample_file,
             'file_format': "sesar",
             'header_row_index': 2,
@@ -182,6 +201,7 @@ class Test(unittest.TestCase):
 
             sample_id = samp['id']
             version = samp['version']
+            self.assertEqual(version, 2)
             data_links = get_data_links_from_sample(sample_id, version,
                                                     self.sample_url, self.ctx['token'])
 

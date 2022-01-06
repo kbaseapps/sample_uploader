@@ -2,7 +2,7 @@
 =========================================
 1.0.2
 -----
-add 'propogate_links' option to import_samples method. When this option is turned on, the import
+add 'propagate_links' option to import_samples method. When this option is turned on, the import
 method will propagate data links from previous samples
 
 1.0.1
