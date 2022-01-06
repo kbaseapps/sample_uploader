@@ -423,14 +423,8 @@ def get_data_links_from_sample(sample_id, version, sample_url, token):
     sample_url     - url to sample service
     token          - workspace token for Authorization
     """
-    ss = SampleService(sample_url)
-
-    ret = ss.get_data_links_from_sample(
-                dict(
-                    id=sample_id,
-                    version=version,
-                )
-            )
+    ss = SampleService(sample_url, token=token)
+    ret = ss.get_data_links_from_sample({'id': sample_id, 'version': version})
 
     return ret.get('links')
 
