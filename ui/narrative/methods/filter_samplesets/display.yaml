@@ -1,0 +1,74 @@
+#
+# define display information
+#
+name: Sample Set Editor 
+
+tooltip: |
+    Sample Set Editor
+screenshots: []
+
+icon: icon.png
+
+#
+# define a set of similar methods that might be useful to the user
+#
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_ref :
+        ui-name : |
+            Sample Set(s)
+        short-hint : |
+            Input Sample Set(s)
+        long  : |
+            Input Sample Set(s). Output Sample Set with contain all matching results.
+    logical_operator:
+        ui-name : |
+            Logical Operator
+        short-hint : |
+            Logical Operator
+        long : |
+            Logical Operator. This will set how the following Filter Condition is applied. 
+            "AND" indicates that this AND the following conditions must match. 
+            "OR" indicates that this OR the following condition must match. 
+            The last logical operator will not have any effect. 
+            For any set of Filter Conditions, "AND"s are evalutated before "OR"s 
+            in accordance with the order of precedence of logical operators.
+    metadata_field:
+        ui-name : |
+            Column/Key
+        short-hint : |
+            Column/Key must match a controlled sample metadata key
+        long : |
+            Column/Key must match a controlled sample metadata key. 
+            This key will be used for the comparison.
+    comparison_operator:
+        ui-name : |
+            Filter Operator
+        short-hint : |
+            Filter Operator
+    value:
+        ui-name : |
+            Filter Value
+        short-hint : |
+            Filter Value
+        long : |
+            Filter Value: For IN or NOT IN, a comma seperated list. For numeric comparisons, a number. For all others, a string.
+    out_sample_set_name:
+        ui-name : |
+            Output Sample Set Name
+        short-hint : |
+            Output Sample Set Name
+        long : |
+            Output Sample Set Name
+            
+parameter-groups :
+    filter_conditions :
+        ui-name : |
+             Filter Condition(s)
+        short-hint : |
+            Filter condition
+description : |
+    <p>Sample Set Editor</p>
