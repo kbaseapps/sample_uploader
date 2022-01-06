@@ -314,7 +314,7 @@ class Test(unittest.TestCase):
                                                     self.sample_url, self.ctx['token'])
 
             links_upa = [link['upa'] for link in data_links]
-            expected_links = [links_in[it]['obj_ref'], new_sample_set_ref, sample_set_ref]
+            expected_links = [links_in[it]['obj_ref'], new_sample_set_ref]
             self.assertCountEqual(links_upa, expected_links)
 
     def test_link_samples(self):
