@@ -389,6 +389,36 @@ def get_data_links_from_ss(sample_set_ref, sample_url, token):
     return links
 
 
+def get_data_links_from_sample(sample_id, version, sample_url, token):
+    """
+    sample_id      - the sample ID.
+    version        - the sample version.
+    sample_url     - url to sample service
+    token          - workspace token for Authorization
+    """
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json"
+    }
+    params = {
+        "id": sample_id,
+        "version": version
+    }
+    payload = {
+        "method": "SampleService.get_data_links_from_sample",
+        "id": str(uuid.uuid4()),
+        "params": [params],
+        "version": "1.1"
+    }
+
+    resp = requests.post(url=sample_url, headers=headers, data=json.dumps(payload, default=str))
+    resp_json = _handle_response(resp)
+
+    links = resp_json['result'][0].get('links')
+
+    return links
+
+
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):
     """"""
     if sample_headers:

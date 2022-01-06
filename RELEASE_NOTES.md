@@ -1,5 +1,10 @@
 # sample_uploader release notes
 =========================================
+1.0.2
+-----
+add 'propogate_links' option to import_samples method. When this option is turned on, the import
+method will propagate data links from previous samples
+
 1.0.1
 -----
 * supporting more data type (Assembly, Genome, AMA Genome, etc.) to link_samples appliction
