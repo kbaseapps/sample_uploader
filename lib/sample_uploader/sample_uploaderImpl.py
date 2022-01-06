@@ -42,7 +42,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.2"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "3c5bfa86c52721444b4af7702ca2df4d51bd3243"
+    GIT_COMMIT_HASH = "a985f89e4e87638fb6df5f42ee7597984cf87765"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER

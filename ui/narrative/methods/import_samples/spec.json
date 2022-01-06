@@ -220,6 +220,18 @@
             }
         },
         {
+            "id": "propagate_links",
+            "optional" : true,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "0" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
+        },
+        {
             "id": "ignore_warnings",
             "optional" : false,
             "advanced" : false,
@@ -293,6 +305,9 @@
                 },{
                     "input_parameter": "keep_existing_samples",
                     "target_property": "keep_existing_samples"
+                },{
+                    "input_parameter": "propagate_links",
+                    "target_property": "propagate_links"
                 },{
                     "input_parameter": "ignore_warnings",
                     "target_property": "ignore_warnings"

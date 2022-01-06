@@ -150,6 +150,14 @@ parameters :
         long-hint: |
             Check box to keep existing samples if not found in the input file
 
+    propagate_links:
+        ui-name: |
+            Keep existing data links
+        short-hint: |
+            Check box to keep existing data links
+        long-hint: |
+            Check box to keep existing data links
+
     ignore_warnings:
         ui-name : |
             Ignore Warnings
