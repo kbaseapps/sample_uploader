@@ -9,6 +9,7 @@ import csv
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.sample_search_apiClient import sample_search_api
 from installed_clients.WorkspaceClient import Workspace as workspaceService
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
@@ -22,6 +23,7 @@ from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
 from sample_uploader.utils.misc_utils import get_workspace_user_perms
 from sample_uploader.utils.misc_utils import error_ui as _error_ui
+from sample_uploader.utils.parsing_utils import upload_key_format as _upload_key_format
 #END_HEADER
 
 
@@ -42,7 +44,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.0.2"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "a985f89e4e87638fb6df5f42ee7597984cf87765"
+    GIT_COMMIT_HASH = "de50908305165560d227b8b7c8eb1d79e26726de"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -643,6 +645,124 @@ class sample_uploader:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method batch_link_samples return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def filter_samplesets(self, ctx, params):
+        """
+        :param params: instance of type "FilterSampleSetsParams" ->
+           structure: parameter "workspace_name" of String, parameter
+           "workspace_id" of String, parameter "out_sample_set_name" of
+           String, parameter "sample_set_ref" of list of String, parameter
+           "filter_conditions" of list of type "FilterCondition" (Filter
+           SampleSets) -> structure: parameter "metadata_field" of String,
+           parameter "comparison_operator" of String, parameter "value" of
+           String, parameter "logical_operator" of String
+        :returns: instance of type "FilterSampleSetsOutput" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of
+           String, parameter "sample_set" of type "SampleSet" -> structure:
+           parameter "samples" of list of type "sample_info" -> structure:
+           parameter "id" of type "sample_id", parameter "name" of String,
+           parameter "description" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN filter_samplesets
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+
+        filter_conditions = []
+        for i, condition in enumerate(params['filter_conditions']):
+            metadata_values = []
+            if (condition['comparison_operator'].strip().lower() not in ["in", "not in"]):
+                if (len(condition['value']) < 1):
+                    raise ValueError('Filter condition #{} has no filter value'.format(i + 1))
+                metadata_values = [condition['value']]
+            else:
+                metadata_values = [v.strip() for v in condition['value'].split(", ")]
+                if (len(metadata_values) < 1):
+                    raise ValueError('Filter condition #{} has no filter values'.format(i + 1))
+
+            metadata_field = _upload_key_format(condition['metadata_field'])
+            if (metadata_field is None or len(metadata_field) < 1):
+                raise ValueError('Filter condition #{} has no specified Column/Key'.format(i + 1))
+
+            comparison_operator = condition['comparison_operator']
+            if (comparison_operator is None or len(comparison_operator) < 1):
+                raise ValueError(
+                    'Filter condition #{} has no specified comparison operator'.format(i + 1))
+
+            logical_operator = condition['logical_operator']
+            if (logical_operator is None or len(logical_operator) < 1):
+                raise ValueError(
+                    'Filter condition #{} has no specified logical operator'.format(i + 1))
+
+            filter_conditions.append({
+                'metadata_field': metadata_field,
+                'comparison_operator': comparison_operator,
+                'metadata_values': metadata_values,
+                'logical_operator': logical_operator
+            })
+
+        sample_search_api_request = {
+            'sample_ids': sample_ids,
+            'filter_conditions': filter_conditions
+        }
+
+        sample_search_api_response = sample_search_api(
+            url=self.sw_url, service_ver='dev').filter_samples(sample_search_api_request)
+
+        samples_to_keep = set(sample_id['id']
+                              for sample_id in sample_search_api_response['sample_ids'])
+
+        sample_set = {
+            'samples': [sample for sample in samples if sample['id'] in samples_to_keep],
+            "description": "Generated with the Sample Set Editor"
+        }
+
+        conditions_summary = ''
+        for i, condition in enumerate(filter_conditions):
+            conditions_summary += '"{}" {} "{}" {}'.format(
+                condition['metadata_field'],
+                condition['comparison_operator'],
+                condition['metadata_values'],
+                (
+                    'AND ' if condition['logical_operator'].upper() == 'AND' else 'OR '
+                ) if i != len(filter_conditions) - 1 else '')
+
+        obj_info = self.dfu.save_objects({
+            'id': params['workspace_id'],
+            'objects': [{
+                "name": params['out_sample_set_name'],
+                "type": "KBaseSets.SampleSet",
+                "data": sample_set
+            }]
+        })
+
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report({
+            'objects_created': [
+                {
+                    'ref': "/".join([str(info[6]), str(info[0]), str(info[4])])
+                } for info in obj_info
+            ],
+            'message': f"SampleSet object named \"{params['out_sample_set_name']}\" \
+created with condition(s): {conditions_summary}",
+            'workspace_name': params['workspace_name']
+        })
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref'],
+            'sample_set': sample_set
+        }
+        #END filter_samplesets
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method filter_samplesets return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

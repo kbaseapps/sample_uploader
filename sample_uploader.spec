@@ -176,4 +176,31 @@ module sample_uploader {
     funcdef link_samples(LinkObjsParams params) returns (LinkObjsOutput output) authentication required;
 
     funcdef batch_link_samples(BatchLinkObjsParams params) returns (LinkObjsOutput output) authentication required;
+
+    /*
+    Filter SampleSets
+    */
+
+    typedef structure {
+        string metadata_field; /* full metadata field name (e.g. "enigma:foo") */
+        string comparison_operator; /* "==", "!=", "in", "not in", ">", "<", ">=", "<=" */
+        string value; /* string, number string for numeric comparisons, comma seperated for (not)in */
+        string logical_operator; /* "and", "or" */
+    } FilterCondition;
+
+    typedef structure {
+        string workspace_name;
+        string workspace_id;
+        string out_sample_set_name;
+        list<string> sample_set_ref;
+        list<FilterCondition> filter_conditions;
+    } FilterSampleSetsParams;
+
+    typedef structure {
+        string report_name;
+        string report_ref;
+        SampleSet sample_set;
+    } FilterSampleSetsOutput;
+
+    funcdef filter_samplesets(FilterSampleSetsParams params) returns (FilterSampleSetsOutput output) authentication required;
 };
