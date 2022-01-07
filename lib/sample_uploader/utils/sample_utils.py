@@ -353,7 +353,7 @@ def save_sample(sample, sample_url, ws_url, token, previous_version=None, propag
                         dataid=data_link['dataid'],
                         id=sample_id,
                         version=sample_ver,
-                        node=sample['node_tree'][0]['id'],
+                        node=data_link['node'],
                         update=1,
                     )
                 )
