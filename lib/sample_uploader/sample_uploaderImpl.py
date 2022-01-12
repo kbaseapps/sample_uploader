@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.2"
+    VERSION = "1.1.1"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "de50908305165560d227b8b7c8eb1d79e26726de"
+    GIT_COMMIT_HASH = "3c856e016913ca27c286f697b9a9ee47f738ad31"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -536,9 +536,10 @@ class sample_uploader:
            workspace objects. currently support:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
-           KBaseGenomes.Genome KBaseMetagenomes.AnnotatedMetagenomeAssembly)
-           -> structure: parameter "sample_name" of String, parameter
-           "obj_ref" of String
+           KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
+           structure: parameter "sample_name" of String, parameter "obj_ref"
+           of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
