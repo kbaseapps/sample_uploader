@@ -285,7 +285,7 @@ def get_sample(sample_info, sample_url, token):
     return sample
 
 
-def save_sample(sample, sample_url, ws_url, token, previous_version=None, propagate_links=0):
+def save_sample(sample, sample_url, token, previous_version=None, propagate_links=0):
     """
     sample     - completed sample as per
     sample_url - url to sample service
@@ -332,31 +332,13 @@ def save_sample(sample, sample_url, ws_url, token, previous_version=None, propag
     if previous_version and propagate_links:
         print('start propagating previous data links')
 
-        data_links = get_data_links_from_sample(previous_version['id'],
-                                                previous_version['version'],
-                                                sample_url, token)
-
-        ss = SampleService(sample_url, token=token)
-
-        for data_link in data_links:
-
-            upa = data_link['upa']
-
-            wsClient = workspaceService(ws_url, token=token)
-            obj_info = wsClient.get_object_info3({'objects': [{'ref': upa}]})
-
-            ignore_types = ['KBaseSets.SampleSet']  # ignore old sample set linking
-            if obj_info['infos'][0][2].split('-')[0] not in ignore_types:
-                ss.create_data_link(
-                    dict(
-                        upa=upa,
-                        dataid=data_link['dataid'],
-                        id=sample_id,
-                        version=sample_ver,
-                        node=data_link['node'],
-                        update=1,
-                    )
-                )
+        ss = SampleService(sample_url)
+        ss.propagate_data_links({'id': sample_id,
+                                 'version': sample_ver,
+                                 'previous_version': previous_version['version'],
+                                 'ignore_types': ['KBaseSets.SampleSet'],
+                                 'update': True,
+                                 'as_user': True})
 
     return sample_id, sample_ver
 

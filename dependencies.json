@@ -16,7 +16,8 @@
   "version_tag" : "dev"
 }, {
   "module_name" : "SampleService",
-  "type" : "core"
+  "type" : "core",
+  "file_path" : "https://raw.githubusercontent.com/kbase/sample_service/master/SampleService.spec"
 }, {
   "module_name" : "Workspace",
   "type" : "core",

@@ -294,7 +294,7 @@ def _produce_samples(
     return samples, [existing_sample_names[key] for key in existing_sample_names]
 
 
-def _save_samples(samples, acls, sample_url, ws_url, token, propagate_links):
+def _save_samples(samples, acls, sample_url, token, propagate_links):
     """"""
     saved_samples = []
     for data in samples:
@@ -302,7 +302,7 @@ def _save_samples(samples, acls, sample_url, ws_url, token, propagate_links):
         prev_sample = data['prev_sample']
         name = data['name']
 
-        sample_id, sample_ver = save_sample(sample, sample_url, ws_url, token,
+        sample_id, sample_ver = save_sample(sample, sample_url, token,
                                             previous_version=prev_sample,
                                             propagate_links=propagate_links)
 
@@ -519,7 +519,7 @@ def import_samples_from_file(
     if has_unignored_errors:
         saved_samples = []
     else:
-        saved_samples = _save_samples(samples, acls, sample_url, workspace_url, token,
+        saved_samples = _save_samples(samples, acls, sample_url, token,
                                       params.get('propagate_links', 0))
         saved_samples += existing_samples
 
