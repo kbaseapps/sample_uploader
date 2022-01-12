@@ -38,7 +38,7 @@ parameters :
         ui-name : |
             Workspace Objects
         short-hint : |
-            Supporting types: KBaseFile.PairedEndLibrary/SingleEndLibrary, KBaseAssembly.PairedEndLibrary/SingleEndLibrary, KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly
+            Supporting types: KBaseFile.PairedEndLibrary/SingleEndLibrary, KBaseAssembly.PairedEndLibrary/SingleEndLibrary, KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly, KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet
 
 parameter-groups :
     links:
