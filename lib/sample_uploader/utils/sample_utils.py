@@ -107,7 +107,7 @@ def update_acls(sample_url, sample_id, change_acls, token):
     }
 
     resp = requests.post(url=sample_url, data=json.dumps(get_payload), headers=headers)
-    acls = _handle_response(resp)
+    acls = _handle_response(resp)['result'][0]
 
     # update acl lists as described in change_acls
     for user_id in change_acls.get('none', []):
