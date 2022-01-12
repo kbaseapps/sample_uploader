@@ -108,6 +108,7 @@ module sample_uploader {
         int is_reader;
         int is_writer;
         int is_admin;
+        int is_none;
 
         int share_within_workspace;
     } update_sample_set_acls_params;

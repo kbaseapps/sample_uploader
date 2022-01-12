@@ -404,6 +404,7 @@ class sample_uploaderTest(unittest.TestCase):
             'is_admin': 1,
             'is_reader': 0,
             'is_writer': 0,
+            'is_none': 0,
             'sample_set_ref': self.sample_set_ref,
         }
         ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]

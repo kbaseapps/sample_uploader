@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.1"
+    VERSION = "1.1.1"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "86b9cec6f8ebda3a7e485a07dea9077cdd1d431b"
+    GIT_COMMIT_HASH = "c26a885251fa46bf1f970d33e5755eef47311cc5"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -437,7 +437,8 @@ class sample_uploader:
            "workspace_id" of Long, parameter "sample_set_ref" of String,
            parameter "new_users" of list of String, parameter "is_reader" of
            Long, parameter "is_writer" of Long, parameter "is_admin" of Long,
-           parameter "share_within_workspace" of Long
+           parameter "is_none" of Long, parameter "share_within_workspace" of
+           Long
         :returns: instance of type "update_sample_set_acls_output" ->
            structure: parameter "status" of String
         """
@@ -453,7 +454,8 @@ class sample_uploader:
         acls = {
             'read': [],
             'write': [],
-            'admin': []
+            'admin': [],
+            'none': []
         }
 
         if params.get('share_within_workspace'):
@@ -466,6 +468,8 @@ class sample_uploader:
                 acls['write'].append(new_user)
             elif params.get('is_reader'):
                 acls['read'].append(new_user)
+            elif params.get('is_none'):
+                acls['none'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
@@ -535,9 +539,10 @@ class sample_uploader:
            workspace objects. currently support:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
-           KBaseGenomes.Genome KBaseMetagenomes.AnnotatedMetagenomeAssembly)
-           -> structure: parameter "sample_name" of String, parameter
-           "obj_ref" of String
+           KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
+           structure: parameter "sample_name" of String, parameter "obj_ref"
+           of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object

@@ -1,5 +1,9 @@
 # sample_uploader release notes
 =========================================
+1.1.1
+-----
+* fixes sample acls updates, adds option to remove acls
+
 1.0.1
 -----
 * supporting more data type (Assembly, Genome, AMA Genome, etc.) to link_samples appliction
