@@ -139,8 +139,10 @@ module sample_uploader {
         currently support:
             KBaseFile.PairedEndLibrary/SingleEndLibrary,
             KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
-            KBaseGenomes.Genome
-            KBaseMetagenomes.AnnotatedMetagenomeAssembly
+            KBaseGenomes.Genome,
+            KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+            KBaseGenomeAnnotations.Assembly,
+            KBaseSets.AssemblySet
 
     */
 
