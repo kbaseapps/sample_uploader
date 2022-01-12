@@ -1,6 +1,6 @@
 # sample_uploader release notes
 =========================================
-1.0.2
+1.1.1
 -----
 add 'propagate_links' option to import_samples method. When this option is turned on, the import
 method will propagate data links from previous samples
