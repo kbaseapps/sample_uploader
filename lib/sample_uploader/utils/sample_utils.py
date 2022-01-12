@@ -96,7 +96,7 @@ def update_acls(sample_url, sample_id, change_acls, token):
 
     GetSampleACLsParams = {
         "id": sample_id,
-        "as_admin": True
+        "as_admin": False
     }
 
     get_payload = {
