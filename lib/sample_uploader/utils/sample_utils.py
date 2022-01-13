@@ -100,7 +100,7 @@ def update_acls(sample_url, sample_id, acl_updates, token):
         "write": acl_updates.get("write", []),
         "read": acl_updates.get("read", []),
         "remove": acl_updates.get("remove", []),
-        "at_least":False
+        "at_least": False
     }
     replace_payload = {
         "method": "SampleService.update_sample_acls",
