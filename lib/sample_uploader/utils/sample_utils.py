@@ -95,13 +95,12 @@ def update_acls(sample_url, sample_id, acl_updates, token):
     headers = {"Authorization": token}
 
     UpdateSampleACLsParams = {
-        "acls": {
-            "admin": acl_updates.get("admin", []),
-            "write": acl_updates.get("write", []),
-            "read": acl_updates.get("read", []),
-            "remove": acl_updates.get("remove", [])
-        },
-        "id": sample_id
+        "id": sample_id,
+        "admin": acl_updates.get("admin", []),
+        "write": acl_updates.get("write", []),
+        "read": acl_updates.get("read", []),
+        "remove": acl_updates.get("remove", []),
+        "at_least":False
     }
     replace_payload = {
         "method": "SampleService.update_sample_acls",
