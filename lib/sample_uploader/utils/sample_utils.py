@@ -78,7 +78,7 @@ def sample_set_to_OTU_sheet(
     return output_path
 
 
-def update_acls(sample_url, sample_id, change_acls, token):
+def update_acls(sample_url, sample_id, acl_updates, token):
     """
     Query sample service to replace access control list for given sample id.
         sample_url - url of sample service
@@ -88,65 +88,25 @@ def update_acls(sample_url, sample_id, change_acls, token):
                 "admin": ["user1", "user3", ...],
                 "write": ["user2", ..],
                 "read": ["user4"],
-                "none": ["user5", ...]
+                "remove": ["user5", ...]
             }
         "owner" value currently not updateable
     """
     headers = {"Authorization": token}
 
-    GetSampleACLsParams = {
-        "id": sample_id,
-        "as_admin": False
-    }
-
-    get_payload = {
-        "method": "SampleService.get_sample_acls",
-        "id": str(uuid.uuid4()),
-        "params": [GetSampleACLsParams],
-        "version": "1.1"
-    }
-
-    resp = requests.post(url=sample_url, data=json.dumps(get_payload), headers=headers)
-    acls = _handle_response(resp)['result'][0]
-
-    # update acl lists as described in change_acls
-    for user_id in change_acls.get('none', []):
-        if user_id in acls['admin']:
-            acls['admin'].remove(user_id)
-        if user_id in acls['write']:
-            acls['write'].remove(user_id)
-        if user_id in acls['read']:
-            acls['read'].remove(user_id)
-    for user_id in change_acls.get('read', []):
-        if user_id not in acls['read']:
-            if user_id in acls['admin']:
-                acls['admin'].remove(user_id)
-            if user_id in acls['write']:
-                acls['write'].remove(user_id)
-            acls['read'].append(user_id)
-    for user_id in change_acls.get('write', []):
-        if user_id not in acls['write']:
-            if user_id in acls['admin']:
-                acls['admin'].remove(user_id)
-            if user_id in acls['read']:
-                acls['read'].remove(user_id)
-            acls['write'].append(user_id)
-    for user_id in change_acls.get('admin', []):
-        if user_id not in acls['admin']:
-            if user_id in acls['write']:
-                acls['write'].remove(user_id)
-            if user_id in acls['read']:
-                acls['read'].remove(user_id)
-            acls['admin'].append(user_id)
-
-    ReplaceSampleACLsParams = {
-        "acls": acls,
+    UpdateSampleACLsParams = {
+        "acls": {
+            "admin": acl_updates.get("admin", []),
+            "write": acl_updates.get("write", []),
+            "read": acl_updates.get("read", []),
+            "remove": acl_updates.get("remove", [])
+        },
         "id": sample_id
     }
     replace_payload = {
-        "method": "SampleService.replace_sample_acls",
+        "method": "SampleService.update_sample_acls",
         "id": str(uuid.uuid4()),
-        "params": [ReplaceSampleACLsParams],
+        "params": [UpdateSampleACLsParams],
         "version": "1.1"
     }
 

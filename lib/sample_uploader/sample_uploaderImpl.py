@@ -455,7 +455,7 @@ class sample_uploader:
             'read': [],
             'write': [],
             'admin': [],
-            'none': []
+            'remove': []
         }
 
         if params.get('share_within_workspace'):
@@ -469,7 +469,7 @@ class sample_uploader:
             elif params.get('is_reader'):
                 acls['read'].append(new_user)
             elif params.get('is_none'):
-                acls['none'].append(new_user)
+                acls['remove'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
