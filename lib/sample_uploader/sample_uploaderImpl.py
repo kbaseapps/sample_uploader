@@ -788,6 +788,7 @@ created with condition(s): {conditions_summary}",
         results = sample_search.get_sampleset_meta({
             'sample_ids': sample_ids
         })['results']
+
         #END get_sampleset_meta
 
         # At some point might do deeper type checking...
