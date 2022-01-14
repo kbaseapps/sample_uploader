@@ -221,7 +221,6 @@ class Test(unittest.TestCase):
         ])
         self.assertEqual(len(samples_merge), 206)
 
-
     def test_get_sampleset_meta(self):
         ret = self.serviceImpl.get_sampleset_meta({'sample_set_ref': self.sample_set_2_ref})
         self.assertEqual(type(ret), list)
