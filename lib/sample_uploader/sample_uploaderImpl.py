@@ -43,8 +43,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "1.0.1"
-    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "86b9cec6f8ebda3a7e485a07dea9077cdd1d431b"
+    GIT_URL = "git@github.com:charleshtrenholm/sample_uploader.git"
+    GIT_COMMIT_HASH = "b96f938c5491afd5a7767fea28050d6e2dd83daa"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -767,6 +767,33 @@ created with condition(s): {conditions_summary}",
                              'output is not type dict as required.')
         # return the results
         return [output]
+
+    def get_sampleset_meta(self, ctx, params):
+        """
+        :param params: instance of type "GetSamplesetMetaParams" (Get list of
+           metadata keys/columns from a given sampleset. Used to populate
+           filter_sampleset dynamic dropdown with valid options from a given
+           list of samples.) -> structure: parameter "sampleset_ref" of list
+           of String
+        :returns: instance of list of String
+        """
+        # ctx is the context object
+        # return variables are: results
+        #BEGIN get_sampleset_meta
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        results = sample_search_api(url=self.sw_url,
+                                    service_ver="dev").get_sampleset_meta({'sample_ids': sample_ids})['results']
+        #END get_sampleset_meta
+
+        # At some point might do deeper type checking...
+        if not isinstance(results, list):
+            raise ValueError('Method get_sampleset_meta return value ' +
+                             'results is not type list as required.')
+        # return the results
+        return [results]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
