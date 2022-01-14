@@ -784,10 +784,11 @@ created with condition(s): {conditions_summary}",
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
             samples.extend(sample_set['data']['samples'])
         sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
-        results = sample_search_api(url=self.sw_url, service_ver="dev")
-            .get_sampleset_meta({
-                'sample_ids': sample_ids
-                })['results']
+        sample_search = sample_search_api(url=self.sw_url, service_ver="dev")
+        results = sample_search.get_sampleset_meta({
+            'sample_ids': sample_ids
+        })['results']
+
         #END get_sampleset_meta
 
         # At some point might do deeper type checking...
