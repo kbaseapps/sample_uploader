@@ -773,7 +773,7 @@ created with condition(s): {conditions_summary}",
         :param params: instance of type "GetSamplesetMetaParams" (Get list of
            metadata keys/columns from a given sampleset. Used to populate
            filter_sampleset dynamic dropdown with valid options from a given
-           list of samples.) -> structure: parameter "sampleset_ref" of list
+           list of samples.) -> structure: parameter "sample_set_refs" of list
            of String
         :returns: instance of list of String
         """
@@ -781,9 +781,14 @@ created with condition(s): {conditions_summary}",
         # return variables are: results
         #BEGIN get_sampleset_meta
         samples = []
-        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_ref']})['data']:
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
             samples.extend(sample_set['data']['samples'])
-        sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        try:
+            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        except KeyError as e:
+            raise ValueError(
+                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+            )
         sample_search = sample_search_api(url=self.sw_url, service_ver="dev")
         results = sample_search.get_sampleset_meta({
             'sample_ids': sample_ids
