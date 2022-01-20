@@ -227,21 +227,15 @@ class Test(unittest.TestCase):
         })
         self.assertEqual(type(ret[0]), list)
         self.assertEqual(type(ret[0][0]), str)
-        self.assertCountEqual(ret, [
+        self.assertCountEqual(ret[0], [
             'sesar:igsn',
-            'sesar:parent_isgn',
-            'sesar:release_date',
             'sesar:material',
-            'sesar:field_name',
             'location_description',
             'locality_description',
             'sesar:collection_method',
             'purpose',
             'latitude',
             'longitude',
-            'custom:coordinate_precision_?',
-            'sesar:elevation_start',
-            'custom:elevation_unit',
             'sesar:navigation_type',
             'sesar:physiographic_feature_primary',
             'sesar:physiographic_feature_name',
@@ -252,5 +246,10 @@ class Test(unittest.TestCase):
             'sesar:archive_current',
             'sesar:archive_contact_current',
             'sesar:related_identifiers',
-            'sesar:relation_type'
+            'sesar:relation_type',
+            'sample_template',
+            'custom:coordinate_precision?',
+            'sesar:release_date',
+            'sesar:elevation_start',
+            'sesar:field_name'
         ])
