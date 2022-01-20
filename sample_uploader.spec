@@ -205,4 +205,15 @@ module sample_uploader {
     } FilterSampleSetsOutput;
 
     funcdef filter_samplesets(FilterSampleSetsParams params) returns (FilterSampleSetsOutput output) authentication required;
+
+    /*
+        Get list of metadata keys/columns from a given list of samplesets. Used to populate filter_sampleset dynamic
+        dropdown with valid options from a given list of samples.
+    */
+
+    typedef structure {
+        list<string> sample_set_refs;
+    } GetSamplesetMetaParams;
+
+    funcdef get_sampleset_meta(GetSamplesetMetaParams params) returns (list<string> results) authentication required;
 };

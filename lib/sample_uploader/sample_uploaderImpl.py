@@ -44,7 +44,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.1.1"
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "c26a885251fa46bf1f970d33e5755eef47311cc5"
+    GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -772,6 +772,41 @@ created with condition(s): {conditions_summary}",
                              'output is not type dict as required.')
         # return the results
         return [output]
+
+    def get_sampleset_meta(self, ctx, params):
+        """
+        :param params: instance of type "GetSamplesetMetaParams" (Get list of
+           metadata keys/columns from a given list of samplesets. Used to
+           populate filter_sampleset dynamic dropdown with valid options from
+           a given list of samples.) -> structure: parameter
+           "sample_set_refs" of list of String
+        :returns: instance of list of String
+        """
+        # ctx is the context object
+        # return variables are: results
+        #BEGIN get_sampleset_meta
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        try:
+            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        except KeyError as e:
+            raise ValueError(
+                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+            )
+        sample_search = sample_search_api(url=self.sw_url, service_ver="dev")
+        results = sample_search.get_sampleset_meta({
+            'sample_ids': sample_ids
+        })['results']
+
+        #END get_sampleset_meta
+
+        # At some point might do deeper type checking...
+        if not isinstance(results, list):
+            raise ValueError('Method get_sampleset_meta return value ' +
+                             'results is not type list as required.')
+        # return the results
+        return [results]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

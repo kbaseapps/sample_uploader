@@ -220,3 +220,36 @@ class Test(unittest.TestCase):
             }
         ])
         self.assertEqual(len(samples_merge), 206)
+
+    def test_get_sampleset_meta(self):
+        ret = self.serviceImpl.get_sampleset_meta(self.ctx, {
+            'sample_set_refs': [self.sample_set_2_ref]
+        })
+        self.assertEqual(type(ret[0]), list)
+        self.assertEqual(type(ret[0][0]), str)
+        self.assertCountEqual(ret[0], [
+            'sesar:igsn',
+            'sesar:material',
+            'location_description',
+            'locality_description',
+            'sesar:collection_method',
+            'purpose',
+            'latitude',
+            'longitude',
+            'sesar:navigation_type',
+            'sesar:physiographic_feature_primary',
+            'sesar:physiographic_feature_name',
+            'sesar:field_program_cruise',
+            'sesar:collector_chief_scientist',
+            'sesar:collection_date',
+            'sesar:collection_date_precision',
+            'sesar:archive_current',
+            'sesar:archive_contact_current',
+            'sesar:related_identifiers',
+            'sesar:relation_type',
+            'sample_template',
+            'custom:coordinate_precision?',
+            'sesar:release_date',
+            'sesar:elevation_start',
+            'sesar:field_name'
+        ])
