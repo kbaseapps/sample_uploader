@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.1"
-    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "86b9cec6f8ebda3a7e485a07dea9077cdd1d431b"
+    VERSION = "1.1.0"
+    GIT_URL = "git@github.com:charleshtrenholm/sample_uploader.git"
+    GIT_COMMIT_HASH = "ab69dc3bcbd05cc7cc8dd1efbd939d1e6dc6babb"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -535,9 +535,10 @@ class sample_uploader:
            workspace objects. currently support:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
-           KBaseGenomes.Genome KBaseMetagenomes.AnnotatedMetagenomeAssembly)
-           -> structure: parameter "sample_name" of String, parameter
-           "obj_ref" of String
+           KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
+           structure: parameter "sample_name" of String, parameter "obj_ref"
+           of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
@@ -767,6 +768,41 @@ created with condition(s): {conditions_summary}",
                              'output is not type dict as required.')
         # return the results
         return [output]
+
+    def get_sampleset_meta(self, ctx, params):
+        """
+        :param params: instance of type "GetSamplesetMetaParams" (Get list of
+           metadata keys/columns from a given list of samplesets. Used to
+           populate filter_sampleset dynamic dropdown with valid options from
+           a given list of samples.) -> structure: parameter
+           "sample_set_refs" of list of String
+        :returns: instance of list of String
+        """
+        # ctx is the context object
+        # return variables are: results
+        #BEGIN get_sampleset_meta
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        try:
+            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        except KeyError as e:
+            raise ValueError(
+                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+            )
+        sample_search = sample_search_api(url=self.sw_url, service_ver="dev")
+        results = sample_search.get_sampleset_meta({
+            'sample_ids': sample_ids
+        })['results']
+
+        #END get_sampleset_meta
+
+        # At some point might do deeper type checking...
+        if not isinstance(results, list):
+            raise ValueError('Method get_sampleset_meta return value ' +
+                             'results is not type list as required.')
+        # return the results
+        return [results]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
