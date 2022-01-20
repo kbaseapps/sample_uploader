@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.1"
+    VERSION = "1.1.0"
     GIT_URL = "git@github.com:charleshtrenholm/sample_uploader.git"
-    GIT_COMMIT_HASH = "b96f938c5491afd5a7767fea28050d6e2dd83daa"
+    GIT_COMMIT_HASH = "ab69dc3bcbd05cc7cc8dd1efbd939d1e6dc6babb"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -535,9 +535,10 @@ class sample_uploader:
            workspace objects. currently support:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
-           KBaseGenomes.Genome KBaseMetagenomes.AnnotatedMetagenomeAssembly)
-           -> structure: parameter "sample_name" of String, parameter
-           "obj_ref" of String
+           KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
+           structure: parameter "sample_name" of String, parameter "obj_ref"
+           of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
@@ -771,10 +772,10 @@ created with condition(s): {conditions_summary}",
     def get_sampleset_meta(self, ctx, params):
         """
         :param params: instance of type "GetSamplesetMetaParams" (Get list of
-           metadata keys/columns from a given sampleset. Used to populate
-           filter_sampleset dynamic dropdown with valid options from a given
-           list of samples.) -> structure: parameter "sample_set_refs" of list
-           of String
+           metadata keys/columns from a given list of samplesets. Used to
+           populate filter_sampleset dynamic dropdown with valid options from
+           a given list of samples.) -> structure: parameter
+           "sample_set_refs" of list of String
         :returns: instance of list of String
         """
         # ctx is the context object

@@ -49,12 +49,12 @@ class sample_search_api(object):
            "==", "!=", "<", ">", ">=", "<=", "in", "not in" metadata_values -
            list of values on which to constrain metadata_field with the input
            operator. logical_operator - accepted values for the operators
-           are: "and", "or" potential future args: paren_position - None - no
-           operation 1 - 2 - add two open paranthesis -1 - -2 - closed
-           paranthesis) -> structure: parameter "metadata_field" of String,
-           parameter "comparison_operator" of String, parameter
-           "metadata_values" of list of String, parameter "logical_operator"
-           of String
+           are: "and", "or" potential future args: paren_position - None/0 -
+           no operation n - add "n" open parenthesis to the beginning of the
+           statement -n - add "n" closed paranthesis to the end of statement)
+           -> structure: parameter "metadata_field" of String, parameter
+           "comparison_operator" of String, parameter "metadata_values" of
+           list of String, parameter "logical_operator" of String
         :returns: instance of type "FilterSamplesResults" -> structure:
            parameter "sample_ids" of list of type "SampleAddress" ->
            structure: parameter "id" of type "sample_id" (A Sample ID. Must
@@ -62,6 +62,22 @@ class sample_search_api(object):
            parameter "version" of Long
         """
         return self._client.call_method('sample_search_api.filter_samples',
+                                        [params], self._service_ver, context)
+
+    def get_sampleset_meta(self, params, context=None):
+        """
+        Gets all metadata fields present in a given list of samples. If samples with different custom fields are
+        included, it will return both different fields in an OR style operation. This is intended for use in the 
+        filter_samplesets dynamic dropdown.
+        :param params: instance of type "GetSamplesetMetaParams" ->
+           structure: parameter "sample_ids" of list of type "SampleAddress"
+           -> structure: parameter "id" of type "sample_id" (A Sample ID.
+           Must be globally unique. Always assigned by the Sample service.),
+           parameter "version" of Long
+        :returns: instance of type "GetSamplesetMetaResults" -> structure:
+           parameter "results" of list of String
+        """
+        return self._client.call_method('sample_search_api.get_sampleset_meta',
                                         [params], self._service_ver, context)
 
     def status(self, context=None):
