@@ -208,6 +208,8 @@ module sample_uploader {
     /*
         Get list of metadata keys/columns from a given list of samplesets. Used to populate filter_sampleset dynamic
         dropdown with valid options from a given list of samples.
+
+        @deprecated sample_search_api.get_sampleset_meta 
     */
 
     typedef structure {
