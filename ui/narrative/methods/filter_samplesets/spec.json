@@ -76,11 +76,11 @@
             "dynamic_dropdown_options": {
                 "include_user_params": true,
                 "data_source": "custom",
-                "service_function": "sample_uploader.get_sampleset_meta",
+                "service_function": "sample_search_api.get_sampleset_meta",
                 "service_version": "dev",
                 "service_params": [
                     {
-                        "sample_set_ref": "{{sample_set_ref}}"
+                        "sample_set_refs": "{{sample_set_ref}}"
                     }
                 ]
             }
