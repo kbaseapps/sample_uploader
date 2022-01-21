@@ -75,6 +75,7 @@
             "field_type": "dynamic_dropdown",
             "dynamic_dropdown_options": {
                 "include_user_params": true,
+                "query_on_empty_input": true,
                 "data_source": "custom",
                 "service_function": "sample_search_api.get_sampleset_meta",
                 "service_version": "dev",
