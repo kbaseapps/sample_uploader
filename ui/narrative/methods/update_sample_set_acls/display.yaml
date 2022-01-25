@@ -61,6 +61,14 @@ parameters :
             Assign users as admin
         long-hint  : |
             Assign users as admin
+ 
+    is_none:
+        ui-name: |
+            None
+        short-hint : |
+            Assign users as having no access
+        long-hint  : |
+            Assign users as having no access
 
     share_within_workspace:
         ui-name: |

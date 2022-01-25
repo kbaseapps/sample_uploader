@@ -62,6 +62,17 @@
                 "checked_value" : 1
             }
         },{
+            "id": "is_none",
+            "optional" : false,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "0" ],
+            "field_type" : "checkbox",
+            "checkbox_options" : {
+                "unchecked_value" : 0,
+                "checked_value" : 1
+            }
+        },{
             "id": "share_within_workspace",
             "optional" : false,
             "advanced" : true,
@@ -102,6 +113,9 @@
                 },{
                     "input_parameter": "is_admin",
                     "target_property": "is_admin"
+                },{
+                    "input_parameter": "is_none",
+                    "target_property": "is_none"
                 },{
                     "input_parameter": "share_within_workspace",
                     "target_property": "share_within_workspace"
