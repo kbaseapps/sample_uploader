@@ -404,6 +404,7 @@ class sample_uploaderTest(unittest.TestCase):
             'is_admin': 1,
             'is_reader': 0,
             'is_writer': 0,
+            'is_none': 0,
             'sample_set_ref': self.sample_set_ref,
         }
         ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
@@ -432,6 +433,84 @@ class sample_uploaderTest(unittest.TestCase):
                 for name in resp_json['result'][0][category]:
                     resp_data[name] = category[0]
         self.assertTrue('eapearson' in resp_data and resp_data['eapearson'] == 'a')
+
+    def test_remove_acls(self):
+        ''''''
+        params = {
+            'workspace_id': self.wsID,
+            'new_users': [
+                "eapearson"
+            ],
+            'is_admin': 0,
+            'is_reader': 0,
+            'is_writer': 1,
+            'is_none': 0,
+            'sample_set_ref': self.sample_set_ref,
+        }
+        ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
+        self.assertEqual(ret['status'], 200)
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": self.a_sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(
+            url=self.sample_url,
+            data=json.dumps(payload),
+            headers={"Authorization": self.ctx['token']}
+        )
+        if not resp.ok:
+            raise RuntimeError(resp.text)
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        print("outout", resp_json)
+        self.assertTrue('eapearson' in resp_data and resp_data['eapearson'] == 'w')
+        params = {
+            'workspace_id': self.wsID,
+            'new_users': [
+                "eapearson"
+            ],
+            'is_admin': 0,
+            'is_reader': 0,
+            'is_writer': 0,
+            'is_none': 1,
+            'sample_set_ref': self.sample_set_ref,
+        }
+        ret = self.serviceImpl.update_sample_set_acls(self.ctx, params)[0]
+        self.assertEqual(ret['status'], 200)
+        payload = {
+            "method": "SampleService.get_sample_acls",
+            "id": str(uuid.uuid4()),
+            "params": [{"id": self.a_sample_id}],
+            "version": "1.1"
+        }
+        resp = requests.get(
+            url=self.sample_url,
+            data=json.dumps(payload),
+            headers={"Authorization": self.ctx['token']}
+        )
+        if not resp.ok:
+            raise RuntimeError(resp.text)
+        resp_json = resp.json()
+        resp_data = {}
+        for category in resp_json['result'][0]:
+            if category == "owner":
+                resp_data[resp_json['result'][0]['owner']] = 'a'
+            elif category == "public_read":
+                continue
+            else:
+                for name in resp_json['result'][0][category]:
+                    resp_data[name] = category[0]
+        self.assertTrue('eapearson' not in resp_data)
 
     def _compare_sample(self, s, sc, check_version=True, check_id=False):
         self.assertEqual(s['name'], sc['name'], msg=f"s: {json.dumps(s['name'])}\nsc: {json.dumps(sc['name'])}")

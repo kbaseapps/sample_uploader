@@ -42,9 +42,9 @@ class sample_uploader:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.1.0"
-    GIT_URL = "git@github.com:charleshtrenholm/sample_uploader.git"
-    GIT_COMMIT_HASH = "ab69dc3bcbd05cc7cc8dd1efbd939d1e6dc6babb"
+    VERSION = "1.1.1"
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
+    GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -437,7 +437,8 @@ class sample_uploader:
            "workspace_id" of Long, parameter "sample_set_ref" of String,
            parameter "new_users" of list of String, parameter "is_reader" of
            Long, parameter "is_writer" of Long, parameter "is_admin" of Long,
-           parameter "share_within_workspace" of Long
+           parameter "is_none" of Long, parameter "share_within_workspace" of
+           Long
         :returns: instance of type "update_sample_set_acls_output" ->
            structure: parameter "status" of String
         """
@@ -453,7 +454,8 @@ class sample_uploader:
         acls = {
             'read': [],
             'write': [],
-            'admin': []
+            'admin': [],
+            'remove': []
         }
 
         if params.get('share_within_workspace'):
@@ -466,6 +468,8 @@ class sample_uploader:
                 acls['write'].append(new_user)
             elif params.get('is_reader'):
                 acls['read'].append(new_user)
+            elif params.get('is_none'):
+                acls['remove'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
