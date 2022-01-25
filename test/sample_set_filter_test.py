@@ -221,6 +221,7 @@ class Test(unittest.TestCase):
         ])
         self.assertEqual(len(samples_merge), 206)
 
+    @unittest.skip("deprecated method, called from UI directly")
     def test_get_sampleset_meta(self):
         ret = self.serviceImpl.get_sampleset_meta(self.ctx, {
             'sample_set_refs': [self.sample_set_2_ref]
