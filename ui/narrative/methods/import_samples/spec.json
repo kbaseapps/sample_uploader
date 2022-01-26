@@ -52,7 +52,10 @@
             "allow_multiple" : false,
             "default_values" : [ "" ],
             "field_type" : "text",
-            "text_options" : {}
+            "text_options" : {
+                "valid_ws_types" : ["KBaseSets.SampleSet"],
+                "is_output_name" : true
+            }
         },
         {
             "id": "header_row_index",
