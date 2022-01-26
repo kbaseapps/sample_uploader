@@ -79,36 +79,38 @@ def sample_set_to_OTU_sheet(
     return output_path
 
 
-def update_acls(sample_url, sample_id, acls, token):
+def update_acls(sample_url, sample_id, acl_updates, token):
     """
     Query sample service to replace access control list for given sample id.
         sample_url - url of sample service
         sample_id - id of sample as given by sample service
-        acls - dictionary string keys and list values mapping access type to username.
+        change_acls - dictionary string keys and list values mapping access type to username.
             {
                 "admin": ["user1", "user3", ...],
                 "write": ["user2", ..],
-                "read": ["user4"]
+                "read": ["user4"],
+                "remove": ["user5", ...]
             }
         "owner" value currently not updateable
     """
     headers = {"Authorization": token}
-    ReplaceSampleACLsParams = {
-        "acls": acls,
-        "id": sample_id
+
+    UpdateSampleACLsParams = {
+        "id": sample_id,
+        "admin": acl_updates.get("admin", []),
+        "write": acl_updates.get("write", []),
+        "read": acl_updates.get("read", []),
+        "remove": acl_updates.get("remove", []),
+        "at_least": False
     }
-    payload = {
-        "method": "SampleService.replace_sample_acls",
+    replace_payload = {
+        "method": "SampleService.update_sample_acls",
         "id": str(uuid.uuid4()),
-        "params": [ReplaceSampleACLsParams],
+        "params": [UpdateSampleACLsParams],
         "version": "1.1"
     }
-    # print('-'*80)
-    # print('update acls')
-    # print('url', sample_url)
-    # print('payload', json.dumps(payload))    
-    # print('-'*80)
-    resp = requests.post(url=sample_url, data=json.dumps(payload), headers=headers)
+
+    resp = requests.post(url=sample_url, data=json.dumps(replace_payload), headers=headers)
     _ = _handle_response(resp)
     return resp.status_code
 

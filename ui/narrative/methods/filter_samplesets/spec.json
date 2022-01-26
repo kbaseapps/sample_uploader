@@ -71,10 +71,19 @@
             "optional": false,
             "advanced": false,
             "allow_multiple": false,
-            "default_values": [
-                ""
-            ],
-            "field_type": "text"
+            "default_values": [""],
+            "field_type": "dynamic_dropdown",
+            "dynamic_dropdown_options": {
+                "include_user_params": true,
+                "data_source": "custom",
+                "service_function": "sample_uploader.get_sampleset_meta",
+                "service_version": "dev",
+                "service_params": [
+                    {
+                        "sample_set_ref": "{{sample_set_ref}}"
+                    }
+                ]
+            }
         },
         {
             "id": "comparison_operator",

@@ -43,8 +43,13 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "1.1.1"
+<<<<<<< HEAD
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
     GIT_COMMIT_HASH = "3c856e016913ca27c286f697b9a9ee47f738ad31"
+=======
+    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
+    GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
+>>>>>>> upstream/master
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -438,7 +443,8 @@ class sample_uploader:
            "workspace_id" of Long, parameter "sample_set_ref" of String,
            parameter "new_users" of list of String, parameter "is_reader" of
            Long, parameter "is_writer" of Long, parameter "is_admin" of Long,
-           parameter "share_within_workspace" of Long
+           parameter "is_none" of Long, parameter "share_within_workspace" of
+           Long
         :returns: instance of type "update_sample_set_acls_output" ->
            structure: parameter "status" of String
         """
@@ -454,7 +460,8 @@ class sample_uploader:
         acls = {
             'read': [],
             'write': [],
-            'admin': []
+            'admin': [],
+            'remove': []
         }
 
         if params.get('share_within_workspace'):
@@ -467,6 +474,8 @@ class sample_uploader:
                 acls['write'].append(new_user)
             elif params.get('is_reader'):
                 acls['read'].append(new_user)
+            elif params.get('is_none'):
+                acls['remove'].append(new_user)
 
         for sample in sample_set['samples']:
             sample_id = sample['id']
@@ -769,6 +778,41 @@ created with condition(s): {conditions_summary}",
                              'output is not type dict as required.')
         # return the results
         return [output]
+
+    def get_sampleset_meta(self, ctx, params):
+        """
+        :param params: instance of type "GetSamplesetMetaParams" (Get list of
+           metadata keys/columns from a given list of samplesets. Used to
+           populate filter_sampleset dynamic dropdown with valid options from
+           a given list of samples.) -> structure: parameter
+           "sample_set_refs" of list of String
+        :returns: instance of list of String
+        """
+        # ctx is the context object
+        # return variables are: results
+        #BEGIN get_sampleset_meta
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        try:
+            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        except KeyError as e:
+            raise ValueError(
+                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+            )
+        sample_search = sample_search_api(url=self.sw_url, service_ver="dev")
+        results = sample_search.get_sampleset_meta({
+            'sample_ids': sample_ids
+        })['results']
+
+        #END get_sampleset_meta
+
+        # At some point might do deeper type checking...
+        if not isinstance(results, list):
+            raise ValueError('Method get_sampleset_meta return value ' +
+                             'results is not type list as required.')
+        # return the results
+        return [results]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
