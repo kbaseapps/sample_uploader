@@ -2,12 +2,9 @@
 =========================================
 1.1.1
 -----
-<<<<<<< HEAD
-add 'propagate_links' option to import_samples method. When this option is turned on, the import
-method will propagate data links from previous samples
-=======
 * fixes sample acls updates, adds option to remove acls
->>>>>>> upstream/master
+* add 'propagate_links' option to import_samples method. When this option is turned on, the import
+method will propagate data links from previous samples
 
 1.0.1
 -----

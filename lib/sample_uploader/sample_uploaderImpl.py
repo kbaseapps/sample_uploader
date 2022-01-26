@@ -43,13 +43,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "1.1.1"
-<<<<<<< HEAD
-    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "3c856e016913ca27c286f697b9a9ee47f738ad31"
-=======
     GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
     GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
->>>>>>> upstream/master
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
