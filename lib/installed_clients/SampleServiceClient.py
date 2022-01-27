@@ -238,6 +238,98 @@ class SampleService(object):
         return self._client.call_method('SampleService.get_sample',
                                         [params], self._service_ver, context)
 
+    def get_samples(self, params, context=None):
+        """
+        :param params: instance of type "GetSamplesParams" -> structure:
+           parameter "samples" of list of type "SampleIdentifier" ->
+           structure: parameter "id" of type "sample_id" (A Sample ID. Must
+           be globally unique. Always assigned by the Sample service.),
+           parameter "version" of type "version" (The version of a sample.
+           Always > 0.), parameter "as_admin" of type "boolean" (A boolean
+           value, 0 for false, 1 for true.)
+        :returns: instance of list of type "Sample" (A Sample, consisting of
+           a tree of subsamples and replicates. id - the ID of the sample.
+           user - the user that saved the sample. node_tree - the tree(s) of
+           sample nodes in the sample. The the roots of all trees must be
+           BioReplicate nodes. All the BioReplicate nodes must be at the
+           start of the list, and all child nodes must occur after their
+           parents in the list. name - the name of the sample. Must be less
+           than 255 characters. save_date - the date the sample version was
+           saved. version - the version of the sample.) -> structure:
+           parameter "id" of type "sample_id" (A Sample ID. Must be globally
+           unique. Always assigned by the Sample service.), parameter "user"
+           of type "user" (A user's username.), parameter "node_tree" of list
+           of type "SampleNode" (A node in a sample tree. id - the ID of the
+           node. parent - the id of the parent node for the current node.
+           BioReplicate nodes, and only BioReplicate nodes, do not have a
+           parent. type - the type of the node. meta_controlled - metadata
+           restricted by the sample controlled vocabulary and validators.
+           source_meta - the pre-transformation keys and values of the
+           controlled metadata at the data source for controlled metadata
+           keys. In some cases the source metadata may be transformed prior
+           to ingestion by the Sample Service; the contents of this data
+           structure allows for reconstructing the original representation.
+           The metadata here is not validated other than basic size checks
+           and is provided on an informational basis only. The metadata keys
+           in the SourceMetadata data structure must be a subset of the
+           meta_controlled mapping keys. meta_user - unrestricted metadata.)
+           -> structure: parameter "id" of type "node_id" (A SampleNode ID.
+           Must be unique within a Sample and be less than 255 characters.),
+           parameter "parent" of type "node_id" (A SampleNode ID. Must be
+           unique within a Sample and be less than 255 characters.),
+           parameter "type" of type "samplenode_type" (The type of a sample
+           node. One of: BioReplicate - a biological replicate. Always at the
+           top of the sample tree. TechReplicate - a technical replicate.
+           SubSample - a sub sample that is not a technical replicate.),
+           parameter "meta_controlled" of type "metadata" (Metadata attached
+           to a sample.) -> mapping from type "metadata_key" (A key in a
+           metadata key/value pair. Less than 1000 unicode characters.) to
+           type "metadata_value" (A metadata value, represented by a mapping
+           of value keys to primitive values. An example for a location
+           metadata key might be: { "name": "Castle Geyser", "lat":
+           44.463816, "long": -110.836471 } "primitive values" means an int,
+           float, string, or equivalent typedefs. Including any collection
+           types is an error.) -> mapping from type "metadata_value_key" (A
+           key for a value associated with a piece of metadata. Less than
+           1000 unicode characters. Examples: units, value, species) to
+           unspecified object, parameter "source_meta" of list of type
+           "SourceMetadata" (Information about a metadata key as it appeared
+           at the data source. The source key and value represents the
+           original state of the metadata before it was tranformed for
+           ingestion by the sample service. key - the metadata key. skey -
+           the key as it appeared at the data source. svalue - the value as
+           it appeared at the data source.) -> structure: parameter "key" of
+           type "metadata_key" (A key in a metadata key/value pair. Less than
+           1000 unicode characters.), parameter "skey" of type "metadata_key"
+           (A key in a metadata key/value pair. Less than 1000 unicode
+           characters.), parameter "svalue" of type "metadata_value" (A
+           metadata value, represented by a mapping of value keys to
+           primitive values. An example for a location metadata key might be:
+           { "name": "Castle Geyser", "lat": 44.463816, "long": -110.836471 }
+           "primitive values" means an int, float, string, or equivalent
+           typedefs. Including any collection types is an error.) -> mapping
+           from type "metadata_value_key" (A key for a value associated with
+           a piece of metadata. Less than 1000 unicode characters. Examples:
+           units, value, species) to unspecified object, parameter
+           "meta_user" of type "metadata" (Metadata attached to a sample.) ->
+           mapping from type "metadata_key" (A key in a metadata key/value
+           pair. Less than 1000 unicode characters.) to type "metadata_value"
+           (A metadata value, represented by a mapping of value keys to
+           primitive values. An example for a location metadata key might be:
+           { "name": "Castle Geyser", "lat": 44.463816, "long": -110.836471 }
+           "primitive values" means an int, float, string, or equivalent
+           typedefs. Including any collection types is an error.) -> mapping
+           from type "metadata_value_key" (A key for a value associated with
+           a piece of metadata. Less than 1000 unicode characters. Examples:
+           units, value, species) to unspecified object, parameter "name" of
+           type "sample_name" (A sample name. Must be less than 255
+           characters.), parameter "save_date" of type "timestamp" (A
+           timestamp in epoch milliseconds.), parameter "version" of type
+           "version" (The version of a sample. Always > 0.)
+        """
+        return self._client.call_method('SampleService.get_samples',
+                                        [params], self._service_ver, context)
+
     def get_sample_acls(self, params, context=None):
         """
         Get a sample's ACLs.
@@ -431,6 +523,77 @@ class SampleService(object):
            in epoch milliseconds.)
         """
         return self._client.call_method('SampleService.create_data_link',
+                                        [params], self._service_ver, context)
+
+    def propagate_data_links(self, params, context=None):
+        """
+        Propagates data links from a previous sample to the current (latest) version
+                The user must have admin permissions for the sample and write permissions for the
+                Workspace object.
+        :param params: instance of type "PropagateDataLinkParams"
+           (propagate_data_links parameters. id - the sample id. version -
+           the sample version. (data links are propagated to)
+           previous_version - the previouse sample version. (data links are
+           propagated from) ignore_types - the workspace data type ignored
+           from propagating. default empty. update - if false (the default),
+           fail if a link already exists from the data unit (the combination
+           of the UPA and dataid). if true, expire the old link and create
+           the new link unless the link is already to the requested sample
+           node, in which case the operation is a no-op. effective_time - the
+           effective time at which the query should be run - the default is
+           the current time. Providing a time allows for reproducibility of
+           previous results. as_admin - run the method as a service
+           administrator. The user must have full administration permissions.
+           as_user - create the link as a different user. Ignored if as_admin
+           is not true. Neither the administrator nor the impersonated user
+           need have permissions to the data or sample.) -> structure:
+           parameter "id" of type "sample_id" (A Sample ID. Must be globally
+           unique. Always assigned by the Sample service.), parameter
+           "version" of type "version" (The version of a sample. Always >
+           0.), parameter "previous_version" of type "version" (The version
+           of a sample. Always > 0.), parameter "ignore_types" of list of
+           type "ws_type_string" (A workspace type string. Specifies the
+           workspace data type a single string in the format
+           [module].[typename]: module - a string. The module name of the
+           typespec containing the type. typename - a string. The name of the
+           type as assigned by the typedef statement. Example:
+           KBaseSets.SampleSet), parameter "update" of type "boolean" (A
+           boolean value, 0 for false, 1 for true.), parameter
+           "effective_time" of type "timestamp" (A timestamp in epoch
+           milliseconds.), parameter "as_admin" of type "boolean" (A boolean
+           value, 0 for false, 1 for true.), parameter "as_user" of type
+           "user" (A user's username.)
+        :returns: instance of type "PropagateDataLinkResults"
+           (propagate_data_links results. links - the links.) -> structure:
+           parameter "links" of list of type "DataLink" (A data link from a
+           KBase workspace object to a sample. upa - the workspace UPA of the
+           linked object. dataid - the dataid of the linked data, if any,
+           within the object. If omitted the entire object is linked to the
+           sample. id - the sample id. version - the sample version. node -
+           the sample node. createdby - the user that created the link.
+           created - the time the link was created. expiredby - the user that
+           expired the link, if any. expired - the time the link was expired,
+           if at all.) -> structure: parameter "linkid" of type "link_id" (A
+           link ID. Must be globally unique. Always assigned by the Sample
+           service. Typically only of use to service admins.), parameter
+           "upa" of type "ws_upa" (A KBase Workspace service Unique Permanent
+           Address (UPA). E.g. 5/6/7 where 5 is the workspace ID, 6 the
+           object ID, and 7 the object version.), parameter "dataid" of type
+           "data_id" (An id for a unit of data within a KBase Workspace
+           object. A single object may contain many data units. A dataid is
+           expected to be unique within a single object. Must be less than
+           255 characters.), parameter "id" of type "sample_id" (A Sample ID.
+           Must be globally unique. Always assigned by the Sample service.),
+           parameter "version" of type "version" (The version of a sample.
+           Always > 0.), parameter "node" of type "node_id" (A SampleNode ID.
+           Must be unique within a Sample and be less than 255 characters.),
+           parameter "createdby" of type "user" (A user's username.),
+           parameter "created" of type "timestamp" (A timestamp in epoch
+           milliseconds.), parameter "expiredby" of type "user" (A user's
+           username.), parameter "expired" of type "timestamp" (A timestamp
+           in epoch milliseconds.)
+        """
+        return self._client.call_method('SampleService.propagate_data_links',
                                         [params], self._service_ver, context)
 
     def expire_data_link(self, params, context=None):
@@ -795,8 +958,14 @@ class SampleService(object):
            timestamp in epoch milliseconds.), parameter "version" of type
            "version" (The version of a sample. Always > 0.)
         :returns: instance of type "ValidateSamplesResults" -> structure:
-           parameter "errors" of mapping from type "sample_name" (A sample
-           name. Must be less than 255 characters.) to list of String
+           parameter "errors" of list of type "ValidateSamplesError" ->
+           structure: parameter "message" of String, parameter "dev_message"
+           of String, parameter "sample_name" of type "sample_name" (A sample
+           name. Must be less than 255 characters.), parameter "node" of type
+           "node_id" (A SampleNode ID. Must be unique within a Sample and be
+           less than 255 characters.), parameter "key" of type "metadata_key"
+           (A key in a metadata key/value pair. Less than 1000 unicode
+           characters.), parameter "subkey" of String
         """
         return self._client.call_method('SampleService.validate_samples',
                                         [params], self._service_ver, context)

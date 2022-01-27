@@ -12,6 +12,7 @@ from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
 from installed_clients.DataFileUtilClient import DataFileUtil
+from sample_uploader.utils.sample_utils import get_sample, get_data_links_from_sample
 
 
 class Test(unittest.TestCase):
@@ -116,6 +117,205 @@ class Test(unittest.TestCase):
         file_path = params.get('staging_file_subdir_path')
 
         return {'copy_file_path': file_path}
+
+    def test_overwrite_samples(self):
+
+        # create initial test sample set
+        sesar_sample_file = os.path.join(self.curr_dir, "data", "fake_samples.tsv")
+        sample_set_name = "test_sample_set_1"
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sesar_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': self.sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field"
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        sample_set_ref = ret['sample_set_ref']
+
+        sample_name_1 = sample_set['samples'][0]['name']
+        sample_name_2 = sample_set['samples'][1]['name']
+        sample_name_3 = sample_set['samples'][2]['name']
+
+        # create data link for each sample
+        links_in = [
+            {'sample_name': [sample_name_1], 'obj_ref': self.rhodo_art_jgi_reads},
+            {'sample_name': [sample_name_2],
+             'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
+            {'sample_name': [sample_name_3],
+             'obj_ref': self.rhodobacter_art_q50_SE_reads},
+        ]
+
+        ret = self.serviceImpl.link_samples(
+            self.ctx, {
+                'workspace_name': self.wsName,
+                'sample_set_ref': sample_set_ref,
+                'links': links_in,
+            })
+
+        links_out = [d['new_link'] for d in ret[0]['links']]
+
+        assert len(links_out) == len(links_in)
+        for lin, lout in zip(links_in, links_out):
+            assert lout['linkid'] and lout['id'] and lout['version']
+            assert lout['upa'] == lin['obj_ref']
+            assert lout['node'] == lin['sample_name'][0]
+
+        for it, samp in enumerate(sample_set['samples']):
+            sample_id = samp['id']
+            version = samp['version']
+            self.assertEqual(version, 1)
+
+            data_links = get_data_links_from_sample(sample_id, version,
+                                                    self.sample_url, self.ctx['token'])
+            links_upa = [link['upa'] for link in data_links]
+            expected_links = [links_in[it]['obj_ref'], sample_set_ref]
+            self.assertCountEqual(links_upa, expected_links)
+
+        # overwrite existing sample set
+
+        # updated the 'Country' metadata
+        new_sample_file = os.path.join(self.curr_dir, "data", "fake_samples_2.tsv")
+
+        # test oerwritting without 'propagate_links' (default action)
+        sample_set_name = "test_sample_set_2"
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_set_ref': sample_set_ref,
+            'sample_file': new_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field",
+        }
+
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        new_sample_set = ret['sample_set']
+        new_sample_set_ref = ret['sample_set_ref']
+
+        for it, samp in enumerate(new_sample_set['samples']):
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
+            assert sample['node_tree'][0]['meta_controlled']['country']['value'] == 'USA'
+
+            sample_id = samp['id']
+            version = samp['version']
+            self.assertEqual(version, 2)
+            self.assertEqual(sample_id, sample_set['samples'][it]['id'])
+
+            data_links = get_data_links_from_sample(sample_id, version,
+                                                    self.sample_url, self.ctx['token'])
+
+            links_upa = [link['upa'] for link in data_links]
+            expected_links = [new_sample_set_ref]
+            self.assertCountEqual(links_upa, expected_links)
+
+    def test_overwrite_samples_with_propagate_links(self):
+
+        # create initial test sample set
+        sesar_sample_file = os.path.join(self.curr_dir, "data", "fake_samples.tsv")
+        sample_set_name = "test_sample_set_1"
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_file': sesar_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': self.sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field"
+        }
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        sample_set = ret['sample_set']
+        sample_set_ref = ret['sample_set_ref']
+
+        sample_name_1 = sample_set['samples'][0]['name']
+        sample_name_2 = sample_set['samples'][1]['name']
+        sample_name_3 = sample_set['samples'][2]['name']
+
+        # create data link for each sample
+        links_in = [
+            {'sample_name': [sample_name_1], 'obj_ref': self.rhodo_art_jgi_reads},
+            {'sample_name': [sample_name_2],
+             'obj_ref': self.rhodobacter_art_q20_int_PE_reads},
+            {'sample_name': [sample_name_3],
+             'obj_ref': self.rhodobacter_art_q50_SE_reads},
+        ]
+
+        ret = self.serviceImpl.link_samples(
+            self.ctx, {
+                'workspace_name': self.wsName,
+                'sample_set_ref': sample_set_ref,
+                'links': links_in,
+            })
+
+        links_out = [d['new_link'] for d in ret[0]['links']]
+
+        assert len(links_out) == len(links_in)
+        for lin, lout in zip(links_in, links_out):
+            assert lout['linkid'] and lout['id'] and lout['version']
+            assert lout['upa'] == lin['obj_ref']
+            assert lout['node'] == lin['sample_name'][0]
+
+        for it, samp in enumerate(sample_set['samples']):
+            sample_id = samp['id']
+            version = samp['version']
+            self.assertEqual(version, 1)
+
+            data_links = get_data_links_from_sample(sample_id, version,
+                                                    self.sample_url, self.ctx['token'])
+            links_upa = [link['upa'] for link in data_links]
+            expected_links = [links_in[it]['obj_ref'], sample_set_ref]
+            self.assertCountEqual(links_upa, expected_links)
+
+        # overwrite existing sample set
+
+        # updated the 'Country' metadata
+        new_sample_file = os.path.join(self.curr_dir, "data", "fake_samples_2.tsv")
+
+        # test oerwritting with 'propagate_links'
+        sample_set_name = "test_sample_set_2"
+        params = {
+            'workspace_name': self.wsName,
+            'workspace_id': self.wsID,
+            'sample_set_ref': sample_set_ref,
+            'sample_file': new_sample_file,
+            'file_format': "sesar",
+            'header_row_index': 2,
+            'set_name': sample_set_name,
+            'description': "this is a test sample set.",
+            'output_format': "",
+            'name_field': "test name field",
+            'propagate_links': 1
+        }
+
+        ret = self.serviceImpl.import_samples(self.ctx, params)[0]
+        new_sample_set = ret['sample_set']
+        new_sample_set_ref = ret['sample_set_ref']
+
+        for it, samp in enumerate(new_sample_set['samples']):
+            sample = get_sample(samp, self.sample_url, self.ctx['token'])
+            assert sample['node_tree'][0]['meta_controlled']['country']['value'] == 'USA'
+
+            sample_id = samp['id']
+            version = samp['version']
+            self.assertEqual(version, 2)
+            self.assertEqual(sample_id, sample_set['samples'][it]['id'])
+
+            data_links = get_data_links_from_sample(sample_id, version,
+                                                    self.sample_url, self.ctx['token'])
+
+            links_upa = [link['upa'] for link in data_links]
+            expected_links = [links_in[it]['obj_ref'], new_sample_set_ref]
+            self.assertCountEqual(links_upa, expected_links)
 
     def test_link_samples(self):
         links_in = [

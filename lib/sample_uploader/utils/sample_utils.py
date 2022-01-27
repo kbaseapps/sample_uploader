@@ -13,6 +13,7 @@ from sample_uploader.utils.parsing_utils import (
 )
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.WorkspaceClient import Workspace as workspaceService
+from installed_clients.SampleServiceClient import SampleService
 
 
 def _handle_response(resp):
@@ -286,7 +287,7 @@ def get_sample(sample_info, sample_url, token):
     return sample
 
 
-def save_sample(sample, sample_url, token, previous_version=None):
+def save_sample(sample, sample_url, token, previous_version=None, propagate_links=0):
     """
     sample     - completed sample as per
     sample_url - url to sample service
@@ -329,6 +330,18 @@ def save_sample(sample, sample_url, token, previous_version=None):
     sample_ver = resp_json['result'][0]['version']
 
     print('saved sample {} (version: {}'.format(sample_id, sample_ver))
+
+    if previous_version and propagate_links:
+        print('start propagating previous data links')
+
+        ss = SampleService(sample_url)
+        ss.propagate_data_links({'id': sample_id,
+                                 'version': sample_ver,
+                                 'previous_version': previous_version['version'],
+                                 'ignore_types': ['KBaseSets.SampleSet'],
+                                 'update': True,
+                                 'as_user': True})
+
     return sample_id, sample_ver
 
 
@@ -389,6 +402,19 @@ def get_data_links_from_ss(sample_set_ref, sample_url, token):
     links = resp_json['result'][0].get('links')
 
     return links
+
+
+def get_data_links_from_sample(sample_id, version, sample_url, token):
+    """
+    sample_id      - the sample ID.
+    version        - the sample version.
+    sample_url     - url to sample service
+    token          - workspace token for Authorization
+    """
+    ss = SampleService(sample_url, token=token)
+    ret = ss.get_data_links_from_sample({'id': sample_id, 'version': version})
+
+    return ret.get('links')
 
 
 def format_sample_as_row(sample, sample_headers=None, file_format="SESAR"):

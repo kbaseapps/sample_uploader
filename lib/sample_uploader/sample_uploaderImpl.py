@@ -83,7 +83,8 @@ class sample_uploader:
            parameter "share_within_workspace" of Long, parameter
            "prevalidate" of Long, parameter "incl_input_in_output" of Long,
            parameter "ignore_warnings" of Long, parameter
-           "keep_existing_samples" of Long
+           "keep_existing_samples" of Long, parameter "propagate_links" of
+           Long
         :returns: instance of type "ImportSampleOutputs" -> structure:
            parameter "report_name" of String, parameter "report_ref" of
            String, parameter "sample_set" of type "SampleSet" -> structure:
