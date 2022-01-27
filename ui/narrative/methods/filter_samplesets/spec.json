@@ -82,7 +82,7 @@
                 "description_template": "{{field}}",
                 "service_params": [
                     {
-                        "sample_set_ref": "{{sample_set_ref}}"
+                        "sample_set_refs": "{{sample_set_ref}}"
                     }
                 ]
             }
