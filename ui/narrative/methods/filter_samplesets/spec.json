@@ -78,6 +78,8 @@
                 "data_source": "custom",
                 "service_function": "sample_uploader.get_sampleset_meta",
                 "service_version": "dev",
+                "selection_id": "field",
+                "description_template": "{{field}}",
                 "service_params": [
                     {
                         "sample_set_ref": "{{sample_set_ref}}"
