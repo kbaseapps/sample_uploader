@@ -570,8 +570,11 @@ class sample_uploader:
                           "KBaseAssembly.PairedEndLibrary",
                           "KBaseGenomes.Genome",
                           "KBaseMetagenomes.AnnotatedMetagenomeAssembly",
+                          "KBaseMetagenomes.BinnedContigs",
                           "KBaseGenomeAnnotations.Assembly",
-                          "KBaseSets.AssemblySet"]
+                          "KBaseSearch.GenomeSet",
+                          "KBaseSets.AssemblySet",
+                          "KBaseSets.GenomeSet"]
 
         new_data_links = []
         for sample_name, obj_ref in links:

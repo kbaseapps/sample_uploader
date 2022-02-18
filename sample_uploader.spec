@@ -143,8 +143,11 @@ module sample_uploader {
             KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
             KBaseGenomes.Genome,
             KBaseMetagenomes.AnnotatedMetagenomeAssembly,
+            KBaseMetagenomes.BinnedContigs
             KBaseGenomeAnnotations.Assembly,
-            KBaseSets.AssemblySet
+            KBaseSearch.GenomeSet,
+            KBaseSets.AssemblySet,
+            KBaseSets.GenomeSet
 
     */
 
