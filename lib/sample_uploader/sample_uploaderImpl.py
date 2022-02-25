@@ -753,7 +753,7 @@ class sample_uploader:
         })
 
         report_client = KBaseReport(self.callback_url)
-        report_info = report_client.create_extended_report({
+        report_params = {
             'objects_created': [
                 {
                     'ref': "/".join([str(info[6]), str(info[0]), str(info[4])])
@@ -762,7 +762,16 @@ class sample_uploader:
             'message': f"SampleSet object named \"{params['out_sample_set_name']}\" \
 created with condition(s): {conditions_summary}",
             'workspace_name': params['workspace_name']
-        })
+        }
+
+        if not len(sample_search_api_response['sample_ids']):
+            warning_msg = "Warning: It appears your filtered sample set contains no samples. \
+            Attempting to open or view this sample set will result in an error \
+            from the Sample Service."
+            report_params['warnings'] = [warning_msg]
+
+        report_info = report_client.create_extended_report(report_params)
+
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],
