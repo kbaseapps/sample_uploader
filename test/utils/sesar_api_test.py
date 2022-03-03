@@ -88,7 +88,7 @@ def test_retrieve_sample_from_igsn():
                        'collection_method': 'Coring > Syringe',
                        'purpose': 'Microbial Characterization 1',
                        'latitude': '33.3375',
-                       'longitude': '81.71861111',
+                       'longitude': '-81.71861111',
                        'elevation_unit': [],
                        'navigation_type': 'GPS',
                        'primary_location_type': 'Hollow',
@@ -101,6 +101,7 @@ def test_retrieve_sample_from_igsn():
                        'collection_date_precision': 'day',
                        'current_archive': 'Argonne National Lab',
                        'current_archive_contact': 'pweisenhorn@anl.gov'}
+
     assert expected_sample == {key: sample[key] for key in expected_sample.keys()}
 
 
