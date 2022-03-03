@@ -49,7 +49,7 @@ def retrieve_sample_from_igsn(igsn):
         raise RuntimeError(f'Failed to connect to server\n{err}')
 
     max_try, counter = 3, 1
-    # try to query maxmium of 3 times in case of failure
+    # try to query maximum of 3 times in case of failure
     while not resp.ok and counter < max_try:
         counter += 1
         try:
