@@ -43,10 +43,20 @@ def retrieve_sample_from_igsn(igsn):
     url = '{}/{}'.format(_get_igsn_endpoint(), igsn)
 
     try:
-        time.sleep(2)  # in case of server overload
+        time.sleep(1)  # in case of server overload
         resp = requests.get(url=url, headers=headers)
     except Exception as err:
         raise RuntimeError(f'Failed to connect to server\n{err}')
+
+    max_try, counter = 3, 1
+    # try to query maxmium of 3 times in case of failure
+    while not resp.ok and counter < max_try:
+        counter += 1
+        try:
+            time.sleep(1)  # in case of server overload
+            resp = requests.get(url=url, headers=headers)
+        except Exception as err:
+            raise RuntimeError(f'Failed to connect to server\n{err}')
 
     if not resp.ok:
         error = None
