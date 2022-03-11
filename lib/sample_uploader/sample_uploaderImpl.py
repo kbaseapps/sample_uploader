@@ -5,19 +5,22 @@ import os
 import uuid
 import shutil
 import csv
+import datetime
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
 from installed_clients.sample_search_apiClient import sample_search_api
 from installed_clients.WorkspaceClient import Workspace as workspaceService
+from installed_clients.SetAPIClient import SetAPI
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    build_links
+    build_links,
+    get_data_links_from_ss
 )
 from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
@@ -43,8 +46,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "1.1.1"
-    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
+    GIT_URL = "git@github.com:charleshtrenholm/sample_uploader.git"
+    GIT_COMMIT_HASH = "20e60df2dfa54b90ba25dad4110cea5d0123754e"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -541,9 +544,10 @@ class sample_uploader:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
            KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
-           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
-           structure: parameter "sample_name" of String, parameter "obj_ref"
-           of String
+           KBaseMetagenomes.BinnedContigs KBaseGenomeAnnotations.Assembly,
+           KBaseSearch.GenomeSet, KBaseSets.AssemblySet, KBaseSets.GenomeSet)
+           -> structure: parameter "sample_name" of String, parameter
+           "obj_ref" of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
@@ -753,11 +757,12 @@ class sample_uploader:
         })
 
         report_client = KBaseReport(self.callback_url)
+        sample_set_refs = [f"{i[6]}/{i[0]}/{i[4]}" for i in obj_info]
         report_info = report_client.create_extended_report({
             'objects_created': [
                 {
-                    'ref': "/".join([str(info[6]), str(info[0]), str(info[4])])
-                } for info in obj_info
+                    'ref': ref
+                } for ref in sample_set_refs
             ],
             'message': f"SampleSet object named \"{params['out_sample_set_name']}\" \
 created with condition(s): {conditions_summary}",
@@ -766,7 +771,8 @@ created with condition(s): {conditions_summary}",
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],
-            'sample_set': sample_set
+            'sample_set': sample_set,
+            'sample_set_refs': sample_set_refs
         }
         #END filter_samplesets
 
@@ -809,6 +815,101 @@ created with condition(s): {conditions_summary}",
         if not isinstance(results, list):
             raise ValueError('Method get_sampleset_meta return value ' +
                              'results is not type list as required.')
+        # return the results
+        return [results]
+
+    def create_data_set_from_links(self, ctx, params):
+        """
+        :param params: instance of type "CreateDataSetFromLinksParams" ->
+           structure: parameter "description" of String, parameter
+           "sample_set_refs" of list of String, parameter "object_type" of
+           String, parameter "output_object_name" of String, parameter
+           "collision_resolution" of String
+        :returns: instance of type "CreateDataSetFromLinksResults" ->
+           structure: parameter "set_ref" of String, parameter "ws_upa" of
+           String, parameter "name" of String
+        """
+        # ctx is the context object
+        # return variables are: results
+        #BEGIN create_data_set_from_links
+        sample_service = SampleService(self.sample_url)
+        set_api = SetAPI(self.callback_url)
+        now = round(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+
+        try:
+            object_type = params['object_type']
+        except KeyError:
+            raise ValueError('Object type must be specified.')
+
+        types_map = {
+            'KBaseSets.ReadsSet': [
+                'KBaseFile.PairedEndLibrary-2.0',
+                'KBaseFile.SingleEndLibrary-2.0'
+            ],
+        }
+
+        methods_map = {
+            'KBaseSets.ReadsSet': set_api.save_reads_set_v1
+        }
+
+        samples = []
+        for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
+            samples.extend(sample_set['data']['samples'])
+        try:
+            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+        except KeyError as e:
+            raise ValueError(
+                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+            )
+        data_links = sample_service.get_data_links_from_sample_set({
+            'effective_time': now,
+            'sample_ids': sample_ids
+        })
+
+        ret = self.wsClient.get_objects2({
+            'objects': [{'ref': link['upa']} for link in data_links['links']]
+        }).get('data')
+
+        data_objs = [r for r in ret if r['info'][2] in types_map[object_type]]
+
+        upas = [f"{i['info'][6]}/{i['info'][0]}/{i['info'][4]}" for i in data_objs]
+
+        set_obj = {
+            'description': params['description'],
+            'items': [{'ref': u} for u in upas],
+            # data attachments should go here, if they're actually needed
+        }
+
+        save_data = {
+            'workspace': data_objs[0]['info'][7], # target workspace of the first one?
+            'output_object_name': params['output_object_name'], # make sure you check all the params exist
+            'data': set_obj
+        }
+
+        if params['object_type'] == 'KBaseSearch.GenomeSet':
+            # do something with mapping
+            #  # might need this elsewhere
+            save_data['save_search_set'] = True
+            # TODO: change to just it being the upa
+            set_obj['elements'] = {'param' + str(i): v for i, v in enumerate(genome_upas)}
+
+        # elif params['object_type'] == 'KBaseSets.ReadsSet':
+        #     for item in set_obj['items']:
+        #         item['data_attachments'] = {}
+
+        set_api_method = methods_map[object_type]
+
+        result = set_api_method(save_data)
+
+        # TODO: decide what return object should look like
+        return result
+
+        #END create_data_set_from_links
+
+        # At some point might do deeper type checking...
+        if not isinstance(results, dict):
+            raise ValueError('Method create_data_set_from_links return value ' +
+                             'results is not type dict as required.')
         # return the results
         return [results]
     def status(self, ctx):
