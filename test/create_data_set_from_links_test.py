@@ -70,7 +70,6 @@ class Test(unittest.TestCase):
         }
         ret = cls.service_impl.import_samples(cls.ctx, params)[0]
         cls.sample_set = ret['sample_set']
-        print ("IMPORT SAMPLES RESULTS >>> ", ret)
         # first id of sample set - probably can remove this from class
         cls.sample_set_id = ret['sample_set']['samples'][0]['id']
         # probably the actual upa
@@ -81,7 +80,7 @@ class Test(unittest.TestCase):
         cls.sample_name_3 = cls.sample_set['samples'][2]['name']
 
         # reference data set upas
-        # TODO !)#)(Q$*)(@#$%*)_@#*%)@#*$_#@$*_@(#) *)_($#*)(  ) make a bunch of copies of these objects
+        # TODO make a bunch of copies of these objects
         if 'appdev' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '44442/4/1'
             cls.rhodo_art_jgi_reads = '44442/8/1'
@@ -130,8 +129,6 @@ class Test(unittest.TestCase):
                 'links': cls.links_in,
             })
 
-        print("\nLINKS OUT >>>> ", cls.links_out)
-
         # filtered sample set with reads
         # should only return 1 read object
         cls.filtered_sample_set_3 = cls.service_impl.filter_samplesets(cls.ctx, {
@@ -150,7 +147,6 @@ class Test(unittest.TestCase):
 
 
         cls.filtered_sample_set_3_ref = cls.filtered_sample_set_3[0]['sample_set_refs'][0]
-        print("\nSAMPLE SET REF >>> ", cls.sample_set_ref)
 
     @classmethod
     def tearDownClass(cls):
@@ -161,15 +157,16 @@ class Test(unittest.TestCase):
 
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.filtered_sample_set_3_ref],
-            # 'sample_set_refs': [self.sample_set_ref],
-            'object_type': 'KBaseSets.ReadsSet',
+            'input_object_type': 'KBaseFile.SingleEndLibrary',
+            'output_object_type': 'KBaseSets.ReadsSet',
             'output_object_name': 'test_data_links',
             'collision_resolution': 'newest',
             'description': 'filtered reads set bing bong'
         })
 
-        print('RET!', ret)
+        meta = ret.get('set_info')[-1]
 
-        self.assertEquals(1,2)
-
-        # create mock reads
+        self.assertEquals(meta.get('item_count'), 1)
+        self.assertEquals(meta.get('description'), 'filtered reads set bing bong')
+        self.assertEquals(ret[6], self.target_wsID)
+        self.assertIn('KBaseSets.ReadsSet', ret[2])

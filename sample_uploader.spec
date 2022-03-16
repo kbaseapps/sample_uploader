@@ -225,9 +225,11 @@ module sample_uploader {
     typedef structure {
         string description;
         list<string> sample_set_refs;
-        string object_type;
+        string input_object_type;
+        string output_object_type;
         string output_object_name;
         string collision_resolution; /* how to resolve conflicting linked versions, currently "newest" only supported */
+        int workspace_id;
     } CreateDataSetFromLinksParams;
 
     typedef structure {

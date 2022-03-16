@@ -822,9 +822,9 @@ created with condition(s): {conditions_summary}",
         """
         :param params: instance of type "CreateDataSetFromLinksParams" ->
            structure: parameter "description" of String, parameter
-           "sample_set_refs" of list of String, parameter "object_type" of
-           String, parameter "output_object_name" of String, parameter
-           "collision_resolution" of String
+           "sample_set_refs" of list of String, parameter "input_object_type" of
+           String, parameter "output_object_type" of String, parameter "output_object_name"
+            of String, parameter "collision_resolution" of String, parameter "ws_id" of Int
         :returns: instance of type "CreateDataSetFromLinksResults" ->
            structure: parameter "set_ref" of String, parameter "ws_upa" of
            String, parameter "name" of String
@@ -837,16 +837,32 @@ created with condition(s): {conditions_summary}",
         now = round(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
 
         try:
-            object_type = params['object_type']
+            input_object_type = params['input_object_type']
+            output_object_type = params['output_object_type']
         except KeyError:
-            raise ValueError('Object type must be specified.')
+            raise ValueError('Input and output object types must be specified.')
 
         types_map = {
+            # TODO: figure out how to best deal with specifc type versions
             'KBaseSets.ReadsSet': [
-                'KBaseFile.PairedEndLibrary-2.0',
-                'KBaseFile.SingleEndLibrary-2.0'
+                'KBaseFile.PairedEndLibrary',
+                'KBaseFile.SingleEndLibrary'
             ],
+            'KBaseSets.GenomeSet': [
+                'KBaseGenomes.Genome'
+            ],
+            'KBaseSearch.GenomeSet': [
+                'KBaseGenomes.Genome'
+            ],
+            'KBaseSets.AssemblySet': [
+                'KBaseGenomeAnnotations.Assembly'
+            ]
         }
+
+        if input_object_type not in types_map[output_object_type]:
+            raise ValueError(
+                f"{input_object_type} is not a valid subet of type {output_object_type}."
+            )
 
         methods_map = {
             'KBaseSets.ReadsSet': set_api.save_reads_set_v1
@@ -870,7 +886,8 @@ created with condition(s): {conditions_summary}",
             'objects': [{'ref': link['upa']} for link in data_links['links']]
         }).get('data')
 
-        data_objs = [r for r in ret if r['info'][2] in types_map[object_type]]
+        # data_objs = [r for r in ret if r['info'][2] in types_map[object_type]]
+        data_objs = [r for r in ret if r['info'][2].split('-')[0] == input_object_type]
 
         upas = [f"{i['info'][6]}/{i['info'][0]}/{i['info'][4]}" for i in data_objs]
 
@@ -886,7 +903,7 @@ created with condition(s): {conditions_summary}",
             'data': set_obj
         }
 
-        if params['object_type'] == 'KBaseSearch.GenomeSet':
+        if output_object_type == 'KBaseSearch.GenomeSet':
             # do something with mapping
             #  # might need this elsewhere
             save_data['save_search_set'] = True
@@ -897,7 +914,7 @@ created with condition(s): {conditions_summary}",
         #     for item in set_obj['items']:
         #         item['data_attachments'] = {}
 
-        set_api_method = methods_map[object_type]
+        set_api_method = methods_map[output_object_type]
 
         result = set_api_method(save_data)
 
