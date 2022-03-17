@@ -180,6 +180,10 @@
                 },{
                     "input_parameter":"filter_conditions",
                     "target_property": "filter_conditions"
+                },
+                {
+                    "input_parameter": "description",
+                    "target_property": "description"
                 }
             ],
             "output_mapping": [
