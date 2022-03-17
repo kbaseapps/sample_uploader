@@ -47,5 +47,12 @@ parameters :
             The name of the output dataset within the workspace.
         long: |
             The name of the output dataset within the workspace.
+    description:
+        ui-name: |
+            Description
+        short-hint: |
+            A description of the output data set.
+        long: |
+            A description of the output data set.
 description : |
     <p>Create Data Set From Sample Links</p>
