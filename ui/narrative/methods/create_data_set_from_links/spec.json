@@ -24,7 +24,7 @@
       }
     },
     {
-      "id": "input_object_type",
+      "id": "object_type",
       "optional": false,
       "advanced": false,
       "allow_multiple": false,
@@ -45,36 +45,12 @@
             "display": "KBaseGenomes.Genome"
           },
           {
+            "value": "KBaseGenomes.Genome__legacy",
+            "display": "KBaseGenomes.Genome - legacy set type"
+          },
+          {
             "value": "KBaseGenomeAnnotations.Assembly",
             "display": "KBaseGenomeAnnotations.Assembly"
-          }
-        ]
-      }
-    },
-    {
-      "id": "output_object_type",
-      "optional": false,
-      "advanced": false,
-      "allow_multiple": false,
-      "default_values": [""],
-      "field_type": "dropdown",
-      "dropdown_options": {
-        "options": [
-          {
-            "value": "KBaseSets.ReadsSet",
-            "display": "KBaseSets.ReadsSet"
-          },
-          {
-            "value": "KBaseSets.GenomeSet",
-            "display": "KBaseSets.GenomeSet"
-          },
-          {
-            "value": "KBaseSearch.GenomeSet",
-            "display": "KBaseSearch.GenomeSet (legacy version)"
-          },
-          {
-            "value": "KBaseSets.ReadsSet",
-            "display": "KBaseSets.ReadsSet"
           }
         ]
       }
@@ -121,12 +97,8 @@
           "target_type_transform": "list<resolved-ref>"
         },
         {
-          "input_parameter": "input_object_type",
-          "target_property": "input_object_type"
-        },
-        {
-          "input_parameter": "output_object_type",
-          "target_property": "output_object_type"
+          "input_parameter": "object_type",
+          "target_property": "object_type"
         },
         {
           "input_parameter": "output_object_name",

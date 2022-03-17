@@ -157,8 +157,7 @@ class Test(unittest.TestCase):
 
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.filtered_sample_set_3_ref],
-            'input_object_type': 'KBaseFile.SingleEndLibrary',
-            'output_object_type': 'KBaseSets.ReadsSet',
+            'object_type': 'KBaseFile.SingleEndLibrary',
             'output_object_name': 'test_data_links',
             'collision_resolution': 'newest',
             'description': 'filtered reads set bing bong'
@@ -166,7 +165,9 @@ class Test(unittest.TestCase):
 
         meta = ret.get('set_info')[-1]
 
-        self.assertEquals(meta.get('item_count'), 1)
+        # At one point SetAPI might convert 'item_count' to a string
+        # might be worth investigating
+        self.assertEquals(int(meta.get('item_count')), 1)
         self.assertEquals(meta.get('description'), 'filtered reads set bing bong')
-        self.assertEquals(ret[6], self.target_wsID)
-        self.assertIn('KBaseSets.ReadsSet', ret[2])
+        self.assertEquals(ret['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSets.ReadsSet', ret['set_info'][2])
