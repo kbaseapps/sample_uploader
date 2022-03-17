@@ -131,6 +131,10 @@
         {
           "input_parameter": "output_object_name",
           "target_property": "output_object_name"
+        },
+        {
+          "input_parameter": "description",
+          "target_property": "description"
         }
       ],
       "output_mapping": []
