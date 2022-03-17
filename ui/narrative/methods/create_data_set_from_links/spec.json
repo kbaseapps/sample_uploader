@@ -1,0 +1,132 @@
+{
+  "ver": "0.0.1",
+  "authors": [
+    "charlie"
+  ],
+  "contact": "",
+  "categories": ["active"],
+  "widgets": {
+    "input": null,
+    "output": "no-display"
+  },
+  "parameters": [
+    {
+      "id": "sample_set_refs",
+      "optional": false,
+      "advanced": false,
+      "allow_multiple": true,
+      "default_values": [""],
+      "field_type": "text",
+      "text_options": {
+        "valid_ws_types": [
+          "KBaseSets.SampleSet"
+        ]
+      }
+    },
+    {
+      "id": "input_object_type",
+      "optional": false,
+      "advanced": false,
+      "allow_multiple": false,
+      "default_values": [""],
+      "field_type": "dropdown",
+      "dropdown_options": {
+        "options": [
+          {
+            "value": "KBaseFile.PairedEndLibrary",
+            "display": "KBaseFile.PairedEndLibrary"
+          },
+          {
+            "value": "KBaseFile.SingleEndLibrary",
+            "display": "KBaseFile.SingleEndLibrary"
+          },
+          {
+            "value": "KBaseGenomes.Genome",
+            "display": "KBaseGenomes.Genome"
+          },
+          {
+            "value": "KBaseGenomeAnnotations.Assembly",
+            "display": "KBaseGenomeAnnotations.Assembly"
+          }
+        ]
+      }
+    },
+    {
+      "id": "output_object_type",
+      "optional": false,
+      "advanced": false,
+      "allow_multiple": false,
+      "default_values": [""],
+      "field_type": "dropdown",
+      "dropdown_options": {
+        "options": [
+          {
+            "value": "KBaseSets.ReadsSet",
+            "display": "KBaseSets.ReadsSet"
+          },
+          {
+            "value": "KBaseSets.GenomeSet",
+            "display": "KBaseSets.GenomeSet"
+          },
+          {
+            "value": "KBaseSearch.GenomeSet",
+            "display": "KBaseSearch.GenomeSet (legacy version)"
+          },
+          {
+            "value": "KBaseSets.ReadsSet",
+            "display": "KBaseSets.ReadsSet"
+          }
+        ]
+      }
+    },
+    {
+      "id": "output_object_name",
+      "optional": false,
+      "advanced": false,
+      "allow_multiple": false,
+      "default_values": [""],
+      "field_type": "text",
+      "text_options": {
+        "valid_ws_types": [
+          "KBaseSets.ReadsSet",
+          "KBaseSets.GenomeSet",
+          "KBaseSearch.GenomeSet",
+          "KBaseSets.AssemblySet"
+        ],
+        "is_output_name": true
+      }
+    }
+  ],
+  "behavior": {
+    "service-mapping": {
+      "url": "",
+      "name": "sample_uploader",
+      "method": "create_data_set_from_links",
+      "input_mapping": [
+        {
+          "narrative_system_variable": "workspace_id",
+          "target_property": "workspace_id"
+        },
+        {
+          "input_parameter": "sample_set_refs",
+          "target_property": "sample_set_refs",
+          "target_type_transform": "list<resolved-ref>"
+        },
+        {
+          "input_parameter": "input_object_type",
+          "target_property": "input_object_type"
+        },
+        {
+          "input_parameter": "output_object_type",
+          "target_property": "output_object_type"
+        },
+        {
+          "input_parameter": "output_object_name",
+          "target_property": "output_object_name"
+        }
+      ],
+      "output_mapping": []
+    }
+  },
+  "job_id_output_field": "docker"
+}

@@ -2,6 +2,7 @@
 A KBase module: sample_uploader
 */
 
+
 module sample_uploader {
 
     typedef string sample_id;
@@ -220,4 +221,22 @@ module sample_uploader {
     } GetSamplesetMetaParams;
 
     funcdef get_sampleset_meta(GetSamplesetMetaParams params) returns (list<string> results) authentication required;
+
+    typedef structure {
+        string description;
+        list<string> sample_set_refs;
+        string input_object_type;
+        string output_object_type;
+        string output_object_name;
+        string collision_resolution; /* how to resolve conflicting linked versions, currently "newest" only supported */
+        int workspace_id;
+    } CreateDataSetFromLinksParams;
+
+    typedef structure {
+        string set_ref;
+        string ws_upa;
+        string name;
+    } CreateDataSetFromLinksResults;
+
+    funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (CreateDataSetFromLinksResults results) authentication required;
 };
