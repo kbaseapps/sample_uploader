@@ -489,3 +489,17 @@ def build_links(input_staging_file_path, callback_url, workspace_url, workspace_
         links.append({'sample_name': [sample_name], 'obj_ref': obj_ref})
 
     return links
+
+
+def expire_data_link(obj_refs, sample_url, token):
+    ss = SampleService(sample_url, token=token)
+    expired_link_count = 0
+    for upa in obj_refs:
+        links = get_data_links_from_ss(upa, sample_url, token)
+        for link in links:
+            upa, dataid = link.get('upa'), link.get('dataid')
+            print('start expiring link {}-{}'.format(upa, dataid))
+            ss.expire_data_link({'upa': upa, 'dataid': dataid})
+            expired_link_count += 1
+
+    return expired_link_count

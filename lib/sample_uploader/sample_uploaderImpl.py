@@ -43,8 +43,8 @@ class sample_uploader:
     # the latter method is running.
     ######################################### noqa
     VERSION = "1.1.1"
-    GIT_URL = "git@github.com:kbaseapps/sample_uploader.git"
-    GIT_COMMIT_HASH = "7c1a2f7284662f4dd7a952cf5c6deff062832901"
+    GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
+    GIT_COMMIT_HASH = "b135702e08c924e978e81cde5ab974d47ffecd29"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -541,9 +541,10 @@ class sample_uploader:
            KBaseFile.PairedEndLibrary/SingleEndLibrary,
            KBaseAssembly.PairedEndLibrary/SingleEndLibrary,
            KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly,
-           KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet) ->
-           structure: parameter "sample_name" of String, parameter "obj_ref"
-           of String
+           KBaseMetagenomes.BinnedContigs KBaseGenomeAnnotations.Assembly,
+           KBaseSearch.GenomeSet, KBaseSets.AssemblySet, KBaseSets.GenomeSet)
+           -> structure: parameter "sample_name" of String, parameter
+           "obj_ref" of String
         :returns: instance of type "LinkObjsOutput" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String,
            parameter "links" of list of unspecified object
