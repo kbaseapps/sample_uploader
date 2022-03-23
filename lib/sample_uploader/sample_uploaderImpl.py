@@ -17,7 +17,8 @@ from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, alia
 from sample_uploader.utils.sample_utils import (
     sample_set_to_OTU_sheet,
     update_acls,
-    build_links
+    build_links,
+    expire_data_link
 )
 from sample_uploader.utils.sesar_api import igsns_to_csv
 from sample_uploader.utils.ncbi_api import ncbi_samples_to_csv
@@ -44,7 +45,7 @@ class sample_uploader:
     ######################################### noqa
     VERSION = "1.1.2"
     GIT_URL = "git@github.com:Tianhao-Gu/sample_uploader.git"
-    GIT_COMMIT_HASH = "0dbc49a954924dfa458aae5d32f642f057a5d43e"
+    GIT_COMMIT_HASH = "ba0174ae1e5a346cfc5a09a06e17466bf19297a0"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -59,7 +60,6 @@ class sample_uploader:
         self.scratch = config['scratch']
         # janky, but works for now
         self.sw_url = config.get('kbase-endpoint') + '/service_wizard'
-        self.sample_url = config.get('kbase-endpoint') + '/sampleservice'
         self.dfu = DataFileUtil(url=self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
@@ -812,6 +812,46 @@ created with condition(s): {conditions_summary}",
                              'results is not type list as required.')
         # return the results
         return [results]
+
+    def expire_data_link(self, ctx, params):
+        """
+        Expire data links for a list of given workspace objects.
+        :param params: instance of type "ExpireDataLinkParams" -> structure:
+           parameter "workspace_name" of String, parameter "workspace_id" of
+           String, parameter "obj_refs" of list of String
+        :returns: instance of type "ExpireDataLinkOutput" -> structure:
+           parameter "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN expire_data_link
+
+        obj_refs = params.get('obj_refs')
+
+        if not obj_refs:
+            raise ValueError('Please provide at least 1 workspace object.')
+
+        expired_link_count = expire_data_link(obj_refs, self.sample_url, ctx['token'])
+
+        # build report object
+        report_msg = 'Successfully expired {} data links'.format(expired_link_count)
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report({
+            'message': report_msg,
+            'workspace_name': params['workspace_name'],
+        })
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref']
+        }
+        #END expire_data_link
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method expire_data_link return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
