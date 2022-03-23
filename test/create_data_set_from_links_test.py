@@ -102,6 +102,7 @@ class Test(unittest.TestCase):
             cls.test_genome = '67096/6/1'
             # cls.test_genome_name = 'Acaryochloris_marina_MBIC11017'
             cls.test_genome_2 = '67096/5/8'
+            cls.test_assembly_1 = '67096/13/1'
             # cls.test_genome_2_name = 'test do i have to keep the same name?'
             # cls.test_genome = '59862/27/1'
             # cls.test_genome_name = 'test_Genome'
@@ -122,7 +123,9 @@ class Test(unittest.TestCase):
             {'sample_name': [cls.sample_name_1],
              'obj_ref': cls.test_genome},
              {'sample_name': [cls.sample_name_2],
-             'obj_ref': cls.test_genome_2}
+             'obj_ref': cls.test_genome_2},
+             {'sample_name': [cls.sample_name_1],
+             'obj_ref': cls.test_assembly_1}
             # {'sample_name': [cls.sample_name_3], 'obj_ref': cls.test_genome},
             # {'sample_name': [cls.sample_name_3], 'obj_ref': cls.test_assembly_SE_reads},
             # {'sample_name': [cls.sample_name_3], 'obj_ref': cls.test_assembly_PE_reads},
@@ -210,3 +213,19 @@ class Test(unittest.TestCase):
         # self.assertEquals(meta.get('description'), 'old skool legacy genomes set'),
         self.assertEquals(ret['set_info'][6], self.target_wsID)
         self.assertIn('KBaseSearch.GenomeSet', ret['set_info'][2])
+
+    def test_create_data_set_assembly_links(self):
+        ret = self.service_impl.create_data_set_from_links(self.ctx, {
+            'sample_set_refs': [self.sample_set_ref],
+            'object_type': 'KBaseGenomeAnnotations.Assembly',
+            'output_object_name': 'test_data_links_assembly',
+            'collision_resolution': 'newest',
+            'description': 'assembly set!! AAAA!!'
+        })
+
+        meta = ret.get('set_info')[-1]
+
+        self.assertEquals(int(meta.get('item_count')), 1)
+        self.assertEquals(meta.get('description'), 'assembly set!! AAAA!!')
+        self.assertEquals(ret['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSets.AssemblySet', ret['set_info'][2])
