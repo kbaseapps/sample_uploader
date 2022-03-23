@@ -863,6 +863,7 @@ created with condition(s): {conditions_summary}",
             # TODO: handle case for legacy GenomeSet
             'KBaseSets.ReadsSet': set_api.save_reads_set_v1,
             'KBaseSets.GenomeSet': set_api.save_genome_set_v1,
+            'KBaseSearch.GenomeSet': set_api.save_genome_set_v1,
             'KBaseSets.AssemblySet': set_api.save_assembly_set_v1
         }
 
@@ -884,7 +885,7 @@ created with condition(s): {conditions_summary}",
             'objects': [{'ref': link['upa']} for link in data_links['links']]
         }).get('data')
 
-        data_objs = [r for r in ret if r['info'][2].split('-')[0] == object_type]
+        data_objs = [r for r in ret if r['info'][2].split('-')[0] in object_type]
 
         upas = [f"{i['info'][6]}/{i['info'][0]}/{i['info'][4]}" for i in data_objs]
 
@@ -902,8 +903,10 @@ created with condition(s): {conditions_summary}",
 
         if object_type == 'KBaseGenomes.Genome__legacy':
             save_data['save_search_set'] = True
-            # TODO: figure out what exactly the elements should be, theres varying cases 
-            set_obj['elements'] = {'param' + str(i): v for i, v in enumerate(genome_upas)}
+            set_obj['elements'] = {}
+            for i, upa in enumerate(upas):
+                element = {'ref': upa, 'metadata': data_objs[i]['info'][-1]}
+                set_obj['elements'][upa] = element
 
         set_api_method = methods_map[output_object_type]
 
