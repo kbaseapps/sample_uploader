@@ -24,7 +24,7 @@ parameters :
             Input Sample Set(s)
         long  : |
             Input Sample Set(s). Output Sample Set with contain all matching results.
-    input_object_type:
+    object_type:
         ui-name: |
             Input Object Type
         short-hint: |
@@ -32,14 +32,6 @@ parameters :
         long: |
             The type of KBase object to be added to data set that are linked to the sample
             set. The KBase type must be a valid subtype for the output dataset.
-    output_object_type:
-        ui-name: |
-            Output Object Type
-        short-hint: |
-            Output Object Type
-        long: |
-            The KBase data set type that objects will be put into. Objects must be valid subsets
-            of this data type.
     output_object_name:
         ui-name: |
             Output Object Name
