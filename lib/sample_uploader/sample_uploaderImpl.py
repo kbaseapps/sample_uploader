@@ -830,6 +830,7 @@ created with condition(s): {conditions_summary}",
 
         if not obj_refs:
             raise ValueError('Please provide at least 1 workspace object.')
+        logging.info('Start expiring data links for:\n{}'.format(obj_refs))
 
         expired_link_count = expire_data_link(obj_refs, self.sample_url, ctx['token'])
 
