@@ -881,22 +881,21 @@ created with condition(s): {conditions_summary}",
             'sample_ids': sample_ids
         })
 
-        ret = self.wsClient.get_objects2({
+        ret = self.wsClient.get_object_info3({
             'objects': [{'ref': link['upa']} for link in data_links['links']]
-        }).get('data')
+        }).get('infos')
 
-        data_objs = [r for r in ret if r['info'][2].split('-')[0] in object_type]
+        data_objs = [r for r in ret if r[2].split('-')[0] in object_type]
 
-        upas = [f"{i['info'][6]}/{i['info'][0]}/{i['info'][4]}" for i in data_objs]
+        upas = [f"{i[6]}/{i[0]}/{i[4]}" for i in data_objs]
 
         set_obj = {
             'description': params['description'],
             'items': [{'ref': u} for u in upas],
-            # data attachments should go here, if they're actually needed
         }
 
         save_data = {
-            'workspace': data_objs[0]['info'][7], # target workspace of the first one?
+            'workspace': params['ws_id'],
             'output_object_name': params['output_object_name'], # make sure you check all the params exist
             'data': set_obj
         }
@@ -905,7 +904,11 @@ created with condition(s): {conditions_summary}",
             save_data['save_search_set'] = True
             set_obj['elements'] = {}
             for i, upa in enumerate(upas):
-                element = {'ref': upa, 'metadata': data_objs[i]['info'][-1]}
+                element = {
+                    'ref': upa,
+                    # todo: check if this is the right metadata
+                    'metadata': data_objs[i][-1] if data_objs[i][-1] is not None else {}
+                }
                 set_obj['elements'][upa] = element
 
         set_api_method = methods_map[output_object_type]

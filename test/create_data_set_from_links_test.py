@@ -170,7 +170,8 @@ class Test(unittest.TestCase):
             'object_type': 'KBaseFile.SingleEndLibrary',
             'output_object_name': 'test_data_links_reads',
             'collision_resolution': 'newest',
-            'description': 'filtered reads set bing bong'
+            'description': 'filtered reads set bing bong',
+            'ws_id': self.target_wsID
         })
 
         meta = ret.get('set_info')[-1]
@@ -186,7 +187,8 @@ class Test(unittest.TestCase):
             'object_type': 'KBaseGenomes.Genome',
             'output_object_name': 'test_data_links_genomes',
             'collision_resolution': 'newest',
-            'description': 'created genomes set woo hoo'
+            'description': 'created genomes set woo hoo',
+            'ws_id': self.target_wsID
         })
 
         meta = ret.get('set_info')[-1]
@@ -202,7 +204,8 @@ class Test(unittest.TestCase):
             'object_type': 'KBaseGenomes.Genome__legacy',
             'output_object_name': 'test_data_links_legacy_genomes',
             'collision_resolution': 'newest',
-            'description': 'old skool legacy genomes set'
+            'description': 'old skool legacy genomes set',
+            'ws_id': self.target_wsID
         })
 
         meta = ret.get('set_info')[-1]
@@ -220,7 +223,8 @@ class Test(unittest.TestCase):
             'object_type': 'KBaseGenomeAnnotations.Assembly',
             'output_object_name': 'test_data_links_assembly',
             'collision_resolution': 'newest',
-            'description': 'assembly set!! AAAA!!'
+            'description': 'assembly set!! AAAA!!',
+            'ws_id': self.target_wsID
         })
 
         meta = ret.get('set_info')[-1]
