@@ -89,7 +89,7 @@
       "input_mapping": [
         {
           "narrative_system_variable": "workspace_id",
-          "target_property": "workspace_id"
+          "target_property": "ws_id"
         },
         {
           "input_parameter": "sample_set_refs",
