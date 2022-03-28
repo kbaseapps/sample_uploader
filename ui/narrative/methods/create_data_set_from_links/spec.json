@@ -34,23 +34,23 @@
         "options": [
           {
             "value": "KBaseFile.PairedEndLibrary",
-            "display": "KBaseFile.PairedEndLibrary"
+            "display": "KBaseFile.PairedEndLibrary → KBaseSets.ReadsSet"
           },
           {
             "value": "KBaseFile.SingleEndLibrary",
-            "display": "KBaseFile.SingleEndLibrary"
+            "display": "KBaseFile.SingleEndLibrary → KBaseSets.ReadsSet"
           },
           {
             "value": "KBaseGenomes.Genome",
-            "display": "KBaseGenomes.Genome"
+            "display": "KBaseGenomes.Genome → KBaseSets.GenomeSet"
           },
           {
-            "value": "KBaseGenomes.Genome__legacy",
-            "display": "KBaseGenomes.Genome - legacy set type"
+            "value": "KBaseGenomes.Genome__search",
+            "display": "KBaseGenomes.Genome → KBaseSearch.GenomeSet"
           },
           {
             "value": "KBaseGenomeAnnotations.Assembly",
-            "display": "KBaseGenomeAnnotations.Assembly"
+            "display": "KBaseGenomeAnnotations.Assembly → KBaseSets.AssemblySet"
           }
         ]
       }

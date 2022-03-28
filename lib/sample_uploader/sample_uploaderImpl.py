@@ -848,7 +848,7 @@ created with condition(s): {conditions_summary}",
             'KBaseFile.SingleEndLibrary': 'KBaseSets.ReadsSet',
             'KBaseFile.PairedEndLibrary': 'KBaseSets.ReadsSet',
             'KBaseGenomes.Genome': 'KBaseSets.GenomeSet',
-            'KBaseGenomes.Genome__legacy': 'KBaseSearch.GenomeSet',
+            'KBaseGenomes.Genome__search': 'KBaseSearch.GenomeSet',
             'KBaseGenomeAnnotations.Assembly': 'KBaseSets.AssemblySet'
         }
 
@@ -900,7 +900,7 @@ created with condition(s): {conditions_summary}",
             'data': set_obj
         }
 
-        if object_type == 'KBaseGenomes.Genome__legacy':
+        if object_type == 'KBaseGenomes.Genome__search':
             save_data['save_search_set'] = True
             set_obj['elements'] = {}
             for i, upa in enumerate(upas):

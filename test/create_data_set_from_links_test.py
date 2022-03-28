@@ -201,7 +201,7 @@ class Test(unittest.TestCase):
     def test_create_data_set_legacy_genome_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.sample_set_ref],
-            'object_type': 'KBaseGenomes.Genome__legacy',
+            'object_type': 'KBaseGenomes.Genome__search',
             'output_object_name': 'test_data_links_legacy_genomes',
             'collision_resolution': 'newest',
             'description': 'old skool legacy genomes set',
