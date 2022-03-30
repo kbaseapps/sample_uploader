@@ -223,12 +223,16 @@ module sample_uploader {
     funcdef get_sampleset_meta(GetSamplesetMetaParams params) returns (list<string> results) authentication required;
 
     typedef structure {
-        string description;
-        list<string> sample_set_refs;
-        string object_type;
         string output_object_name;
+        string object_type;
+        string description;
+    } CreateDataSetFromLinksItem;
+
+    typedef structure {
+        list<string> sample_set_refs;
         string collision_resolution; /* how to resolve conflicting linked versions, currently "newest" only supported */
-        int workspace_id;
+        int ws_id;
+        list<CreateDataSetFromLinksItem> set_items;
     } CreateDataSetFromLinksParams;
 
     typedef structure {
@@ -237,5 +241,5 @@ module sample_uploader {
         string name;
     } CreateDataSetFromLinksResults;
 
-    funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (CreateDataSetFromLinksResults results) authentication required;
+    funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (list<CreateDataSetFromLinksResults> results) authentication required;
 };

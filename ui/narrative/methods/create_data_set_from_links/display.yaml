@@ -46,5 +46,12 @@ parameters :
             A description of the output data set.
         long: |
             A description of the output data set.
+
+parameter-groups:
+    set_items:
+        ui-name: |
+            Data Set(s)
+        short-hint: |
+            Information about the resulting data set(s) created from linked items in sample set.
 description : |
     <p>Create Data Set From Sample Links</p>

@@ -81,6 +81,19 @@
       "field_type": "text"
     }
   ],
+  "parameter-groups": [
+    {
+      "id": "set_items",
+      "parameters": [
+        "object_type",
+        "output_object_name",
+        "description"
+      ],
+      "optional": false,
+      "allow_multiple": true,
+      "with_border": true
+    }
+  ],
   "behavior": {
     "service-mapping": {
       "url": "",
@@ -97,16 +110,8 @@
           "target_type_transform": "list<resolved-ref>"
         },
         {
-          "input_parameter": "object_type",
-          "target_property": "object_type"
-        },
-        {
-          "input_parameter": "output_object_name",
-          "target_property": "output_object_name"
-        },
-        {
-          "input_parameter": "description",
-          "target_property": "description"
+          "input_parameter": "set_items",
+          "target_property": "set_items"
         }
       ],
       "output_mapping": []

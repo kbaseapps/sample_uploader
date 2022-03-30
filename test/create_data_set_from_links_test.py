@@ -164,72 +164,116 @@ class Test(unittest.TestCase):
             cls.ws_client.delete_workspace({'workspace': cls.ws_name})
 
     def test_create_data_set_reads_links(self):
-
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.filtered_sample_set_3_ref],
-            'object_type': 'KBaseFile.SingleEndLibrary',
-            'output_object_name': 'test_data_links_reads',
             'collision_resolution': 'newest',
-            'description': 'filtered reads set bing bong',
-            'ws_id': self.target_wsID
+            'ws_id': self.target_wsID,
+            'set_items': [{
+                'object_type': 'KBaseFile.SingleEndLibrary',
+                'output_object_name': 'test_data_links_reads',
+                'description': 'filtered reads set bing bong'
+            }]
         })
 
-        meta = ret.get('set_info')[-1]
+        meta = ret[0].get('set_info')[-1]
 
         self.assertEquals(int(meta.get('item_count')), 1)
         self.assertEquals(meta.get('description'), 'filtered reads set bing bong')
-        self.assertEquals(ret['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.ReadsSet', ret['set_info'][2])
+        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSets.ReadsSet', ret[0]['set_info'][2])
 
     def test_create_data_set_genome_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
-            'sample_set_refs': [self.sample_set_ref],
-            'object_type': 'KBaseGenomes.Genome',
-            'output_object_name': 'test_data_links_genomes',
+            'sample_set_refs': [self.sample_set_ref], 
             'collision_resolution': 'newest',
-            'description': 'created genomes set woo hoo',
-            'ws_id': self.target_wsID
+            'ws_id': self.target_wsID,
+            'set_items': [{
+                'object_type': 'KBaseGenomes.Genome',
+                'output_object_name': 'test_data_links_genomes',
+                'description': 'created genomes set woo hoo'
+            }]
         })
 
-        meta = ret.get('set_info')[-1]
+        meta = ret[0].get('set_info')[-1]
 
         self.assertEquals(int(meta.get('item_count')), 2)
         self.assertEquals(meta.get('description'), 'created genomes set woo hoo')
-        self.assertEquals(ret['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.GenomeSet', ret['set_info'][2])
+        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSets.GenomeSet', ret[0]['set_info'][2])
 
     def test_create_data_set_legacy_genome_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.sample_set_ref],
-            'object_type': 'KBaseGenomes.Genome__search',
-            'output_object_name': 'test_data_links_legacy_genomes',
+            'ws_id': self.target_wsID,
             'collision_resolution': 'newest',
-            'description': 'old skool legacy genomes set',
-            'ws_id': self.target_wsID
+            'set_items': [{
+                'description': 'old skool legacy genomes set',
+                'output_object_name': 'test_data_links_legacy_genomes',
+                'object_type': 'KBaseGenomes.Genome__search'
+            }]
         })
 
-        meta = ret.get('set_info')[-1]
+        meta = ret[0].get('set_info')[-1]
 
         # TODO: figure out why metadata doesn't get saved, its just an empty object even
         # if 'metadata' field is added to "elements" in legacy genome set
         # self.assertEquals(int(meta.get('item_count')), 2)
         # self.assertEquals(meta.get('description'), 'old skool legacy genomes set'),
-        self.assertEquals(ret['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSearch.GenomeSet', ret['set_info'][2])
+        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSearch.GenomeSet', ret[0]['set_info'][2])
 
     def test_create_data_set_assembly_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
             'sample_set_refs': [self.sample_set_ref],
-            'object_type': 'KBaseGenomeAnnotations.Assembly',
-            'output_object_name': 'test_data_links_assembly',
+            'ws_id': self.target_wsID,
             'collision_resolution': 'newest',
-            'description': 'assembly set!! AAAA!!',
-            'ws_id': self.target_wsID
+            'set_items': [{
+                'description': 'assembly set!! AAAA!!',
+                'output_object_name': 'test_data_links_assembly',
+                'object_type': 'KBaseGenomeAnnotations.Assembly'
+            }]
         })
 
-        meta = ret.get('set_info')[-1]
+        meta = ret[0].get('set_info')[-1]
 
         self.assertEquals(int(meta.get('item_count')), 1)
         self.assertEquals(meta.get('description'), 'assembly set!! AAAA!!')
-        self.assertEquals(ret['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.AssemblySet', ret['set_info'][2])
+        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
+        self.assertIn('KBaseSets.AssemblySet', ret[0]['set_info'][2])
+
+    def test_create_multiple_datasets(self):
+        set_items = [{
+            'object_type': 'KBaseGenomeAnnotations.Assembly',
+            'output_object_name': 'data_set_1',
+            'description': 'data set 1'
+        },
+                        {
+            'object_type': 'KBaseFile.SingleEndLibrary',
+            'output_object_name': 'data_set_2',
+            'description': 'data set 2'
+        },                {
+            'object_type': 'KBaseFile.PairedEndLibrary',
+            'output_object_name': 'data_set_3',
+            'description': 'data set 3'
+        }]
+        ret = self.service_impl.create_data_set_from_links(self.ctx, {
+            'sample_set_refs': [self.sample_set_ref],
+            'ws_id': self.target_wsID,
+            'collision_resolution': 'newest',
+            'set_items': set_items
+        })
+
+        self.assertEquals(len(ret), 3)
+        expected_item_counts = [1,1,2]
+        expected_item_types = [
+            'KBaseSets.AssemblySet',
+            'KBaseSets.ReadsSet', 
+            'KBaseSets.ReadsSet'
+        ]
+        for i, item in enumerate(set_items):
+            meta = ret[i].get('set_info')[-1]
+            self.assertEquals(int(meta.get('item_count')), expected_item_counts[i])
+            self.assertEquals(meta.get('description'), set_items[i]['description'])
+            self.assertEquals(ret[i]['set_info'][6], self.target_wsID)
+            self.assertIn(expected_item_types[i], ret[i]['set_info'][2])
+
