@@ -821,10 +821,11 @@ created with condition(s): {conditions_summary}",
     def create_data_set_from_links(self, ctx, params):
         """
         :param params: instance of type "CreateDataSetFromLinksParams" ->
-           structure: parameter "description" of String, parameter
-           "sample_set_refs" of list of String, parameter "object_type" of
-           String, parameter "output_object_name" of String, parameter
-           "collision_resolution" of String, parameter "ws_id" of Int
+           structure: "sample_set_refs" of list of String, parameter
+           "collision_resolution" of String, parameter "ws_id" of Int,
+           parameter "set_items" of list of type "CreateDataSetFromLinksItem" ->
+           structure: parameter "object_type" of String, parameter
+           "output_object_name" of String, parameter "description" of String
         :returns: instance of type "CreateDataSetFromLinksResults" ->
            structure: parameter "set_ref" of String, parameter "ws_upa" of
            String, parameter "name" of String
@@ -837,34 +838,17 @@ created with condition(s): {conditions_summary}",
         now = round(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
 
         try:
-            object_type = params['object_type']
+            set_items = params['set_items']
         except KeyError:
-            raise ValueError('input object type must be specified.')
+            raise ValueError('Must provide list of data set objects to create.')
 
         # list of supported KBase types mapped to their set counterparts
-        # TODO: Theres' got to be a snazzier way to check which type goes into a set type
-        # maybe this could be a SetAPI feature
         types_map = {
             'KBaseFile.SingleEndLibrary': 'KBaseSets.ReadsSet',
             'KBaseFile.PairedEndLibrary': 'KBaseSets.ReadsSet',
             'KBaseGenomes.Genome': 'KBaseSets.GenomeSet',
-            'KBaseGenomes.Genome__legacy': 'KBaseSearch.GenomeSet',
+            'KBaseGenomes.Genome__search': 'KBaseSearch.GenomeSet',
             'KBaseGenomeAnnotations.Assembly': 'KBaseSets.AssemblySet'
-        }
-
-        if object_type not in types_map:
-            raise ValueError(
-                f'Creating a set from type {object_type} is not currently supported by this app.'
-            )
-
-        output_object_type = types_map[object_type]
-
-        methods_map = {
-            # TODO: handle case for legacy GenomeSet
-            'KBaseSets.ReadsSet': set_api.save_reads_set_v1,
-            'KBaseSets.GenomeSet': set_api.save_genome_set_v1,
-            'KBaseSearch.GenomeSet': set_api.save_genome_set_v1,
-            'KBaseSets.AssemblySet': set_api.save_assembly_set_v1
         }
 
         samples = []
@@ -874,56 +858,86 @@ created with condition(s): {conditions_summary}",
             sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
         except KeyError as e:
             raise ValueError(
-                f'Invalid sampleset ref - sample in dataset missing the "{str(e)}" field'
+                f'Invalid sample set ref - sample in dataset missing the "{str(e)}" field'
             )
         data_links = sample_service.get_data_links_from_sample_set({
             'effective_time': now,
             'sample_ids': sample_ids
         })
 
-        ret = self.wsClient.get_object_info3({
+        object_infos = self.wsClient.get_object_info3({
             'objects': [{'ref': link['upa']} for link in data_links['links']]
         }).get('infos')
 
-        data_objs = [r for r in ret if r[2].split('-')[0] in object_type]
+        results = []
+        for idx, set_item in enumerate(set_items):
 
-        upas = [f"{i[6]}/{i[0]}/{i[4]}" for i in data_objs]
+            try:
+                object_type = set_item['object_type']
+            except KeyError:
+                raise ValueError(
+                    'Input object type must be specified for set' +
+                    f' "{set_item.get("output_object_name", "item " + str(idx + 1))}"'
+                )
 
-        set_obj = {
-            'description': params['description'],
-            'items': [{'ref': u} for u in upas],
-        }
+            if object_type not in types_map:
+                raise ValueError(
+                    f'Creating a set from type {object_type} is not currently supported.'
+                )
 
-        save_data = {
-            'workspace': params['ws_id'],
-            'output_object_name': params['output_object_name'], # make sure you check all the params exist
-            'data': set_obj
-        }
+            output_object_type = types_map[object_type]
 
-        if object_type == 'KBaseGenomes.Genome__legacy':
-            save_data['save_search_set'] = True
-            set_obj['elements'] = {}
-            for i, upa in enumerate(upas):
-                element = {
-                    'ref': upa,
-                    # todo: check if this is the right metadata
-                    'metadata': data_objs[i][-1] if data_objs[i][-1] is not None else {}
+            methods_map = {
+                'KBaseSets.ReadsSet': set_api.save_reads_set_v1,
+                'KBaseSets.GenomeSet': set_api.save_genome_set_v1,
+                'KBaseSearch.GenomeSet': set_api.save_genome_set_v1,
+                'KBaseSets.AssemblySet': set_api.save_assembly_set_v1
+            }
+
+            data_objs = [o for o in object_infos if o[2].split('-')[0] in object_type]
+
+            upas = [f"{i[6]}/{i[0]}/{i[4]}" for i in data_objs]
+
+            try:
+                set_obj = {
+                    'description': set_item['description'],
+                    'items': [{'ref': u} for u in upas],
                 }
-                set_obj['elements'][upa] = element
 
-        set_api_method = methods_map[output_object_type]
+                save_data = {
+                    'workspace': params['ws_id'],
+                    'output_object_name': set_item['output_object_name'],
+                    'data': set_obj
+                }
+            except KeyError as e:
+                raise ValueError(
+                    f'Missing required parameter {str(e)}'
+                )
 
-        result = set_api_method(save_data)
+            if object_type == 'KBaseGenomes.Genome__search':
+                save_data['save_search_set'] = True
+                set_obj['elements'] = {}
+                for i, upa in enumerate(upas):
+                    element = {
+                        'ref': upa,
+                        # TOOD: check if this is the right metadata
+                        'metadata': data_objs[i][-1] if data_objs[i][-1] is not None else {}
+                    }
+                    set_obj['elements'][upa] = element
 
+            set_api_method = methods_map[output_object_type]
+
+            ret = set_api_method(save_data)
+            results.append(ret)
         # TODO: decide what return object should look like
-        return result
+        return results
 
         #END create_data_set_from_links
 
         # At some point might do deeper type checking...
-        if not isinstance(results, dict):
+        if not isinstance(results, list):
             raise ValueError('Method create_data_set_from_links return value ' +
-                             'results is not type dict as required.')
+                             'results is not type list as required.')
         # return the results
         return [results]
     def status(self, ctx):
