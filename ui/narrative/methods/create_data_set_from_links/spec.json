@@ -61,16 +61,7 @@
       "advanced": false,
       "allow_multiple": false,
       "default_values": [""],
-      "field_type": "text",
-      "text_options": {
-        "valid_ws_types": [
-          "KBaseSets.ReadsSet",
-          "KBaseSets.GenomeSet",
-          "KBaseSearch.GenomeSet",
-          "KBaseSets.AssemblySet"
-        ],
-        "is_output_name": true
-      }
+      "field_type": "text"
     },
     {
       "id": "description",
