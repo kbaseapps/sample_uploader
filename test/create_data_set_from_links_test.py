@@ -8,6 +8,7 @@ from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.SetAPIClient import SetAPI
 
 class Test(unittest.TestCase):
 
@@ -45,6 +46,7 @@ class Test(unittest.TestCase):
         cls.wiz_url = cls.cfg['srv-wiz-url']
         cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
+        cls.set_api_client = SetAPI(cls.callback_url)
         suffix = int(time.time() * 1000)
         cls.ws_name = "test_sample_reads_linking_" + str(suffix)
         ret = cls.ws_client.create_workspace({'workspace': cls.ws_name})  # noqa
@@ -276,4 +278,69 @@ class Test(unittest.TestCase):
             self.assertEquals(meta.get('description'), set_items[i]['description'])
             self.assertEquals(ret[i]['set_info'][6], self.target_wsID)
             self.assertIn(expected_item_types[i], ret[i]['set_info'][2])
+
+    def test_create_datasets_colliding_sample_versions(self):
+        pass
+
+    def test_create_dataset_colliding_data_link_versions(self):
+        """
+        Test that when given an opportunity to create a data set with conflicting versions
+        of the same object, the app will only include the most recent version of the data
+        object in question.
+        """
+
+        # create new sample set
+        other_sample_set = self.service_impl.filter_samplesets(self.ctx, {
+            'workspace_name': self.ws_name,
+            'workspace_id': self.ws_id,
+            'out_sample_set_name': "filtered_" + str(int(time.time() * 1000)),
+            'sample_set_ref': [self.sample_set_ref],
+            'filter_conditions': [{
+                'metadata_field': "enigma:area_name",
+                'comparison_operator': "==",
+                'value': "Area X",
+                'logical_operator': "AND",
+            }]
+        })
+
+        other_sample_name = other_sample_set[0]['sample_set']['samples'][0]['name']
+        # cls.sample_name_1 = cls.sample_set['samples'][0]['name']
+
+        other_sample_set_ref = other_sample_set[0]['sample_set_refs'][0]
+
+        # add link to older version of paired end library
+        self.service_impl.link_samples(
+            self.ctx, {
+                'workspace_name': self.ws_name,
+                'sample_set_ref': other_sample_set_ref,
+                'links': [{
+                    'sample_name': [other_sample_name],
+                    'obj_ref': '67096/8/2' # compared to 67096/8/4
+                }]
+            })
+
+        # create ReadsSet of all paired end libraries
+        ret = self.service_impl.create_data_set_from_links(self.ctx, {
+            'sample_set_refs': [self.sample_set_ref, other_sample_set_ref],
+            'ws_id': self.target_wsID,
+            'collision_resolution': 'newest',
+            'set_items': [{
+                'description': 'this should only have 2 items linked to it! NOT 3!!',
+                'output_object_name': 'test_collision_resolution_datalinks',
+                'object_type': 'KBaseFile.PairedEndLibrary'
+            }]
+        })
+
+        meta = ret[0].get('set_info')[-1]
+        self.assertEquals(int(meta.get('item_count')), 2)
+        self.assertIn('KBaseSets.ReadsSet', ret[0]['set_info'][2])
+
+        # get actual reads set and make sure the right things are in there
+        reads_set = self.set_api_client.get_reads_set_v1({
+            'ref': ret[0]['set_ref'],
+            'include_set_ref_paths': 1
+        })
+        set_upas = [item['ref'] for item in reads_set['data']['items']]
+        self.assertNotIn('67096/8/2', set_upas)
+        self.assertIn('67096/8/4', set_upas)
 

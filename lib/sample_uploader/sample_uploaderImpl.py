@@ -855,7 +855,15 @@ created with condition(s): {conditions_summary}",
         for sample_set in self.dfu.get_objects({'object_refs': params['sample_set_refs']})['data']:
             samples.extend(sample_set['data']['samples'])
         try:
-            sample_ids = [{'id': sample['id'], 'version':sample['version']} for sample in samples]
+            cache = {}
+            for s in samples:
+                if s['id'] not in cache:
+                    cache[s['id']] = s['version']
+                else:
+                    if s['version'] > cache[s['id']]:
+                        cache[s['id']] = s['version']
+
+            sample_ids = [{'id': key, 'version': val} for key, val in cache.items()]
         except KeyError as e:
             raise ValueError(
                 f'Invalid sample set ref - sample in dataset missing the "{str(e)}" field'
@@ -865,8 +873,19 @@ created with condition(s): {conditions_summary}",
             'sample_ids': sample_ids
         })
 
+        # filter out most recent versions of duplicate linked objects
+        data_link_cache = {}
+        for data_link in data_links['links']:
+            ws_id, obj, ver = data_link['upa'].split('/')
+            link_key = f"{ws_id}/{obj}"
+            if link_key not in data_link_cache:
+                data_link_cache[link_key] = ver
+            else:
+                if int(ver) > int(data_link_cache[link_key]):
+                    data_link_cache[link_key] = ver
+
         object_infos = self.wsClient.get_object_info3({
-            'objects': [{'ref': link['upa']} for link in data_links['links']]
+            'objects': [{'ref': k + '/' + v} for k, v in data_link_cache.items()]
         }).get('infos')
 
         results = []
