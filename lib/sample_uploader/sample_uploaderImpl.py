@@ -946,7 +946,15 @@ created with condition(s): {conditions_summary}",
 
             set_api_method = methods_map[output_object_type]
 
-            ret = set_api_method(save_data)
+            ret = self.dfu.save_objects({
+                'id': params['ws_id'],
+                'objects': [{
+                    'name': set_item['output_object_name'],
+                    'type': output_object_type,
+                    'data': set_obj
+                }]
+            })
+
             results.append(ret)
         # TODO: decide what return object should look like
         return results
