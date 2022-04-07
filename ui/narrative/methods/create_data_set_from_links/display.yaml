@@ -1,0 +1,57 @@
+#
+# define display information
+#
+name: Create Data Set From Sample Links
+
+tooltip: |
+    Generate a set object of a specified data type from a list of items linked to a sample set.
+screenshots: []
+
+icon: icon.png
+
+#
+# define a set of similar methods that might be useful to the user
+#
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    sample_set_refs:
+        ui-name : |
+            Sample Set(s)
+        short-hint : |
+            Input Sample Set(s)
+        long  : |
+            Input Sample Set(s). Output Sample Set with contain all matching results.
+    object_type:
+        ui-name: |
+            Input Object Type
+        short-hint: |
+            Input Object Type
+        long: |
+            The type of KBase object to be added to data set that are linked to the sample
+            set. The KBase type must be a valid subtype for the output dataset.
+    output_object_name:
+        ui-name: |
+            Output Object Name
+        short-hint: |
+            The name of the output dataset within the workspace.
+        long: |
+            The name of the output dataset within the workspace.
+    description:
+        ui-name: |
+            Description
+        short-hint: |
+            A description of the output data set.
+        long: |
+            A description of the output data set.
+
+parameter-groups:
+    set_items:
+        ui-name: |
+            Data Set(s)
+        short-hint: |
+            Information about the resulting data set(s) created from linked items in sample set.
+description : |
+    <p>Create Data Set From Sample Links</p>
