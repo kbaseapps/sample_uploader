@@ -1,5 +1,10 @@
 # sample_uploader release notes
 =========================================
+
+1.1.2
+-----
+* add functionality to expire data links for a workspace object
+
 1.1.1
 -----
 * fixes sample acls updates, adds option to remove acls

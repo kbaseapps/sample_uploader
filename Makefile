@@ -1,4 +1,4 @@
-TARGET_TESTS = .
+TARGET_TESTS = . #utils.sample_utils_test #core_tests:sample_uploaderTest.test_remove_acls
 SERVICE = sample_uploader
 SERVICE_CAPS = sample_uploader
 SPEC_FILE = sample_uploader.spec

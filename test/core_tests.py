@@ -103,7 +103,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         data_ids = [data_link['dataid'] for data_link in data_links]
         expected_data_ids = ['samples/{}'.format(i) for i in range(expected_link_count)]
-        self.assertEqual(data_ids, expected_data_ids)
+        self.assertCountEqual(data_ids, expected_data_ids)
 
     # @unittest.skip('x')
     def test_ENIGMA_file(self):
