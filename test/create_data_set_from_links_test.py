@@ -8,6 +8,8 @@ from sample_uploader.sample_uploaderServer import MethodContext
 from sample_uploader.authclient import KBaseAuth as _KBaseAuth
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SampleServiceClient import SampleService
+from installed_clients.SetAPIClient import SetAPI
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 class Test(unittest.TestCase):
 
@@ -45,6 +47,8 @@ class Test(unittest.TestCase):
         cls.wiz_url = cls.cfg['srv-wiz-url']
         cls.sample_url = cls.cfg['kbase-endpoint'] + '/sampleservice'
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
+        cls.set_api_client = SetAPI(cls.callback_url)
+        cls.dfu = DataFileUtil(url=cls.callback_url)
         suffix = int(time.time() * 1000)
         cls.ws_name = "test_sample_reads_linking_" + str(suffix)
         ret = cls.ws_client.create_workspace({'workspace': cls.ws_name})  # noqa
@@ -72,7 +76,6 @@ class Test(unittest.TestCase):
         cls.sample_set = ret['sample_set']
         # first id of sample set - probably can remove this from class
         cls.sample_set_id = ret['sample_set']['samples'][0]['id']
-        # probably the actual upa
         cls.sample_set_ref = ret['sample_set_ref']
 
         cls.sample_name_1 = cls.sample_set['samples'][0]['name']
@@ -174,17 +177,16 @@ class Test(unittest.TestCase):
                 'description': 'filtered reads set bing bong'
             }]
         })
-
-        meta = ret[0].get('set_info')[-1]
+        meta = ret[0][0][-1]
 
         self.assertEquals(int(meta.get('item_count')), 1)
         self.assertEquals(meta.get('description'), 'filtered reads set bing bong')
-        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.ReadsSet', ret[0]['set_info'][2])
+        self.assertEquals(ret[0][0][6], self.target_wsID)
+        self.assertIn('KBaseSets.ReadsSet', ret[0][0][2])
 
     def test_create_data_set_genome_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
-            'sample_set_refs': [self.sample_set_ref], 
+            'sample_set_refs': [self.sample_set_ref],
             'collision_resolution': 'newest',
             'ws_id': self.target_wsID,
             'set_items': [{
@@ -194,12 +196,12 @@ class Test(unittest.TestCase):
             }]
         })
 
-        meta = ret[0].get('set_info')[-1]
+        meta = ret[0][0][-1]
 
         self.assertEquals(int(meta.get('item_count')), 2)
         self.assertEquals(meta.get('description'), 'created genomes set woo hoo')
-        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.GenomeSet', ret[0]['set_info'][2])
+        self.assertEquals(ret[0][0][6], self.target_wsID)
+        self.assertIn('KBaseSets.GenomeSet', ret[0][0][2])
 
     def test_create_data_set_legacy_genome_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
@@ -213,14 +215,14 @@ class Test(unittest.TestCase):
             }]
         })
 
-        meta = ret[0].get('set_info')[-1]
+        meta = ret[0][0][-1]
 
         # TODO: figure out why metadata doesn't get saved, its just an empty object even
         # if 'metadata' field is added to "elements" in legacy genome set
-        # self.assertEquals(int(meta.get('item_count')), 2)
-        # self.assertEquals(meta.get('description'), 'old skool legacy genomes set'),
-        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSearch.GenomeSet', ret[0]['set_info'][2])
+        self.assertEquals(int(meta.get('item_count')), 2)
+        self.assertEquals(meta.get('description'), 'old skool legacy genomes set'),
+        self.assertEquals(ret[0][0][6], self.target_wsID)
+        self.assertIn('KBaseSearch.GenomeSet', ret[0][0][2])
 
     def test_create_data_set_assembly_links(self):
         ret = self.service_impl.create_data_set_from_links(self.ctx, {
@@ -234,12 +236,12 @@ class Test(unittest.TestCase):
             }]
         })
 
-        meta = ret[0].get('set_info')[-1]
+        meta = ret[0][0][-1]
 
         self.assertEquals(int(meta.get('item_count')), 1)
         self.assertEquals(meta.get('description'), 'assembly set!! AAAA!!')
-        self.assertEquals(ret[0]['set_info'][6], self.target_wsID)
-        self.assertIn('KBaseSets.AssemblySet', ret[0]['set_info'][2])
+        self.assertEquals(ret[0][0][6], self.target_wsID)
+        self.assertIn('KBaseSets.AssemblySet', ret[0][0][2])
 
     def test_create_multiple_datasets(self):
         set_items = [{
@@ -263,17 +265,81 @@ class Test(unittest.TestCase):
             'set_items': set_items
         })
 
-        self.assertEquals(len(ret), 3)
+        self.assertEquals(len(ret[0]), 3)
         expected_item_counts = [1,1,2]
         expected_item_types = [
             'KBaseSets.AssemblySet',
-            'KBaseSets.ReadsSet', 
+            'KBaseSets.ReadsSet',
             'KBaseSets.ReadsSet'
         ]
         for i, item in enumerate(set_items):
-            meta = ret[i].get('set_info')[-1]
+            meta = ret[0][i][-1]
             self.assertEquals(int(meta.get('item_count')), expected_item_counts[i])
             self.assertEquals(meta.get('description'), set_items[i]['description'])
-            self.assertEquals(ret[i]['set_info'][6], self.target_wsID)
-            self.assertIn(expected_item_types[i], ret[i]['set_info'][2])
+            self.assertEquals(ret[0][i][6], self.target_wsID)
+            self.assertIn(expected_item_types[i], ret[0][i][2])
 
+    def test_create_datasets_colliding_sample_versions(self):
+        pass
+
+    def test_create_dataset_colliding_data_link_versions(self):
+        """
+        Test that when given an opportunity to create a data set with conflicting versions
+        of the same object, the app will only include the most recent version of the data
+        object in question.
+        """
+
+        # create new sample set
+        other_sample_set = self.service_impl.filter_samplesets(self.ctx, {
+            'workspace_name': self.ws_name,
+            'workspace_id': self.ws_id,
+            'out_sample_set_name': "filtered_" + str(int(time.time() * 1000)),
+            'sample_set_ref': [self.sample_set_ref],
+            'filter_conditions': [{
+                'metadata_field': "enigma:area_name",
+                'comparison_operator': "==",
+                'value': "Area X",
+                'logical_operator': "AND",
+            }]
+        })
+
+        other_sample_name = other_sample_set[0]['sample_set']['samples'][0]['name']
+        # cls.sample_name_1 = cls.sample_set['samples'][0]['name']
+
+        other_sample_set_ref = other_sample_set[0]['sample_set_refs'][0]
+
+        # add link to older version of paired end library
+        self.service_impl.link_samples(
+            self.ctx, {
+                'workspace_name': self.ws_name,
+                'sample_set_ref': other_sample_set_ref,
+                'links': [{
+                    'sample_name': [other_sample_name],
+                    'obj_ref': '67096/8/2' # compared to 67096/8/4
+                }]
+            })
+
+        # create ReadsSet of all paired end libraries
+        ret = self.service_impl.create_data_set_from_links(self.ctx, {
+            'sample_set_refs': [self.sample_set_ref, other_sample_set_ref],
+            'ws_id': self.target_wsID,
+            'collision_resolution': 'newest',
+            'set_items': [{
+                'description': 'this should only have 2 items linked to it! NOT 3!!',
+                'output_object_name': 'test_collision_resolution_datalinks',
+                'object_type': 'KBaseFile.PairedEndLibrary'
+            }]
+        })
+
+        meta = ret[0][0][-1]
+        self.assertEquals(int(meta.get('item_count')), 2)
+        self.assertIn('KBaseSets.ReadsSet', ret[0][0][2])
+
+        # get actual reads set and make sure the right things are in there
+        reads_set = self.set_api_client.get_reads_set_v1({
+            'ref': f"{ret[0][0][6]}/{ret[0][0][0]}/{ret[0][0][4]}",
+            'include_set_ref_paths': 1
+        })
+        set_upas = [item['ref'] for item in reads_set['data']['items']]
+        self.assertNotIn('67096/8/2', set_upas)
+        self.assertIn('67096/8/4', set_upas)

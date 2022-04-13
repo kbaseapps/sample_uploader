@@ -235,11 +235,10 @@ module sample_uploader {
         list<CreateDataSetFromLinksItem> set_items;
     } CreateDataSetFromLinksParams;
 
-    typedef structure {
-        string set_ref;
-        string ws_upa;
-        string name;
-    } CreateDataSetFromLinksResults;
+    typedef tuple<int objid, string name, string type,
+    string save_date, int version, string saved_by,
+    int ws_id, string workspace, string chsum, int size, mapping<string, string> meta>
+    ObjectInfo;
 
-    funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (list<CreateDataSetFromLinksResults> results) authentication required;
+    funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (list<ObjectInfo> results) authentication required;
 };
