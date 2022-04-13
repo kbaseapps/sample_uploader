@@ -92,6 +92,9 @@ class Test(unittest.TestCase):
             cls.test_genome = '44442/16/1'
             cls.test_genome_2 = '66247/2/1'
             cls.test_assembly_1 = '66247/3/1'
+            # test linking 2 versions of the same data set
+            cls.collision_good_upa = '44442/7/2'
+            cls.collision_bad_upa = '44442/7/1'
             cls.target_wsID = 44442
         elif 'ci' in cls.cfg['kbase-endpoint']:
             # cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
@@ -101,6 +104,9 @@ class Test(unittest.TestCase):
             cls.test_genome = '67096/6/1'
             cls.test_genome_2 = '67096/5/8'
             cls.test_assembly_1 = '67096/13/1'
+            # test linking 2 versions of the same data set
+            cls.collision_good_upa = '67096/8/4'
+            cls.collision_bad_upa = '67096/8/2'
             cls.target_wsID = 67096
 
         # input links data
@@ -302,7 +308,7 @@ class Test(unittest.TestCase):
                 'sample_set_ref': other_sample_set_ref,
                 'links': [{
                     'sample_name': [other_sample_name],
-                    'obj_ref': '67096/8/2' # compared to 67096/8/4
+                    'obj_ref': self.collision_bad_upa # compared to 67096/8/4
                 }]
             })
 
@@ -328,5 +334,5 @@ class Test(unittest.TestCase):
             'include_set_ref_paths': 1
         })
         set_upas = [item['ref'] for item in reads_set['data']['items']]
-        self.assertNotIn('67096/8/2', set_upas)
-        self.assertIn('67096/8/4', set_upas)
+        self.assertNotIn(self.collision_bad_upa, set_upas)
+        self.assertIn(self.collision_good_upa, set_upas)
