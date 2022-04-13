@@ -223,6 +223,7 @@ module sample_uploader {
     funcdef get_sampleset_meta(GetSamplesetMetaParams params) returns (list<string> results) authentication required;
 
     typedef structure {
+
         string output_object_name;
         string object_type;
         string description;
@@ -241,4 +242,19 @@ module sample_uploader {
     ObjectInfo;
 
     funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (list<ObjectInfo> results) authentication required;
+
+        string workspace_name;
+        string workspace_id;
+        list<string> obj_refs;
+    } ExpireDataLinkParams;
+
+    typedef structure {
+        string report_name;
+        string report_ref;
+    } ExpireDataLinkOutput;
+
+    /*
+        Expire data links for a list of given workspace objects.
+    */
+    funcdef expire_data_link(ExpireDataLinkParams params) returns (ExpireDataLinkOutput output) authentication required;
 };

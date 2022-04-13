@@ -1,0 +1,34 @@
+#
+# define display information
+#
+name: Expire Data Link For Workspace Objects
+
+tooltip: |
+    Expire Data Link For Workspace Objects
+
+screenshots: []
+
+icon: sample_uploader.png
+
+#
+# define a set of similar apps that might be useful to the user
+#
+suggestions:
+    apps:
+        related:
+            [app1, app2]
+        next:
+            [app3, app4]
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    obj_refs :
+        ui-name : |
+            Workspace Objects
+        short-hint : |
+            Supporting types: KBaseFile.PairedEndLibrary/SingleEndLibrary, KBaseAssembly.PairedEndLibrary/SingleEndLibrary, KBaseGenomes.Genome, KBaseMetagenomes.AnnotatedMetagenomeAssembly, KBaseGenomeAnnotations.Assembly, KBaseSets.AssemblySet
+
+description : |
+    <p>Expire Data Link For Workspace Objects</p>
