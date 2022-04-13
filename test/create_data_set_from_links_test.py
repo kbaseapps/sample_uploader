@@ -90,7 +90,7 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
-            cls.test_genome2 = '66247/2/1'
+            cls.test_genome_2 = '66247/2/1'
             cls.test_assembly_1 = '66247/3/1'
             cls.target_wsID = 44442
         elif 'ci' in cls.cfg['kbase-endpoint']:
