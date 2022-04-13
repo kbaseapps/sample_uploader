@@ -90,12 +90,8 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
-            cls.test_genome_name = 'test_genome'
-            cls.test_assembly_SE_reads = '44442/15/1'
-            cls.test_assembly_SE_reads_name = 'single_end_kbassy'
-            cls.test_assembly_PE_reads = '44442/14/1'
-            cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
-            cls.test_AMA_genome = '44442/13/2'
+            cls.test_genome2 = '66247/2/1'
+            cls.test_assembly_1 = '66247/3/1'
             cls.target_wsID = 44442
         elif 'ci' in cls.cfg['kbase-endpoint']:
             # cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
@@ -103,17 +99,8 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '67096/3/1'  # paired
             cls.rhodobacter_art_q50_SE_reads = '67096/2/1'  # single
             cls.test_genome = '67096/6/1'
-            # cls.test_genome_name = 'Acaryochloris_marina_MBIC11017'
             cls.test_genome_2 = '67096/5/8'
             cls.test_assembly_1 = '67096/13/1'
-            # cls.test_genome_2_name = 'test do i have to keep the same name?'
-            # cls.test_genome = '59862/27/1'
-            # cls.test_genome_name = 'test_Genome'
-            # cls.test_assembly_SE_reads = '59862/26/1'
-            # cls.test_assembly_SE_reads_name = 'single_end_kbassy'
-            # cls.test_assembly_PE_reads = '59862/25/1'
-            # cls.test_assembly_PE_reads_name = 'kbassy_roo_f'
-            # cls.test_AMA_genome = '59862/28/1'
             cls.target_wsID = 67096
 
         # input links data
