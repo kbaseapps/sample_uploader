@@ -826,9 +826,12 @@ created with condition(s): {conditions_summary}",
            parameter "set_items" of list of type "CreateDataSetFromLinksItem" ->
            structure: parameter "object_type" of String, parameter
            "output_object_name" of String, parameter "description" of String
-        :returns: instance of type "CreateDataSetFromLinksResults" ->
-           structure: parameter "set_ref" of String, parameter "ws_upa" of
-           String, parameter "name" of String
+        :returns: instance of type tuple -> structure: parameter "objid" of int,
+           paramter "name" of string, parameter "type" of string, parameter
+           "save_date" of string, parameter "version" of int, parameter "saved_by"
+           of string, parameter "ws_id" of int, parameter "workspace" of string,
+           parameter "chsum" of string, parameter "size" of int, parameter
+           "meta" of Mapping of string, string.
         """
         # ctx is the context object
         # return variables are: results
@@ -888,7 +891,7 @@ created with condition(s): {conditions_summary}",
             'objects': [{'ref': k + '/' + v} for k, v in data_link_cache.items()]
         }).get('infos')
 
-        results = []
+        dfu_params = []
         for idx, set_item in enumerate(set_items):
 
             try:
@@ -905,14 +908,6 @@ created with condition(s): {conditions_summary}",
                 )
 
             output_object_type = types_map[object_type]
-
-            methods_map = {
-                'KBaseSets.ReadsSet': set_api.save_reads_set_v1,
-                'KBaseSets.GenomeSet': set_api.save_genome_set_v1,
-                'KBaseSearch.GenomeSet': set_api.save_genome_set_v1,
-                'KBaseSets.AssemblySet': set_api.save_assembly_set_v1
-            }
-
             data_objs = [o for o in object_infos if o[2].split('-')[0] in object_type]
 
             upas = [f"{i[6]}/{i[0]}/{i[4]}" for i in data_objs]
@@ -933,32 +928,27 @@ created with condition(s): {conditions_summary}",
                     f'Missing required parameter {str(e)}'
                 )
 
+            object_save_data = {
+                'name': set_item['output_object_name'],
+                'type': output_object_type,
+                'data': set_obj
+            }
+
             if object_type == 'KBaseGenomes.Genome__search':
-                save_data['save_search_set'] = True
                 set_obj['elements'] = {}
-                for i, upa in enumerate(upas):
-                    element = {
-                        'ref': upa,
-                        # TOOD: check if this is the right metadata
-                        'metadata': data_objs[i][-1] if data_objs[i][-1] is not None else {}
-                    }
-                    set_obj['elements'][upa] = element
+                for upa in upas:
+                    set_obj['elements'][upa] = {'ref': upa}
 
-            set_api_method = methods_map[output_object_type]
+                object_save_data['meta'] = {
+                    'item_count': len(upas),
+                    'description': set_item['description']
+                }
+            dfu_params.append(object_save_data)
 
-            ret = self.dfu.save_objects({
-                'id': params['ws_id'],
-                'objects': [{
-                    'name': set_item['output_object_name'],
-                    'type': output_object_type,
-                    'data': set_obj
-                }]
-            })
-
-            results.append(ret)
-        # TODO: decide what return object should look like
-        return results
-
+        results = self.dfu.save_objects({
+            'id': params['ws_id'],
+            'objects': dfu_params
+        })
         #END create_data_set_from_links
 
         # At some point might do deeper type checking...
