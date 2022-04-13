@@ -243,6 +243,7 @@ module sample_uploader {
 
     funcdef create_data_set_from_links(CreateDataSetFromLinksParams params) returns (list<ObjectInfo> results) authentication required;
 
+    typedef structure {
         string workspace_name;
         string workspace_id;
         list<string> obj_refs;
