@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
         # TODO make a bunch of copies of these objects
         if 'appdev' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '44442/4/1'
-            cls.rhodo_art_jgi_reads = '44442/8/1'
+            cls.rhodo_art_jgi_reads = '44442/14/1' # kbassy_roo_f, this is a SE lib in appdev
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
@@ -96,6 +96,8 @@ class Test(unittest.TestCase):
             cls.collision_good_upa = '44442/7/2'
             cls.collision_bad_upa = '44442/7/1'
             cls.target_wsID = 44442
+            cls.test_bad_collisions_type = 'KBaseFile.SingleEndLibrary'
+            cls.test_collisions_expected_length = 1
         elif 'ci' in cls.cfg['kbase-endpoint']:
             # cls.ReadLinkingTestSampleSet = '59862/11/1'  # SampleSet
             cls.rhodo_art_jgi_reads = '67096/8/4'  # paired
@@ -108,6 +110,8 @@ class Test(unittest.TestCase):
             cls.collision_good_upa = '67096/8/4'
             cls.collision_bad_upa = '67096/8/2'
             cls.target_wsID = 67096
+            cls.test_bad_collisions_type = 'KBaseFile.PairedEndLibrary'
+            cls.test_collisions_expected_length = 2
 
         # input links data
         cls.links_in = [
@@ -320,12 +324,13 @@ class Test(unittest.TestCase):
             'set_items': [{
                 'description': 'this should only have 2 items linked to it! NOT 3!!',
                 'output_object_name': 'test_collision_resolution_datalinks',
-                'object_type': 'KBaseFile.PairedEndLibrary'
+                'object_type': self.test_bad_collisions_type
             }]
         })
 
         meta = ret[0][0][-1]
-        self.assertEquals(int(meta.get('item_count')), 2)
+        self.assertEquals(int(meta.get('item_count')),
+                         self.test_collisions_expected_length)
         self.assertIn('KBaseSets.ReadsSet', ret[0][0][2])
 
         # get actual reads set and make sure the right things are in there
