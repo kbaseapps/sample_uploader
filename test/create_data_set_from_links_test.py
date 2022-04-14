@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
         # TODO make a bunch of copies of these objects
         if 'appdev' in cls.cfg['kbase-endpoint']:
             cls.ReadLinkingTestSampleSet = '44442/4/1'
-            cls.rhodo_art_jgi_reads = '44442/14/1' # kbassy_roo_f, this is a SE lib in appdev
+            cls.rhodo_art_jgi_reads = '66270/14/1' # kbassy_roo_f, this is a SE lib in appdev
             cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
             cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
             cls.test_genome = '44442/16/1'
