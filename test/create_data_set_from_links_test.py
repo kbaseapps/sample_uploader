@@ -85,17 +85,17 @@ class Test(unittest.TestCase):
         # reference data set upas
         # TODO make a bunch of copies of these objects
         if 'appdev' in cls.cfg['kbase-endpoint']:
-            cls.ReadLinkingTestSampleSet = '44442/4/1'
+            cls.ReadLinkingTestSampleSet = '66270/4/1'
             cls.rhodo_art_jgi_reads = '66270/14/1' # kbassy_roo_f, this is a SE lib in appdev
-            cls.rhodobacter_art_q20_int_PE_reads = '44442/6/1'
-            cls.rhodobacter_art_q50_SE_reads = '44442/7/2'
-            cls.test_genome = '44442/16/1'
-            cls.test_genome_2 = '66247/2/1'
-            cls.test_assembly_1 = '66247/3/1'
+            cls.rhodobacter_art_q20_int_PE_reads = '66270/6/1'
+            cls.rhodobacter_art_q50_SE_reads = '66270/7/2'
+            cls.test_genome = '66270/16/1'
+            cls.test_genome_2 = '66270/2/1'
+            cls.test_assembly_1 = '66270/3/1'
             # test linking 2 versions of the same data set
-            cls.collision_good_upa = '44442/7/2'
-            cls.collision_bad_upa = '44442/7/1'
-            cls.target_wsID = 44442
+            cls.collision_good_upa = '66270/7/2'
+            cls.collision_bad_upa = '66270/7/1'
+            cls.target_wsID = 66270
             cls.test_bad_collisions_type = 'KBaseFile.SingleEndLibrary'
             cls.test_collisions_expected_length = 1
         elif 'ci' in cls.cfg['kbase-endpoint']:
