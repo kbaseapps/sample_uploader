@@ -1,6 +1,6 @@
 # sample_uploader
 
-this module supports upload of the sample objects into kbase. It accepts '.csv' and '.xls' files in the SESAR format. For specifics on the format visit the SESAR webpage [here](http://www.geosamples.org).
+This module supports upload of the sample objects into kbase. It accepts '.csv' and '.xls' files in the SESAR format. For specifics on the format visit the SESAR webpage [here](http://www.geosamples.org).
 
 ## Current Status
 
