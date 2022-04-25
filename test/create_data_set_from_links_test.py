@@ -264,7 +264,7 @@ class Test(unittest.TestCase):
 
         self.assertEquals(len(ret[0]), 3)
         print('Return value ->', ret)
-        expected_item_counts = [1,1,self.collisions_expected_length]
+        expected_item_counts = [1,1,self.test_collisions_expected_length]
         expected_item_types = [
             'KBaseSets.AssemblySet',
             'KBaseSets.ReadsSet',
