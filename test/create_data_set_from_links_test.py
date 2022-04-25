@@ -90,8 +90,8 @@ class Test(unittest.TestCase):
             cls.rhodobacter_art_q20_int_PE_reads = '66270/6/1'
             cls.rhodobacter_art_q50_SE_reads = '66270/7/2'
             cls.test_genome = '66270/16/1'
-            cls.test_genome_2 = '66270/2/1'
-            cls.test_assembly_1 = '66270/3/1'
+            cls.test_genome_2 = '66270/26/1'
+            cls.test_assembly_1 = '66270/27/1'
             # test linking 2 versions of the same data set
             cls.collision_good_upa = '66270/7/2'
             cls.collision_bad_upa = '66270/7/1'
