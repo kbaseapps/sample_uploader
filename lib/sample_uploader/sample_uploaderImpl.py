@@ -12,7 +12,6 @@ from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.SampleServiceClient import SampleService
 from installed_clients.sample_search_apiClient import sample_search_api
 from installed_clients.WorkspaceClient import Workspace as workspaceService
-from installed_clients.SetAPIClient import SetAPI
 from sample_uploader.utils.exporter import sample_set_to_output
 from sample_uploader.utils.importer import import_samples_from_file, find_header_row
 from sample_uploader.utils.mappings import SESAR_mappings, ENIGMA_mappings, aliases
@@ -837,7 +836,6 @@ created with condition(s): {conditions_summary}",
         # return variables are: results
         #BEGIN create_data_set_from_links
         sample_service = SampleService(self.sample_url)
-        set_api = SetAPI(self.callback_url)
         now = round(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
 
         try:
@@ -916,12 +914,6 @@ created with condition(s): {conditions_summary}",
                 set_obj = {
                     'description': set_item['description'],
                     'items': [{'ref': u} for u in upas],
-                }
-
-                save_data = {
-                    'workspace': params['ws_id'],
-                    'output_object_name': set_item['output_object_name'],
-                    'data': set_obj
                 }
             except KeyError as e:
                 raise ValueError(
