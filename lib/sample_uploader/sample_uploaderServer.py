@@ -378,6 +378,10 @@ class Application(object):
                              name='sample_uploader.get_sampleset_meta',
                              types=[dict])
         self.method_authentication['sample_uploader.get_sampleset_meta'] = 'required'  # noqa
+        self.rpc_service.add(impl_sample_uploader.create_data_set_from_links,
+                             name='sample_uploader.create_data_set_from_links',
+                             types=[dict])
+        self.method_authentication['sample_uploader.create_data_set_from_links'] = 'required'  # noqa
         self.rpc_service.add(impl_sample_uploader.expire_data_link,
                              name='sample_uploader.expire_data_link',
                              types=[dict])
