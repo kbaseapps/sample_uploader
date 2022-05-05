@@ -34,7 +34,6 @@ def _has_sesar_header(df):
     sesar_headers = ['object type:', 'user code:']
     sesar_headers_count = [i for i in df.columns if i.lower() in sesar_headers]
     if len(unnamed_cols) > 0 or len(sesar_headers_count) > 0:
-        print('Detected extra header line. Setting header_row_index to 1')
         has_sesar_header = True
 
     return has_sesar_header
@@ -63,7 +62,6 @@ def find_header_row(sample_file, file_format):
             # TODO: this function will fail if the extra header line happens to have exactly the same number of columns as the real header line
             non_empty_header = [i for i in first_line.split(inferred_sep) if i not in ['', '\n']]
             if len(non_empty_header) != len(second_line.split(inferred_sep)):
-                print('Detected extra header line. Setting header_row_index to 1')
                 header_row_index = 1
 
         elif sample_file.endswith('.csv'):
@@ -278,20 +276,26 @@ def _produce_samples(
             del existing_sample_names[extra_sample]
 
     user_keys = set()
+    controlled_keys = set()
     for s in samples:
         for n in s['sample']['node_tree']:
             ukeys = set(n['meta_user'].keys())
             ckeys = set(n['meta_controlled'].keys())
             user_keys |= (ukeys - ckeys)
+            controlled_keys |= (ckeys - ukeys)
     for key in user_keys:
+
         warnings.warn(SampleContentWarning(
             f"\"{key}\" is a user-defined column. It is of unknown type, will not be automatically validated, and may not be interoperable with other samples during analysis.",
             key=key,
             severity='warning'
         ))
 
+    # send list of keys with annotated custom fields to save with KBaseSets.SampleSet
+    metadata_keys = list(controlled_keys | {f'custom:{key}' for key in user_keys})
+
     # add the missing samples from existing_sample_names
-    return samples, [existing_sample_names[key] for key in existing_sample_names]
+    return samples, [existing_sample_names[key] for key in existing_sample_names], metadata_keys
 
 
 def _save_samples(samples, acls, sample_url, token, propagate_links):
@@ -449,7 +453,7 @@ def import_samples_from_file(
                 # query workspace for user permissions.
                 acls = get_workspace_user_perms(workspace_url, params.get('workspace_id'), token, username, acls)
 
-            samples, existing_samples = _produce_samples(
+            samples, existing_samples, metadata_keys = _produce_samples(
                 callback_url,
                 df,
                 column_groups,
@@ -518,6 +522,7 @@ def import_samples_from_file(
 
     if has_unignored_errors:
         saved_samples = []
+        metadata_keys = {}
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token,
                                       params.get('propagate_links', 0))
@@ -527,5 +532,6 @@ def import_samples_from_file(
 
     return {
         "samples": saved_samples,
-        "description": params.get('description')
+        "description": params.get('description'),
+        "metadata_keys": metadata_keys
     }, has_unignored_errors, errors.get(), sample_data_json

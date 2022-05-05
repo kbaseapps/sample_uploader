@@ -127,6 +127,17 @@ class sample_uploaderTest(unittest.TestCase):
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(has_unignored_errors, False)
+        self.assertIn('metadata_keys', sample_set)
+        self.assertCountEqual(sample_set['metadata_keys'], [
+            'feature',
+            'longitude',
+            'enigma:aquifer',
+            'custom:jamboree',
+            'material',
+            'latitude',
+            'biome',
+            'sample_template'
+        ])
 
         ori_compare_path = os.path.join(self.test_dir, "data", "fake_samples_ENIGMA.json")
         compare_path = os.path.join(self.test_dir, "data", "updated_fake_samples_ENIGMA.json")
@@ -180,6 +191,17 @@ class sample_uploaderTest(unittest.TestCase):
         samples = sample_set['samples']
         self.assertEqual(len(samples), 3)
         expected_sample_name = ['s1', 's2', 's3']
+        self.assertIn('metadata_keys', sample_set)
+        self.assertCountEqual(sample_set['metadata_keys'], [
+            'feature',
+            'longitude',
+            'enigma:aquifer',
+            'custom:jamboree',
+            'material',
+            'latitude',
+            'biome',
+            'sample_template'
+        ])
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(has_unignored_errors, False)
 
@@ -362,6 +384,18 @@ class sample_uploaderTest(unittest.TestCase):
         expected_sample_name = ['s1', 's2', 's3']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(has_unignored_errors, False)
+        self.assertIn('metadata_keys', sample_set)
+        self.assertCountEqual(sample_set['metadata_keys'], [
+            'custom:user_field',
+            'sesar:material',
+            'country',
+            'biome',
+            'sesar:size',
+            'depth_bgs',
+            'sample_template',
+            'feature',
+            'sesar:elevation_start'
+        ])
 
         compare_path = os.path.join(self.test_dir, "data", "fake_samples.json")
         self._verify_samples(sample_set, compare_path)
@@ -400,6 +434,29 @@ class sample_uploaderTest(unittest.TestCase):
         expected_sample_name = ['SAMN03166112', 'SAMN04383980']
         self.assertCountEqual([sample['name'] for sample in samples], expected_sample_name)
         self.assertEqual(has_unignored_errors, False)
+        self.assertIn('metadata_keys', sample_set)
+        self.assertCountEqual(sample_set['metadata_keys'], [
+            'custom:source_name',
+            'custom:env_biome',
+            'custom:misc_param',
+            'custom:elev',
+            'sample_template',
+            'custom:env_feature',
+            'sesar:collection_date',
+            'custom:current_archive_contact',
+            'custom:collector',
+            'custom:cell_line',
+            'custom:depth',
+            'custom:env_material',
+            'custom:publication_date',
+            'longitude',
+            'custom:current_archive',
+            'custom:last_update',
+            'latitude',
+            'custom:submission_date',
+            'description',
+            'custom:geo_loc_name'
+        ])
 
     def test_dup_column_file(self):
         ''''''
@@ -433,6 +490,7 @@ class sample_uploaderTest(unittest.TestCase):
 
         # check errors
         self.assertEqual(len(errors), 1)
+        self.assertEqual(sample_set['metadata_keys'], {})
         self.assertEqual(errors[0].message, 'Duplicate column "some_field". "some_field" would ' +
                                             'overwrite a different column "some field". Rename ' +
                                             'your columns to be unique alphanumericaly, ' +

@@ -78,7 +78,6 @@ for field in SAMP_SERV_CONFIG['validators']:
         else:
             NON_PREFIX_TO_PREFIX[field_name] = [field.lower()]
 
-
 def alias_map(col_config):
     """
     aliases map
