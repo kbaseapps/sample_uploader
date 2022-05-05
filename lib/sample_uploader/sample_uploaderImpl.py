@@ -98,8 +98,6 @@ class sample_uploader:
         # ctx is the context object
         # return variables are: output
         #BEGIN import_samples
-        print(f"Beginning sample import with following parameters:")
-        print(f"params -- {params}")
         sample_set = {"samples": []}
         # Check if we have an existing Sample Set as input
         # if so, download

@@ -236,7 +236,6 @@ def compare_samples(s1, s2):
     if s1 is None or s2 is None:
         return False
     else:
-        print('start comparing samples: {} vs {}'.format(s1['name'], s2['name']))
 
         def remove_field(node, field):
             if field in node:
@@ -248,10 +247,6 @@ def compare_samples(s1, s2):
 
         # TODO: worth scrutiny
         comp = s1['name'] == s2['name'] and s1_nt == s2_nt
-        if comp:
-            print('compared samples are the same')
-        else:
-            print('compared samples are different')
         return comp
 
 
@@ -294,7 +289,6 @@ def save_sample(sample, sample_url, token, previous_version=None, propagate_link
     token      - workspace token for Authorization
     previous_version - data of previous version of sample
     """
-    print('start saving sample')
     headers = {
         "Authorization": token,
         "Content-Type": "application/json"
@@ -329,10 +323,7 @@ def save_sample(sample, sample_url, token, previous_version=None, propagate_link
     sample_id = resp_json['result'][0]['id']
     sample_ver = resp_json['result'][0]['version']
 
-    print('saved sample {} (version: {}'.format(sample_id, sample_ver))
-
     if previous_version and propagate_links:
-        print('start propagating previous data links')
 
         ss = SampleService(sample_url)
         ss.propagate_data_links({'id': sample_id,
@@ -498,7 +489,6 @@ def expire_data_link(obj_refs, sample_url, token):
         links = get_data_links_from_ss(upa, sample_url, token)
         for link in links:
             upa, dataid = link.get('upa'), link.get('dataid')
-            print('start expiring link {}-{}'.format(upa, dataid))
             ss.expire_data_link({'upa': upa, 'dataid': dataid})
             expired_link_count += 1
 
