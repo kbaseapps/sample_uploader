@@ -522,6 +522,7 @@ def import_samples_from_file(
 
     if has_unignored_errors:
         saved_samples = []
+        metadata_keys = {}
     else:
         saved_samples = _save_samples(samples, acls, sample_url, token,
                                       params.get('propagate_links', 0))
